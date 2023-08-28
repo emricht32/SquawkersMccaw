@@ -1,14 +1,15 @@
-# import time
-# import threading
-# from pydub import AudioSegment, playback
+from bird import Bird
+import time
+import threading
+from pydub import AudioSegment, playback
 
-# try:
-#     from gpiozero import LED
-#     GPIO_AVAILABLE = True
-# except ImportError:
-#     GPIO_AVAILABLE = False
+try:
+    from gpiozero import MotionSensor
+    GPIO_AVAILABLE = True
+except ImportError:
+    GPIO_AVAILABLE = False
 
-# Speech intervals for José and Michael
+
 jose_intervals = [
     (2.7,5.2),(11,12.2),(16.5,26),(32.25,33.75),(42,44.2),(57.75,64.5),
     (67,68.5),(80,91),(96.2,97.6),(117.5,119),(123,133.5)
@@ -20,30 +21,13 @@ michael_intervals = [
 pierre_intervals = [
     (44.2, 49)
 ]
-# pierre_intervals =[
-#     (2.9,5.2),(10,12.2),(16.5,26),(32.25,33.75),(42,44.2),(57.75,64.5),
-#     (67,68.5),(80,91),(96.2,97.6),(117.5,119),(123,133.5)
-# ]
-
 fritz_intervals = [
     (49, 57.5),(144.1, 145.3)
 ]
-
 all_intervals = [
     (5.8, 11),(13.75, 16),(26, 32),(35,37.5),(91, 96),(99, 101.6),
     (112.2, 117.5),(120.4, 123),(133.5, 139),(139, 144),(144.5, 155)
 ]
-
-from bird import Bird
-import time
-import threading
-from pydub import AudioSegment, playback
-
-try:
-    from gpiozero import MotionSensor
-    GPIO_AVAILABLE = True
-except ImportError:
-    GPIO_AVAILABLE = False
 
 LAST_MOTION, PIR = None, None
 
@@ -78,15 +62,6 @@ def motion_tracker():
         time.sleep(1)
 
 if __name__ == "__main__":
-    # Pierre: GPIO25 (pin 22) and GPIO24 (pin 18)
-    # Jose: GPIO23 (pin 16) and GPIO22 (pin 15)
-    # Michael: GPIO27 (pin 13) and GPIO18 (pin 12)
-    # Fritz: GPIO17 (pin 11) and GPIO4 (pin 7)
-    # jose = Bird("Jose", jose_intervals + all_intervals, 17x, 24, 25)
-    # michael = Bird("Michael", michael_intervals + all_intervals, 18x, 22, 23)
-    # pierre = Bird("Pierre", pierre_intervals + all_intervals, 19x, 18, 27)
-    # fritz = Bird("Fritz", fritz_intervals + all_intervals, 20x, 4, 17)
-
     pierre = Bird("Pierre", pierre_intervals + all_intervals, 17, 21, 26, 10)
     jose = Bird("Jose", jose_intervals + all_intervals, 22, 24, 23, 9)
     michael = Bird("Michael", michael_intervals + all_intervals, 19, 27, 5, 11)
