@@ -1,3 +1,4 @@
+# WIP - Ill be updating this as I get time/motivation :)
 # Squawkers McCaw Tiki Room
 
 ## Overview
@@ -44,8 +45,14 @@ pip3 install -r pi-requirements.txt
 ## Hardware Setup
 
 1. **Squawkers McCaw**: Disassemble the bird carefully and identify the control wires for the servo motors. Pic examples in docs/media.
+
+![](docs/media/Screenshot%202023-08-28%20at%2011.34.42%20AM.png)
+![](docs/media/Screenshot%202023-08-28%20at%2011.34.57%20AM.png)
+![](docs/media/Screenshot%202023-08-28%20at%2011.35.16%20AM.png)
+![](docs/media/Screenshot%202023-08-28%20at%2011.35.33%20AM.png)
    
 2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference.  There are two versions of the diagram so far.  I am in the middle of updating the display to only use Solid State Relays and V2 has been updated for this.
+![V1](docs/hardware/TikiBirdsFritzV1.png)
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 
