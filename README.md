@@ -16,8 +16,8 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 
 ## Requirements
 
-- Raspberry Pi 4 Model B (or newer)
-- Squawkers McCaw birds
+- Raspberry Pi 4 Model B (Im guessing an older Pi3 could work fine but I havent tested it)
+- Squawkers McCaw birds (x4)
 - Wires, 8-channel Solid State Relay, 4-channel Solid State Relay, IR motion sensor, Servo Motor Hat (for Drummers which is not yet implemented) and other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
@@ -52,7 +52,10 @@ pip3 install -r pi-requirements.txt
 ![](docs/media/Screenshot%202023-08-28%20at%2011.35.33%20AM.png)
    
 2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference.  There are two versions of the diagram so far.  I am in the middle of updating the display to only use Solid State Relays and V2 has been updated for this.
+**V1 Wiring**
 ![V1](docs/hardware/TikiBirdsFritzV1.png)
+**V2 Wiring**
+![V2](docs/hardware/TikiBirdsFritzV2.png)
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 
@@ -82,4 +85,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Acknolagements
 
-I started this project a couple years ago.  First I bought a [Squawker Talker](https://www.halloweenforum.com/threads/new-all-in-one-board-for-hacking-squawkers-mccaw.167858/page-4) from J-Man. If you are only looking for a single bird setup I highly recommend and suggest using this.  If I remember correctly it was about $80 and came with super easy to use instructions.  You can email him at info@audioservocontroller.com.  I also **borrowed** his images for disassembaling the birdand how to get access to the needed wires.
+I started this project a couple years ago.  First I bought a [Squawker Talker](https://www.halloweenforum.com/threads/new-all-in-one-board-for-hacking-squawkers-mccaw.167858/page-4) from J-Man. If you are only looking for a single bird setup I highly recommend and suggest using this.  If I remember correctly it was about $80 and came with super easy to use instructions.  You can email him at info@audioservocontroller.com.  I also **borrowed** his images for disassembaling the bird and how to get access to the needed wires.
