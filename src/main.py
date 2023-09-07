@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     birds = [pierre, jose, michael, fritz]
     PIR = MotionSensor(4)
-    while True:
-        PIR.wait_for_motion()
+    # while True:
+    #     PIR.wait_for_motion()
         # while True:
         #     pir_thread = threading.Thread(target=motion_tracker)
         #     pir_thread.start()
@@ -85,5 +85,5 @@ if __name__ == "__main__":
         #     play_audio_with_speech_indicator(audio_path, birds)
 
             
-        audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.final.mp3"
-        play_audio_with_speech_indicator(audio_path, birds)
+    audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.final.mp3"
+    play_audio_with_speech_indicator(audio_path, birds)

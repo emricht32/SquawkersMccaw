@@ -18,9 +18,9 @@ class Bird:
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         self.speeker_led = LED(speeker_led_pin) if GPIO_AVAILABLE else None
-        self.spotlight_led.on()
-        self.body_led.on()
-        self.speeker_led.on()
+        # self.spotlight_led.on()
+        # self.body_led.on()
+        # self.speeker_led.on()
         self.event = threading.Event()
 
     def is_speaking(self, curr_time):
@@ -40,26 +40,9 @@ class Bird:
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
         if self.spotlight_led:
-            self.spotlight_led.off() #opposite due to relay being connected to
+            self.spotlight_led.on() #opposite due to relay being connected to
         else:
             print(f"{self.name} Spotlight ON")
-        if self.body_led:
-            self.body_led.off() #opposite due to relay being connected to
-        else:
-            print(f"{self.name} Body ON")
-        if self.speeker_led:
-            self.speeker_led.off() #opposite due to relay being connected to
-        else:
-            print(f"{self.name} Body ON")
-
-    def stop_moving(self):
-        if not self.event.is_set():
-            return
-        self.event.clear()
-        if self.spotlight_led:
-            self.spotlight_led.on()
-        else:
-            print(f"{self.name} Spotlight OFF")
         if self.body_led:
             self.body_led.on() #opposite due to relay being connected to
         else:
@@ -68,9 +51,26 @@ class Bird:
             self.speeker_led.on() #opposite due to relay being connected to
         else:
             print(f"{self.name} Body ON")
+
+    def stop_moving(self):
+        if not self.event.is_set():
+            return
+        self.event.clear()
+        if self.spotlight_led:
+            self.spotlight_led.off()
+        else:
+            print(f"{self.name} Spotlight OFF")
+        if self.body_led:
+            self.body_led.off() #opposite due to relay being connected to
+        else:
+            print(f"{self.name} Body ON")
+        if self.speeker_led:
+            self.speeker_led.off() #opposite due to relay being connected to
+        else:
+            print(f"{self.name} Body ON")
             
 def oscillate_led(event, duration, led):
-    on_time = 0.02
+    on_time = 0.01
     off_time = duration - on_time
     while event.is_set():
         led.on()
