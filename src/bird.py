@@ -11,13 +11,13 @@ class Bird:
     # michael = Bird("Michael", michael_intervals + all_intervals, 18, 24, 26)
     # pierre = Bird("Pierre", pierre_intervals + all_intervals, 19, 27, 5)
     # fritz = Bird("Fritz", fritz_intervals + all_intervals, 20, 6, 13)
-    def __init__(self, name, speech_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speeker_led_pin):
+    def __init__(self, name, speech_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speaker_led_pin):
         self.name = name
         self.speech_intervals = speech_intervals
         self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
-        self.speeker_led = LED(speeker_led_pin) if GPIO_AVAILABLE else None
+        self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
         # self.spotlight_led.on()
         # self.body_led.on()
         # self.speeker_led.on()

@@ -55,7 +55,7 @@ pip3 install -r pi-requirements.txt
 **V1 Wiring**
 ![V1](docs/hardware/TikiBirdsFritzV1.png)
 **V2 Wiring**
-![V2](docs/hardware/TikiBirdsFritzV2.png)
+![V2](docs/hardware/TikiBirds.png)
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 

@@ -2,6 +2,8 @@ from bird import Bird
 import time
 import threading
 from pydub import AudioSegment, playback
+import json
+import os
 
 try:
     from gpiozero import MotionSensor
@@ -11,23 +13,63 @@ except ImportError:
 
 
 jose_intervals = [
-    (2.7,5.2),(11,12.2),(16.5,26),(32.25,33.75),(42,44.2),(57.75,64.5),
-    (67,68.5),(80,91),(96.2,97.6),(117.5,119),(123,133.5)
+    [2.7,5.2],[11,12.2],[16.5,26],[32.25,33.75],[42,44.2],[57.75,64.5],
+    [67,68.5],[80,91],[96.2,97.6],[117.5,119],[123,133.5]
 ] 
 michael_intervals = [
-    (12.5, 13.5), (34.0, 35.0), (38.0, 42.0), (64.3, 67.2), (68.2, 75.0),
-    (97.8, 98.8), (101.5, 112.4), (119.0, 120.2)
+    [12.5, 13.5], [34.0, 35.0], [38.0, 42.0], [64.3, 67.2], [68.2, 75.0],
+    [97.8, 98.8], [101.5, 112.4], [119.0, 120.2]
 ] 
 pierre_intervals = [
-    (44.2, 49)
+    [44.2, 49]
 ]
 fritz_intervals = [
-    (49, 57.5),(144.1, 145.3)
+    [49, 57.5],[144.1, 145.3]
 ]
 all_intervals = [
-    (5.8, 11),(13.75, 16),(26, 32),(35,37.5),(91, 96),(99, 101.6),
-    (112.2, 117.5),(120.4, 123),(133.5, 139),(139, 144),(144.5, 155)
+    [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
+    [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
 ]
+
+default_config = {
+    "birds": [{
+        "name": "Pierre",
+        "singing": pierre_intervals,
+        "beak": 17,
+        "body": 21,
+        "light": 26,
+        "speaker": 10,
+    },
+    {
+        "name": "Jose",
+        "singing": jose_intervals,
+        "beak": 22,
+        "body": 24,
+        "light": 23,
+        "speaker" : 9,
+    },
+    {
+        "name": "michael",
+        "singing": michael_intervals,
+        "beak": 19,
+        "body": 27,
+        "light": 5,
+        "speaker": 11,
+    },
+    {
+        "name": "Fritz",
+        "singing": fritz_intervals,
+        "beak": 20,
+        "body": 6,
+        "light": 13,
+        "speaker": 9,
+    }],
+    "all_singing":[
+        [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
+        [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
+    ],
+    "all_dancing":[]
+}
 
 LAST_MOTION, PIR = None, None
 
@@ -62,13 +104,32 @@ def motion_tracker():
         time.sleep(1)
 
 if __name__ == "__main__":
-    pierre = Bird("Pierre", pierre_intervals + all_intervals, 17, 21, 26, 10)
-    jose = Bird("Jose", jose_intervals + all_intervals, 22, 24, 23, 9)
-    michael = Bird("Michael", michael_intervals + all_intervals, 19, 27, 5, 11)
-    fritz = Bird("Fritz", fritz_intervals + all_intervals, 20, 6, 13, 0)
+    # Check if the file exists
+    if os.path.exists('config.json'):
+        # Read the file and load it into a dictionary
+        with open('config.json', 'r') as f:
+            config_dict = json.load(f)
+            print("config=",config_dict)
+    else:
+        # Use the default dictionary
+        config_dict = default_config
 
-    birds = [pierre, jose, michael, fritz]
-    PIR = MotionSensor(4)
+    all_singing = config_dict["all_singing"]
+    all_dancing = config_dict["all_dancing"]
+    birds = []
+
+    for dict in config_dict["birds"]:
+        beak = dict["beak"]
+        body = dict["body"]
+        light = dict["light"]
+        speaker = dict["speaker"]
+        name = dict["name"]
+        intervals = dict["singing"]
+        bird = Bird(name, intervals + all_singing, beak, body, light, speaker)
+        birds.append(bird)
+
+    if GPIO_AVAILABLE:
+        PIR = MotionSensor(4)
     # while True:
     #     PIR.wait_for_motion()
         # while True:
