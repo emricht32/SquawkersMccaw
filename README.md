@@ -18,7 +18,7 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 
 - Raspberry Pi 4 Model B (Im guessing an older Pi3 could work fine but I havent tested it)
 - Squawkers McCaw birds (x4)
-- [Wires](https://www.amazon.com/dp/B01EV70C78), [4 x 2-channel Solid State Relay](https://www.amazon.com/dp/B072Z3SWDR), [4-channel Relay]((https://www.amazon.com/dp/B00E0NSORY)), [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR), [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS), [Servo Motor Hat (for Drummers which is not yet implemented)](https://www.amazon.com/dp/B07H9ZTWNC), [Servo motors](https://www.amazon.com/dp/B0C7KQKH68),[Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6),[Audio Amplifier](https://www.amazon.com/dp/B01N053XQS)  and other basic electronics tools
+- [Wires](https://www.amazon.com/dp/B01EV70C78), [4 x 2-channel Solid State Relay](https://www.amazon.com/dp/B072Z3SWDR), [4-channel Relay](https://www.amazon.com/dp/B00E0NSORY), [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR), [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS), [Servo Motor Hat (for Drummers which is not yet implemented)](https://www.amazon.com/dp/B07H9ZTWNC), [Servo motors](https://www.amazon.com/dp/B0C7KQKH68),[Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6),[Audio Amplifier](https://www.amazon.com/dp/B01N053XQS)  and other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
 
