@@ -18,7 +18,16 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 
 - Raspberry Pi 4 Model B (Im guessing an older Pi3 could work fine but I havent tested it)
 - Squawkers McCaw birds (x4)
-- [Wires](https://www.amazon.com/dp/B01EV70C78), [4 x 2-channel Solid State Relay](https://www.amazon.com/dp/B072Z3SWDR), [4-channel Relay](https://www.amazon.com/dp/B00E0NSORY), [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR), [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS), [Servo Motor Hat (for Drummers which is not yet implemented)](https://www.amazon.com/dp/B07H9ZTWNC), [Servo motors](https://www.amazon.com/dp/B0C7KQKH68),[Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6),[Audio Amplifier](https://www.amazon.com/dp/B01N053XQS)  and other basic electronics tools
+- [Wires](https://www.amazon.com/dp/B01EV70C78)
+- [4 x 2-channel Solid State Relay](https://www.amazon.com/dp/B072Z3SWDR)
+- [4-channel Relay](https://www.amazon.com/dp/B00E0NSORY)
+- [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR)
+- [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS)
+- [Servo Motor Hat](https://www.amazon.com/dp/B07H9ZTWNC) (for Drummers which is not yet implemented)
+- [Servo motors](https://www.amazon.com/dp/B0C7KQKH68)
+- [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
+- [Audio Amplifier](https://www.amazon.com/dp/B01N053XQS) 
+- other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
 
@@ -52,17 +61,14 @@ pip3 install -r pi-requirements.txt
 ![](docs/media/Screenshot%202023-08-28%20at%2011.35.33%20AM.png)
    
 2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference.  There are two versions of the diagram so far.  I am in the middle of updating the display to only use Solid State Relays and V2 has been updated for this.
-**V1 Wiring**
-![V1](docs/hardware/TikiBirdsFritzV1.png)
-**V2 Wiring**
+
 ![V2](docs/hardware/TikiBirds.png)
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 
-
 ## Software Configuration __(I plan on creating a config file to allow any song and customizing pins but this is not yet implemented)__
 
-1. Edit the `config.yaml` file to set up GPIO pins, timers, and other settings.
+1. Edit the `config.json` file to set up GPIO pins, timers, and other settings.
 
 ## Usage
 
