@@ -7,10 +7,6 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    # jose = Bird("Jose", jose_intervals + all_intervals, 17, 21, 23)
-    # michael = Bird("Michael", michael_intervals + all_intervals, 18, 24, 26)
-    # pierre = Bird("Pierre", pierre_intervals + all_intervals, 19, 27, 5)
-    # fritz = Bird("Fritz", fritz_intervals + all_intervals, 20, 6, 13)
     def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speaker_led_pin):
         self.name = name
         self.speech_intervals = speech_intervals
