@@ -62,7 +62,7 @@ default_config = {
         "beak": 20,
         "body": 6,
         "light": 13,
-        "speaker": 9,
+        "speaker": 0,
     }],
     "all_singing":[
         [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
@@ -89,7 +89,7 @@ def manage_leds(birds, audio_duration):
 
 def play_audio_with_speech_indicator(audio_path, birds):
     audio = AudioSegment.from_mp3(audio_path)
-    audio = audio + 40
+    # audio = audio 
     audio_duration = audio.duration_seconds
 
     playback_thread = threading.Thread(target=playback.play, args=(audio,))
