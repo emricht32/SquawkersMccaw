@@ -33,7 +33,8 @@ class Bird:
         if self.event.is_set():
             return
         self.event.set()
-        # for led in [self.beak_led, self.body_led, self.wing_led]:
+        self.start_dancing()
+
         if self.beak_led:
             threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
         else:
@@ -43,7 +44,6 @@ class Bird:
         else:
             print(f"{self.name} Speaker ON")
         
-        self.start_dancing()
     def start_dancing(self):
         if self.spotlight_led:
             self.spotlight_led.off() #spotlight is reversed 
@@ -55,8 +55,8 @@ class Bird:
             print(f"{self.name} Body ON")
 
     def stop_moving(self):
-        if not self.event.is_set():
-            return
+        # if not self.event.is_set():
+        #     return
         self.event.clear()
         if self.spotlight_led:
             self.spotlight_led.on() #reversed
