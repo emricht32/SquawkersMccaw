@@ -18,7 +18,7 @@
         ] ,
         "beak": 22,
         "body": 24,
-        "light": 23,
+        "light": 5,
         "speaker" : 9
     },
     {
@@ -29,7 +29,7 @@
         ] ,
         "beak": 19,
         "body": 27,
-        "light": 5,
+        "light": 23,
         "speaker": 11
     },
     {

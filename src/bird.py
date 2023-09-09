@@ -59,7 +59,7 @@ class Bird:
             return
         self.event.clear()
         if self.spotlight_led:
-            self.spotlight_led.off()
+            self.spotlight_led.on() #reversed
         else:
             print(f"{self.name} Spotlight OFF")
         if self.body_led:
@@ -67,7 +67,7 @@ class Bird:
         else:
             print(f"{self.name} Body ON")
         if self.speeker_led:
-            self.speeker_led.on() #reversed
+            self.speeker_led.off() 
         else:
             print(f"{self.name} Body ON")
             
