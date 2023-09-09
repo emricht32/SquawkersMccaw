@@ -82,10 +82,9 @@ def manage_leds(birds, audio_duration):
             if bird.is_speaking(curr_time):
                 bird.start_moving(sleep_time)
             else:
-                if bird.is_dancing(curr_time):
+                bird.stop_moving()
+                if bird.is_dancing(curr_time):                        
                     bird.start_dancing()
-                else:
-                    bird.stop_moving()
         time.sleep(sleep_time)
 
 def play_audio_with_speech_indicator(audio_path, birds):
