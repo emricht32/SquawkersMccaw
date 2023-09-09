@@ -18,6 +18,7 @@ class Bird:
         self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
+        self.spotlight_led.on()
         self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
 
         self.event = threading.Event()
@@ -45,7 +46,7 @@ class Bird:
         self.start_dancing()
     def start_dancing(self):
         if self.spotlight_led:
-            self.spotlight_led.on() 
+            self.spotlight_led.off() #spotlight is reversed 
         else:
             print(f"{self.name} Spotlight ON")
         if self.body_led:
@@ -66,7 +67,7 @@ class Bird:
         else:
             print(f"{self.name} Body ON")
         if self.speeker_led:
-            self.speeker_led.off() 
+            self.speeker_led.on() #reversed
         else:
             print(f"{self.name} Body ON")
             
