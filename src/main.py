@@ -81,6 +81,8 @@ def manage_leds(birds, audio_duration):
         for bird in birds:
             if bird.is_speaking(curr_time):
                 bird.start_moving(sleep_time)
+            elif bird.is_dancing(curr_time):
+                bird.start_dancing()
             else:
                 bird.stop_moving()
         time.sleep(sleep_time)
@@ -109,13 +111,12 @@ if __name__ == "__main__":
         # Read the file and load it into a dictionary
         with open('config.json', 'r') as f:
             config_dict = json.load(f)
-            print("config=",config_dict)
     else:
         # Use the default dictionary
         config_dict = default_config
 
-    all_singing = config_dict["all_singing"]
-    all_dancing = config_dict["all_dancing"]
+    all_singing = config_dict["all_singing"] or []
+    all_dancing = config_dict["all_dancing"] or []
     birds = []
 
     for dict in config_dict["birds"]:
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         speaker = dict["speaker"]
         name = dict["name"]
         intervals = dict["singing"]
-        bird = Bird(name, intervals + all_singing, beak, body, light, speaker)
+        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, speaker)
         birds.append(bird)
 
     if GPIO_AVAILABLE:

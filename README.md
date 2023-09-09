@@ -23,10 +23,10 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 - [4-channel Relay](https://www.amazon.com/dp/B00E0NSORY)
 - [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR)
 - [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS)
+- [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
 - [Servo Motor Hat](https://www.amazon.com/dp/B07H9ZTWNC) (for Drummers which is not yet implemented)
 - [Servo motors](https://www.amazon.com/dp/B0C7KQKH68)
-- [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
-- [Audio Amplifier](https://www.amazon.com/dp/B01N053XQS) 
+- [Audio Amplifier](https://www.amazon.com/dp/B01N053XQS) (for the speaker in the bird, currently not used)
 - other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
@@ -60,7 +60,7 @@ pip3 install -r pi-requirements.txt
 ![](docs/media/Screenshot%202023-08-28%20at%2011.35.16%20AM.png)
 ![](docs/media/Screenshot%202023-08-28%20at%2011.35.33%20AM.png)
    
-2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference.  There are two versions of the diagram so far.  I am in the middle of updating the display to only use Solid State Relays and V2 has been updated for this.
+2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference. 
 
 ![V2](docs/hardware/TikiBirds.png)
 
