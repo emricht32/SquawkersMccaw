@@ -25,7 +25,7 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 - [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS)
 - [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
 - [Servo Motor Hat](https://www.amazon.com/dp/B07H9ZTWNC) (for Drummers which is not yet implemented)
-- [Servo motors](https://www.amazon.com/dp/B0C7KQKH68)
+- [Servo motors](https://www.amazon.com/dp/B0C7KQKH68) (for Drummers which is not yet implemented)
 - [Audio Amplifier](https://www.amazon.com/dp/B01N053XQS) (for the speaker in the bird, currently not used)
 - other basic electronics tools
 - Python 3.x
