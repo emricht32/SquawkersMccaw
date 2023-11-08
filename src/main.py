@@ -147,5 +147,5 @@ if __name__ == "__main__":
         #     play_audio_with_speech_indicator(audio_path, birds)
 
             
-    audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.final.mp3"
+    audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.mp3"
     play_audio_with_speech_indicator(audio_path, birds)
