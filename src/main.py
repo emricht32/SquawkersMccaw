@@ -5,6 +5,9 @@ from pydub import AudioSegment, playback
 import json
 import os
 
+import sounddevice
+import soundfile
+
 try:
     from gpiozero import MotionSensor
     GPIO_AVAILABLE = True
