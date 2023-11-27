@@ -55,9 +55,9 @@
         [75, 80.5]
     ],
     "audio_paths": [
-        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.mp3",
-        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Fritz_L_Pierre_R.mp3",  
-        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Instrumental.mp3"
+        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.wav",
+        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Fritz_L_Pierre_R.wav",  
+        "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Instrumental.wav"
     ]
 
 }
