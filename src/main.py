@@ -129,18 +129,18 @@ def play_audio_with_speech_indicator(audio_paths, birds):
 
     print("Playing files")
 
-    threads = [threading.Thread(target=pear.play_wav_on_index, args=[file_path, stream])
-                for file_path, stream in zip(files, streams)]
+    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
+                for data, stream in zip(files, streams)]
 
     try:
         seconds = 0
         for thread in threads:
             thread.start()
-        for stream in streams:
-            print('samples = {}'.format(stream.frames))
-            print('sample rate = {}'.format(stream.samplerate))
-            print('seconds = {}'.format(stream.frames / stream.samplerate))
-            seconds = stream.frames / stream.samplerate
+        for data, stream in zip(files, streams):
+            print('samples = {}'.format(len(stream)))
+            print('sample rate = {}'.format(data[1]))
+            print('seconds = {}'.format(len(stream) / data[1]))
+            seconds = len(stream) / data[1]
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")

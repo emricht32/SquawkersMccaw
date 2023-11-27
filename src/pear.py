@@ -22,8 +22,8 @@ def load_sound_file_into_memory(path):
     """
     print("getcwd=",os.getcwd())
     print("path=",path)
-    audio_data, _ = soundfile.read(path, dtype=DATA_TYPE)
-    return audio_data
+    audio_data, samplerate = soundfile.read(path, dtype=DATA_TYPE)
+    return audio_data, samplerate
 
 
 def dir_path(path):
