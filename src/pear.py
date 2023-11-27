@@ -22,8 +22,11 @@ def load_sound_file_into_memory(path):
     """
     print("getcwd=",os.getcwd())
     print("path=",path)
-    audio_data, samplerate = soundfile.read(path, dtype=DATA_TYPE)
-    return audio_data, samplerate
+    nparray = None
+    with soundfile.SoundFile(path) as sf:
+        nparray = sf.read(dtype='float32')
+    # audio_data, samplerate = soundfile.read(path, dtype=DATA_TYPE)
+    return nparray, sf.samplerate
 
 
 def dir_path(path):
