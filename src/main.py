@@ -102,7 +102,7 @@ def play_audio_with_speech_indicator(audio_paths, birds):
 
     # manage_leds(birds, audio_duration)
     # playback_thread.join()
-
+    print("pwd=",os.getcwd)
     files = [pear.load_sound_file_into_memory(path) for path in audio_paths]
 
     print("Files loaded into memory, Looking for USB devices.")
