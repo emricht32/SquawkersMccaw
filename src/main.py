@@ -111,7 +111,7 @@ def play_audio_with_speech_indicator(audio_paths, birds):
         return str(path).endswith(".wav") and (not str(path).startswith("."))
 
     sound_file_paths = [os.path.join(os.getcwd(), path) for path in sorted(filter(lambda path: good_filepath(path),
-                                                                               os.listdir(os.getcwd())))]
+                                                                               os.listdir("EnchantedTikiRoom_Old/BJB_TR_InTRoomSong")))]
     print("sound_file_paths=",sound_file_paths)
     print("pwd=",os.getcwd())
     files = [pear.load_sound_file_into_memory(path) for path in audio_paths]
