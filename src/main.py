@@ -4,6 +4,8 @@ import threading
 from pydub import AudioSegment, playback
 import json
 import os
+import pear
+import numpy
 
 import sounddevice
 import soundfile
@@ -15,64 +17,64 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 
-jose_intervals = [
-    [2.7,5.2],[11,12.2],[16.5,26],[32.25,33.75],[42,44.2],[57.75,64.5],
-    [67,68.5],[80,91],[96.2,97.6],[117.5,119],[123,133.5]
-] 
-michael_intervals = [
-    [12.5, 13.5], [34.0, 35.0], [38.0, 42.0], [64.3, 67.2], [68.2, 75.0],
-    [97.8, 98.8], [101.5, 112.4], [119.0, 120.2]
-] 
-pierre_intervals = [
-    [44.2, 49]
-]
-fritz_intervals = [
-    [49, 57.5],[144.1, 145.3]
-]
-all_intervals = [
-    [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
-    [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
-]
+# jose_intervals = [
+#     [2.7,5.2],[11,12.2],[16.5,26],[32.25,33.75],[42,44.2],[57.75,64.5],
+#     [67,68.5],[80,91],[96.2,97.6],[117.5,119],[123,133.5]
+# ] 
+# michael_intervals = [
+#     [12.5, 13.5], [34.0, 35.0], [38.0, 42.0], [64.3, 67.2], [68.2, 75.0],
+#     [97.8, 98.8], [101.5, 112.4], [119.0, 120.2]
+# ] 
+# pierre_intervals = [
+#     [44.2, 49]
+# ]
+# fritz_intervals = [
+#     [49, 57.5],[139.0, 141.7],[144.1, 145.3]
+# ]
+# all_intervals = [
+#     [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
+#     [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
+# ]
 
-default_config = {
-    "birds": [{
-        "name": "Pierre",
-        "singing": pierre_intervals,
-        "beak": 17,
-        "body": 21,
-        "light": 26,
-        "speaker": 10,
-    },
-    {
-        "name": "Jose",
-        "singing": jose_intervals,
-        "beak": 22,
-        "body": 24,
-        "light": 23,
-        "speaker" : 9,
-    },
-    {
-        "name": "michael",
-        "singing": michael_intervals,
-        "beak": 19,
-        "body": 27,
-        "light": 5,
-        "speaker": 11,
-    },
-    {
-        "name": "Fritz",
-        "singing": fritz_intervals,
-        "beak": 20,
-        "body": 6,
-        "light": 13,
-        "speaker": 0,
-    }],
-    "all_singing":[
-        [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
-        [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
-    ],
-    "all_dancing":[]
-}
+# default_config = {
+#     "birds": [{
+#         "name": "Pierre",
+#         "singing": pierre_intervals,
+#         "beak": 17,
+#         "body": 21,
+#         "light": 26,
+#         "speaker": 10,
+#     },
+#     {
+#         "name": "Jose",
+#         "singing": jose_intervals,
+#         "beak": 22,
+#         "body": 24,
+#         "light": 23,
+#         "speaker" : 9,
+#     },
+#     {
+#         "name": "michael",
+#         "singing": michael_intervals,
+#         "beak": 19,
+#         "body": 27,
+#         "light": 5,
+#         "speaker": 11,
+#     },
+#     {
+#         "name": "Fritz",
+#         "singing": fritz_intervals,
+#         "beak": 20,
+#         "body": 6,
+#         "light": 13,
+#         "speaker": 0,
+#     }],
+#     "all_singing":[
+#         [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
+#         [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
+#     ],
+#     "all_dancing":[]
+# }
 
 LAST_MOTION, PIR = None, None
 
@@ -90,16 +92,56 @@ def manage_leds(birds, audio_duration):
                     bird.start_dancing()
         time.sleep(sleep_time)
 
-def play_audio_with_speech_indicator(audio_path, birds):
-    audio = AudioSegment.from_mp3(audio_path)
-    # audio = audio 
-    audio_duration = audio.duration_seconds
+def play_audio_with_speech_indicator(audio_paths, birds):
+    # audio = AudioSegment.from_mp3(audio_path)
+    # # audio = audio 
+    # audio_duration = audio.duration_seconds
 
-    playback_thread = threading.Thread(target=playback.play, args=(audio,))
-    playback_thread.start()
+    # playback_thread = threading.Thread(target=playback.play, args=(audio,))
+    # playback_thread.start()
 
-    manage_leds(birds, audio_duration)
-    playback_thread.join()
+    # manage_leds(birds, audio_duration)
+    # playback_thread.join()
+
+    files = [pear.load_sound_file_into_memory(path) for path in audio_paths]
+
+    print("Files loaded into memory, Looking for USB devices.")
+
+    usb_sound_card_indices = list(filter(lambda x: x is not False,
+                                         map(pear.get_device_number_if_usb_soundcard,
+                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+
+    print("Discovered the following usb sound devices", usb_sound_card_indices)
+
+    streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
+
+    print("Playing files")
+
+    threads = [threading.Thread(target=pear.play_wav_on_index, args=[file_path, stream])
+                for file_path, stream in zip(files, streams)]
+
+    try:
+        seconds = 0
+        for thread in threads:
+            thread.start()
+        for stream in streams:
+            print('samples = {}'.format(stream.frames))
+            print('sample rate = {}'.format(stream.samplerate))
+            print('seconds = {}'.format(stream.frames / stream.samplerate))
+            seconds = stream.frames / stream.samplerate
+        manage_leds(birds, seconds)
+        for thread, device_index in zip(threads, usb_sound_card_indices):
+            print("Waiting for device", device_index, "to finish")
+            thread.join()
+
+    except KeyboardInterrupt:
+        print("Stopping stream")
+        for stream in streams:
+            stream.abort(ignore_errors=True)
+            stream.close()
+        print("Streams stopped")
+
+    print("Bye.")
 
 def motion_tracker():
     global LAST_MOTION, PIR
@@ -115,8 +157,7 @@ if __name__ == "__main__":
         with open('config.json', 'r') as f:
             config_dict = json.load(f)
     else:
-        # Use the default dictionary
-        config_dict = default_config
+        raise ValueError("missing config")
 
     all_singing = config_dict["all_singing"] or []
     all_dancing = config_dict["all_dancing"] or []
@@ -129,7 +170,8 @@ if __name__ == "__main__":
         speaker = dict["speaker"]
         name = dict["name"]
         intervals = dict["singing"]
-        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, speaker)
+        audio_path = dict["audio_path"]
+        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, speaker, audio_path)
         birds.append(bird)
 
     if GPIO_AVAILABLE:
@@ -150,5 +192,5 @@ if __name__ == "__main__":
         #     play_audio_with_speech_indicator(audio_path, birds)
 
             
-    audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.mp3"
-    play_audio_with_speech_indicator(audio_path, birds)
+    audio_paths = config_dict["audio_paths"]
+    play_audio_with_speech_indicator(audio_paths, birds)

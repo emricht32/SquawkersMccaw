@@ -7,16 +7,17 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speaker_led_pin):
+    def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speaker_led_pin, audio_path):
         self.name = name
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
         self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
-        self.spotlight_led.on()
+        if self.spotlight_led is not None:
+            self.spotlight_led.on()
         self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
-
+        self.audio_path = audio_path
         self.event = threading.Event()
 
     def is_speaking(self, curr_time):
