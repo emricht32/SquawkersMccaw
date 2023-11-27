@@ -114,7 +114,7 @@ def play_audio_with_speech_indicator(audio_paths, birds):
                                                                                os.listdir("EnchantedTikiRoom_Old/BJB_TR_InTRoomSong")))]
     print("sound_file_paths=",sound_file_paths)
     print("pwd=",os.getcwd())
-    files = [pear.load_sound_file_into_memory(path) for path in audio_paths]
+    files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
 
     print("Files loaded into memory, Looking for USB devices.")
 
