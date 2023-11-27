@@ -20,7 +20,8 @@ def load_sound_file_into_memory(path):
     :param path: wav file to be loaded
     :return: audio_data, a 2D numpy array
     """
-
+    print("getcwd=",os.getcwd())
+    print("path=",path)
     audio_data, _ = soundfile.read(path, dtype=DATA_TYPE)
     return audio_data
 
