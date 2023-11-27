@@ -102,6 +102,17 @@ def play_audio_with_speech_indicator(audio_paths, birds):
 
     # manage_leds(birds, audio_duration)
     # playback_thread.join()
+    def good_filepath(path):
+        """
+        Macro for returning false if the file is not a non-hidden wav file
+        :param path: path to the file
+        :return: true if a non-hidden wav, false if not a wav or hidden
+        """
+        return str(path).endswith(".wav") and (not str(path).startswith("."))
+
+    sound_file_paths = [os.path.join(os.getcwd(), path) for path in sorted(filter(lambda path: good_filepath(path),
+                                                                               os.listdir(os.getcwd())))]
+    print("sound_file_paths=",sound_file_paths)
     print("pwd=",os.getcwd())
     files = [pear.load_sound_file_into_memory(path) for path in audio_paths]
 
