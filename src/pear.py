@@ -75,7 +75,7 @@ def create_running_output_stream(index):
     :param index: the device index of the audio device to write to
     :return: a started sounddevice.OutputStream object ready to be written to
     """
-
+    print("sounddevice.check_output_settings()=",sounddevice.check_output_settings())
     output = sounddevice.OutputStream(
         device=index,
         samplerate=44100,
