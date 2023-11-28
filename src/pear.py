@@ -23,7 +23,7 @@ def load_sound_file_into_memory(path):
     print("getcwd=",os.getcwd())
     print("path=",path)
     nparray = None
-    with soundfile.SoundFile(path) as sf:
+    with soundfile.SoundFile(path,samplerate=48000) as sf:
         nparray = sf.read(dtype='float32')
     # audio_data, samplerate = soundfile.read(path, dtype=DATA_TYPE)
     return nparray, sf.samplerate
