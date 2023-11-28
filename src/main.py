@@ -141,7 +141,7 @@ def play_audio_with_speech_indicator(audio_paths, birds):
         for thread in threads:
             thread.start()
         for data, stream in zip(files, streams):
-            print('samples = {}'.format(len(stream)))
+            # print('samples = {}'.format(len(stream)))
             print('sample rate = {}'.format(data[1]))
             print('seconds = {}'.format(len(stream) / data[1]))
             seconds = len(stream) / data[1]
