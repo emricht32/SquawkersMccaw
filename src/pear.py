@@ -78,7 +78,7 @@ def create_running_output_stream(index):
 
     output = sounddevice.OutputStream(
         device=index,
-        samplerate=48000,
+        samplerate=44100,
         dtype=DATA_TYPE
     )
 
