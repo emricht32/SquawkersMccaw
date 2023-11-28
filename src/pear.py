@@ -78,7 +78,7 @@ def create_running_output_stream(index):
     output = sounddevice.query_devices(kind='output') #['default_samplerate']
     print("query_devices.output=",output)
     output = sounddevice.OutputStream(
-        samplerate=44100.0,
+        # samplerate=44100.0,
         device=index,
         dtype=DATA_TYPE
     )
