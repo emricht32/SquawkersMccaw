@@ -144,7 +144,8 @@ def play_audio_with_speech_indicator(audio_paths, birds):
             print('data = {}'.format(data))
             print('sample rate = {}'.format(data[1]))
             print('stream = {}'.format(stream))
-            seconds = len(stream) / data[1]
+            seconds = len(data[0]) / data[1]
+            print('seconds = {}'.format(seconds))
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")
