@@ -109,7 +109,7 @@ def play_audio_with_speech_indicator(audio_paths, birds):
         :param path: path to the file
         :return: true if a non-hidden wav, false if not a wav or hidden
         """
-        return str(path).endswith(".mp3") and (not str(path).startswith("."))
+        return str(path).endswith(".wav") and (not str(path).startswith("."))
     # sound_file_paths = [os.path.join(os.getcwd(), "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong", path) for path in sorted(filter(lambda path: good_filepath(path),
     #                                                                            os.listdir(".")))]
     sound_file_paths = [os.path.join(".", path) for path in sorted(filter(lambda path: good_filepath(path),
