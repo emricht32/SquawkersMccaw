@@ -1,4 +1,4 @@
-# WIP - Ill be updating this as I get time/motivation :)
+# WIP - Im going through another hardware upgrade so the below specs are/will be slightly outdated.  Im hoping for a final v3 product before Jan 2024.
 # Squawkers McCaw Tiki Room
 
 ## Overview
@@ -21,29 +21,43 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 - [Wires](https://www.amazon.com/dp/B01EV70C78)
 - [4 x 2-channel Solid State Relay](https://www.amazon.com/dp/B072Z3SWDR)
 - [4-channel Relay](https://www.amazon.com/dp/B00E0NSORY)
+- [3 x 3.5mm Male to Male Auxiliary Audio Cable](https://www.amazon.com/dp/B07TCFQ3MG) (there are 6 in this)
+- [3 X Plugable USB Audio Adapter](https://www.amazon.com/dp/B00NMXY2MO)
+- [Anker 7-Port USB 3.0 Data Hub with 36W Power Adapter](https://www.amazon.com/dp/B014ZQ07NE)
+- [2 Pieces Audio Amplifier Board](https://www.amazon.com/dp/B08RDN58SZ)
 - [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR)
 - [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS)
 - [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
 - [Servo Motor Hat](https://www.amazon.com/dp/B07H9ZTWNC) (for Drummers which is not yet implemented)
 - [Servo motors](https://www.amazon.com/dp/B0C7KQKH68) (for Drummers which is not yet implemented)
-- [Audio Amplifier](https://www.amazon.com/dp/B01N053XQS) (for the speaker in the bird, currently not used)
+- [8-Pin Waterproof DT Connector](https://www.amazon.com/dp/B0C3XG8MVZ)(for easily conecting cables to box)
+- [~~Audio Amplifier~~](https://www.amazon.com/dp/B01N053XQS) ~~(for the speaker in the bird, currently not used)~~
 - other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
 
 ## Installation
 
-1. Clone this repository.
+1. Install libs for the Pi
+```bash
+sudo apt update
+sudo apt upgrade
+
+sudo apt-get install git-lfs
+sudo apt-get install python3-pip python3-numpy libportaudio2 libsndfile1 screen git
+```
+
+2. Clone this repository.
 ```bash
 git clone https://github.com/emricht32/SquawkersMccaw.git
 ```
 
-2. Navigate to the project directory.
+3. Navigate to the project directory.
 ```bash
 cd SquawkersMccaw
 ```
 
-3. Install the required Python packages.  If you are developing on Mac or Linux machine and then transfering files to the Pi you can use:
+4. Install the required Python packages.  If you are developing on Mac or Linux machine and then transfering files to the Pi you can use:
 ```bash
 pip3 install -r requirements.txt
 ```
@@ -66,7 +80,7 @@ pip3 install -r pi-requirements.txt
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 
-## Software Configuration __(I plan on creating a config file to allow any song and customizing pins but this is not yet implemented)__
+## Software Configuration
 
 1. Edit the `config.json` file to set up GPIO pins, timers, and other settings.
 
@@ -75,7 +89,7 @@ pip3 install -r pi-requirements.txt
 To start the Enchanted Tiki Room experience, run:
 
 ```bash
-python main.py
+python3 src/main.py
 ```
 
 ## Contributing

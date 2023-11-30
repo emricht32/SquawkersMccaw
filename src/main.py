@@ -1,80 +1,20 @@
 from bird import Bird
 import time
 import threading
-from pydub import AudioSegment, playback
+# from pydub import AudioSegment, playback
 import json
 import os
 import pear
-import numpy
+# import numpy
 
 import sounddevice
-import soundfile
+# import soundfile
 
 try:
-    from gpiozero import MotionSensor
+    from gpiozero import MotionSensor, Button
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
-
-
-# jose_intervals = [
-#     [2.7,5.2],[11,12.2],[16.5,26],[32.25,33.75],[42,44.2],[57.75,64.5],
-#     [67,68.5],[80,91],[96.2,97.6],[117.5,119],[123,133.5]
-# ] 
-# michael_intervals = [
-#     [12.5, 13.5], [34.0, 35.0], [38.0, 42.0], [64.3, 67.2], [68.2, 75.0],
-#     [97.8, 98.8], [101.5, 112.4], [119.0, 120.2]
-# ] 
-# pierre_intervals = [
-#     [44.2, 49]
-# ]
-# fritz_intervals = [
-#     [49, 57.5],[139.0, 141.7],[144.1, 145.3]
-# ]
-# all_intervals = [
-#     [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
-#     [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
-# ]
-
-# default_config = {
-#     "birds": [{
-#         "name": "Pierre",
-#         "singing": pierre_intervals,
-#         "beak": 17,
-#         "body": 21,
-#         "light": 26,
-#         "speaker": 10,
-#     },
-#     {
-#         "name": "Jose",
-#         "singing": jose_intervals,
-#         "beak": 22,
-#         "body": 24,
-#         "light": 23,
-#         "speaker" : 9,
-#     },
-#     {
-#         "name": "michael",
-#         "singing": michael_intervals,
-#         "beak": 19,
-#         "body": 27,
-#         "light": 5,
-#         "speaker": 11,
-#     },
-#     {
-#         "name": "Fritz",
-#         "singing": fritz_intervals,
-#         "beak": 20,
-#         "body": 6,
-#         "light": 13,
-#         "speaker": 0,
-#     }],
-#     "all_singing":[
-#         [5.8, 11],[13.75, 16],[26, 32],[35,37.5],[91, 96],[99, 101.6],
-#         [112.2, 117.5],[120.4, 123],[133.5, 139],[139, 144],[144.5, 155]
-#     ],
-#     "all_dancing":[]
-# }
 
 LAST_MOTION, PIR = None, None
 
@@ -86,14 +26,17 @@ def manage_leds(birds, audio_duration):
         curr_time = time.time() - start_time
         for bird in birds:
             if bird.is_speaking(curr_time):
+                print(bird.name, ".is_speaking")
                 bird.start_moving(sleep_time)
             else:
+                print(bird.name, ".stop_moving")
                 bird.stop_moving()
-                if bird.is_dancing(curr_time):                        
+                if bird.is_dancing(curr_time):     
+                    print(bird.name, ".is_dancing")                   
                     bird.start_dancing()
         time.sleep(sleep_time)
 
-def play_audio_with_speech_indicator(audio_paths, birds):
+def play_audio_with_speech_indicator(dir, birds):
     # audio = AudioSegment.from_mp3(audio_path)
     # # audio = audio 
     # audio_duration = audio.duration_seconds
@@ -112,13 +55,13 @@ def play_audio_with_speech_indicator(audio_paths, birds):
         return str(path).endswith(".wav") and (not str(path).startswith("."))
     # sound_file_paths = [os.path.join(os.getcwd(), "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong", path) for path in sorted(filter(lambda path: good_filepath(path),
     #                                                                            os.listdir(".")))]
-    sound_file_paths = [os.path.join(".", path) for path in sorted(filter(lambda path: good_filepath(path),
-                                                                               os.listdir(".")))]
+    sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(lambda path: good_filepath(path),
+                                                                               os.listdir(dir)))]
     print("sound_file_paths=",sound_file_paths)
-    print("pwd=",os.getcwd())
+    # print("pwd=",os.getcwd())
     files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
 
-    print("Files loaded into memory, Looking for USB devices.")
+    print("Files loaded into memory:", files)
 
     usb_sound_card_indices = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
@@ -132,21 +75,21 @@ def play_audio_with_speech_indicator(audio_paths, birds):
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
-    print("threads.count=", len(threads))
-    print("streams.count=", len(streams))
-    print("files.count=", len(files))
-    print("usb_sound_card_indices.count=", len(usb_sound_card_indices))
+    # print("threads.count=", len(threads))
+    # print("streams.count=", len(streams))
+    # print("files.count=", len(files))
+    # print("usb_sound_card_indices.count=", len(usb_sound_card_indices))
     try:
         seconds = 0
         for thread in threads:
             thread.start()
         for data, stream in zip(files, streams):
-            print('data = {}'.format(data))
-            print('len(data[0]) = {}'.format(len(data[0])))
-            print('sample rate = {}'.format(data[1]))
-            print('stream = {}'.format(stream))
+            # print('data = {}'.format(data))
+            # print('len(data[0]) = {}'.format(len(data[0])))
+            # print('sample rate = {}'.format(data[1]))
+            # print('stream = {}'.format(stream))
             seconds = len(data[0]) / data[1]
-            print('seconds = {}'.format(seconds))
+            # print('seconds = {}'.format(seconds))
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")
@@ -192,8 +135,24 @@ if __name__ == "__main__":
         bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, speaker, audio_path)
         birds.append(bird)
 
-    if GPIO_AVAILABLE:
-        PIR = MotionSensor(4)
+    # if GPIO_AVAILABLE:
+    #     PIR = MotionSensor(4)
+    #     playDefault = Button(2)
+
+    #     while True:
+    #         if playDefault.is_pressed:
+    #             print("Button is pressed")
+    #             audio_dir = config_dict["audio_dir"]
+    #             play_audio_with_speech_indicator(audio_dir, birds)
+    #         else:
+    #             print("Button is not pressed")
+
+    # else:
+    #     audio_dir = config_dict["audio_dir"]
+    #     play_audio_with_speech_indicator(audio_dir, birds)
+    
+    
+    
     # while True:
     #     PIR.wait_for_motion()
         # while True:

@@ -1,31 +1,24 @@
 """
 See README.md for usage and installation
 Written by Devon Bray (dev@esologic.com)
+Adopted from: https://github.com/esologic/pear/blob/master/pear.py
 """
 
 import sounddevice
 import soundfile
-import threading
-import argparse
 import pathlib
-import os
-
 
 DATA_TYPE = "float32"
-
 
 def load_sound_file_into_memory(path):
     """
     Get the in-memory version of a given path to a wav file
     :param path: wav file to be loaded
-    :return: audio_data, a 2D numpy array
+    :return: (audio_data, samplerate), a 2D numpy array, the samplerate of the audiofile
     """
-    print("getcwd=",os.getcwd())
-    print("path=",path)
     nparray = None
     with soundfile.SoundFile(path) as sf:
         nparray = sf.read(dtype='float32')
-    # audio_data, samplerate = soundfile.read(path, dtype=DATA_TYPE)
     return nparray, sf.samplerate
 
 
@@ -75,82 +68,11 @@ def create_running_output_stream(index):
     :param index: the device index of the audio device to write to
     :return: a started sounddevice.OutputStream object ready to be written to
     """
-    output = sounddevice.query_devices(kind='output') #['default_samplerate']
-    print("query_devices.output=",output)
+
     output = sounddevice.OutputStream(
-        # samplerate=44100.0,
         device=index,
         dtype=DATA_TYPE
     )
 
     output.start()
     return output
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='a simple tool for sound installations')
-    parser.add_argument("dir", type=dir_path)
-    args = parser.parse_args()
-
-    def good_filepath(path):
-        """
-        Macro for returning false if the file is not a non-hidden wav/mp3 file
-        :param path: path to the file
-        :return: true if a non-hidden wav, false if not a wav or hidden
-        """
-        return (str(path).endswith(".wav") or str(path).endswith(".mp3")) and (not str(path).startswith("."))
-
-    sound_file_paths = [os.path.join(args.dir, path) for path in sorted(filter(lambda path: good_filepath(path),
-                                                                               os.listdir(args.dir)))]
-
-    print("Discovered the following soundfiles:", sound_file_paths)
-    path = "EnchantedTikiRoom_Old/"
-    files = [load_sound_file_into_memory(path) for i in range(4)]
-
-    print("Files loaded into memory, Looking for USB devices.")
-
-    usb_sound_card_indices = list(filter(lambda x: x is not False,
-                                         map(get_device_number_if_usb_soundcard,
-                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
-
-    print("Discovered the following usb sound devices", usb_sound_card_indices)
-
-    streams = [create_running_output_stream(index) for index in usb_sound_card_indices]
-
-    running = True
-
-    if not len(streams) > 0:
-        running = False
-        print("No audio devices found, stopping")
-
-    if not len(files) > 0:
-        running = False
-        print("No sound files found, stopping")
-
-    while running:
-
-        print("Playing files")
-
-        threads = [threading.Thread(target=play_wav_on_index, args=[file_path, stream])
-                   for file_path, stream in zip(files, streams)]
-
-        try:
-
-            for thread in threads:
-                thread.start()
-
-            for thread, device_index in zip(threads, usb_sound_card_indices):
-                print("Waiting for device", device_index, "to finish")
-                thread.join()
-
-        except KeyboardInterrupt:
-            running = False
-            print("Stopping stream")
-            for stream in streams:
-                stream.abort(ignore_errors=True)
-                stream.close()
-            print("Streams stopped")
-
-    print("Bye.")
-
