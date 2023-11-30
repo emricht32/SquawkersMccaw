@@ -148,8 +148,8 @@ if __name__ == "__main__":
     #             print("Button is not pressed")
 
     # else:
-    #     audio_dir = config_dict["audio_dir"]
-    #     play_audio_with_speech_indicator(audio_dir, birds)
+        # audio_dir = config_dict["audio_dir"]
+        # play_audio_with_speech_indicator(audio_dir, birds)
     
     
     
@@ -169,5 +169,5 @@ if __name__ == "__main__":
         #     play_audio_with_speech_indicator(audio_path, birds)
 
             
-    audio_paths = config_dict["audio_paths"]
-    play_audio_with_speech_indicator(audio_paths, birds)
+    audio_dir = config_dict["audio_dir"]
+    play_audio_with_speech_indicator(audio_dir, birds)
