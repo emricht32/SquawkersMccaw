@@ -16,10 +16,11 @@ def load_sound_file_into_memory(path):
     :param path: wav file to be loaded
     :return: (audio_data, samplerate), a 2D numpy array, the samplerate of the audiofile
     """
-    nparray = None
     with soundfile.SoundFile(path) as sf:
         nparray = sf.read(dtype='float32')
-    return nparray, sf.samplerate
+        print("sounddevice.default.samplerate=",sounddevice.default.samplerate)
+        sounddevice.default.samplerate = sf.samplerate
+        return nparray, sf.samplerate
 
 
 def dir_path(path):

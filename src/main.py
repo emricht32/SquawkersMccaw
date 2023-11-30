@@ -26,13 +26,13 @@ def manage_leds(birds, audio_duration):
         curr_time = time.time() - start_time
         for bird in birds:
             if bird.is_speaking(curr_time):
-                print(bird.name, ".is_speaking")
+                # print(bird.name, ".is_speaking")
                 bird.start_moving(sleep_time)
             else:
-                print(bird.name, ".stop_moving")
+                # print(bird.name, ".stop_moving")
                 bird.stop_moving()
                 if bird.is_dancing(curr_time):     
-                    print(bird.name, ".is_dancing")                   
+                    # print(bird.name, ".is_dancing")                   
                     bird.start_dancing()
         time.sleep(sleep_time)
 
