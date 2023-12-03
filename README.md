@@ -92,6 +92,14 @@ To start the Enchanted Tiki Room experience, run:
 python3 src/main.py
 ```
 
+## Notes/Thoughts
+
+1. The music folder needs to have songs that have a samplerate of 48k.  I had to use ffmpg to convert the files from 44.1k.  This is due to the fact that the usb audio adapter seem to not support 44.1k.  My music was playing slightly too fast.
+
+2. I used https://vocalremover.org/ to split vocals and music into separate files so the singing could be piped to the speakers in the birds with the rest of the instruments going to a separate speaker.  For the vocals, I also duplicated the files into two files and then separated the right and left channels to make different bird audio.  File1 is Jose and Michael and File2 is Fritz and Pierre.  To do this I used Audacity.
+
+3. Id love to make a service/app that a non-technical person (aka my father-in-law who im building this for) could use to update/add songs to the birds.  Im thinking a user could upload songs and config params via some UI.  Im an iOS app developer with some go, java, python and c++ sprinkled in throughout the years in the real world and would love to discuss thoughts or suggestions with anyone who has any.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

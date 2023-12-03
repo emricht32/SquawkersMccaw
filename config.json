@@ -19,7 +19,7 @@
         ] ,
         "beak": 6,
         "body": 19,
-        "light": 5,
+        "light": 23,
         "speaker" : 9,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.mp3"
     },
@@ -31,7 +31,7 @@
         ] ,
         "beak": 22,
         "body": 24,
-        "light": 23,
+        "light": 25,
         "speaker": 11,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.mp3"
     },
