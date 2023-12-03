@@ -128,11 +128,10 @@ if __name__ == "__main__":
         beak = dict["beak"]
         body = dict["body"]
         light = dict["light"]
-        speaker = dict["speaker"]
         name = dict["name"]
         intervals = dict["singing"]
         audio_path = dict["audio_path"]
-        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, speaker, audio_path)
+        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, audio_path)
         birds.append(bird)
 
     # if GPIO_AVAILABLE:

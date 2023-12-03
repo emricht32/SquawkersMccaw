@@ -7,7 +7,7 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, speaker_led_pin, audio_path):
+    def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, audio_path):
         self.name = name
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
@@ -16,7 +16,7 @@ class Bird:
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         if self.spotlight_led is not None:
             self.spotlight_led.on()
-        self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
+        # self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
         self.audio_path = audio_path
         self.event = threading.Event()
 
@@ -36,10 +36,10 @@ class Bird:
             threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
-        if self.speeker_led:
-            self.speeker_led.on() 
-        else:
-            print(f"{self.name} Speaker ON")
+        # if self.speeker_led:
+        #     self.speeker_led.on() 
+        # else:
+        #     print(f"{self.name} Speaker ON")
         
     def start_dancing(self):
         if self.spotlight_led:
@@ -63,10 +63,10 @@ class Bird:
             self.body_led.off()
         else:
             print(f"{self.name} Body ON")
-        if self.speeker_led:
-            self.speeker_led.off() 
-        else:
-            print(f"{self.name} Body ON")
+        # if self.speeker_led:
+        #     self.speeker_led.off() 
+        # else:
+        #     print(f"{self.name} Body ON")
             
 def oscillate_led(event, duration, led):
     on_time = 0.01
