@@ -8,7 +8,7 @@
                 
         "beak": 17,
         "body": 27,
-        "light": 26,
+        "light": 9,
         "speaker": 10,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Fritz_L_Pierre_R.mp3"
     },
@@ -20,7 +20,7 @@
         ] ,
         "beak": 6,
         "body": 19,
-        "light": 23,
+        "light": 11,
         "speaker" : 9,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.mp3",
         "comment": "done"
@@ -44,7 +44,7 @@
         ],
         "beak": 20,
         "body": 21,
-        "light": 13,
+        "light": 10,
         "speaker": 0,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Fritz_L_Pierre_R.mp3"  
     }],
