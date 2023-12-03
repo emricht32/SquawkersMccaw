@@ -8,7 +8,7 @@
                 
         "beak": 17,
         "body": 27,
-        "light": 9,
+        "light": 25,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Fritz_L_Pierre_R.mp3"
     },
     {
@@ -31,7 +31,7 @@
         ] ,
         "beak": 22,
         "body": 24,
-        "light": 25,
+        "light": 9,
         "audio_path": "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong/Jose_L_Michael_R.mp3"
     },
     {
