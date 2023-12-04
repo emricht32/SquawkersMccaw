@@ -36,25 +36,18 @@ def manage_leds(birds, audio_duration):
                     bird.start_dancing()
         time.sleep(sleep_time)
 
-def play_audio_with_speech_indicator(dir, birds):
-    # audio = AudioSegment.from_mp3(audio_path)
-    # # audio = audio 
-    # audio_duration = audio.duration_seconds
-
-    # playback_thread = threading.Thread(target=playback.play, args=(audio,))
-    # playback_thread.start()
-
-    # manage_leds(birds, audio_duration)
-    # playback_thread.join()
+def play_audio_with_speech_indicator(song, birds):
     def good_filepath(path):
         """
         Macro for returning false if the file is not a non-hidden wav file
         :param path: path to the file
         :return: true if a non-hidden wav, false if not a wav or hidden
         """
-        return str(path).endswith(".wav") and (not str(path).startswith("."))
-    # sound_file_paths = [os.path.join(os.getcwd(), "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong", path) for path in sorted(filter(lambda path: good_filepath(path),
-    #                                                                            os.listdir(".")))]
+        return (str(path).endswith(".wav") or str(path).endswith(".mp3")) and (not str(path).startswith("."))
+    
+    for bird in birds:
+        bird.prepare_song(song)
+    dir = song["audio_dir"]
     sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(lambda path: good_filepath(path),
                                                                                os.listdir(dir)))]
     print("sound_file_paths=",sound_file_paths)
@@ -129,44 +122,9 @@ if __name__ == "__main__":
         body = dict["body"]
         light = dict["light"]
         name = dict["name"]
-        intervals = dict["singing"]
-        audio_path = dict["audio_path"]
-        bird = Bird(name, intervals + all_singing, all_dancing, beak, body, light, audio_path)
+        bird = Bird(name, beak, body, light)
         birds.append(bird)
 
-    # if GPIO_AVAILABLE:
-    #     PIR = MotionSensor(4)
-    #     playDefault = Button(2)
-
-    #     while True:
-    #         if playDefault.is_pressed:
-    #             print("Button is pressed")
-    #             audio_dir = config_dict["audio_dir"]
-    #             play_audio_with_speech_indicator(audio_dir, birds)
-    #         else:
-    #             print("Button is not pressed")
-
-    # else:
-        # audio_dir = config_dict["audio_dir"]
-        # play_audio_with_speech_indicator(audio_dir, birds)
-    
-    
-    
-    # while True:
-    #     PIR.wait_for_motion()
-        # while True:
-        #     pir_thread = threading.Thread(target=motion_tracker)
-        #     pir_thread.start()
-
-        #     while True:
-        #         cur_time = time.time()
-        #         if LAST_MOTION is not None and cur_time - LAST_MOTION < 20:
-        #             break
-        #     # Motion detected
-            
-        #     audio_path = "EnchantedTikiRoom_Old/BJB_TR_InTRoomSong.mp3"
-        #     play_audio_with_speech_indicator(audio_path, birds)
-
-            
-    audio_dir = config_dict["audio_dir"]
-    play_audio_with_speech_indicator(audio_dir, birds)
+    # TODO: add button press to select song
+    for song in config_dict["songs"]:
+        play_audio_with_speech_indicator(song, birds)

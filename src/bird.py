@@ -7,18 +7,28 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    def __init__(self, name, speech_intervals, dancing_intervals, beak_led_pin, body_led_pin, spotlight_led_pin, audio_path):
+    def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
         self.name = name
-        self.speech_intervals = speech_intervals
-        self.dancing_intervals = dancing_intervals
+        self.speech_intervals = []
+        self.dancing_intervals = []
         self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         if self.spotlight_led is not None:
             self.spotlight_led.on()
         # self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
-        self.audio_path = audio_path
+        # self.audio_path = audio_path
         self.event = threading.Event()
+
+    def prepare_song(self, song_dict):
+        individual= [individual for individual in song_dict["individuals"] if individual["name"] == self.name]
+        speech_intervals = individual["singing"]
+        dancing_intervals = individual["dancing"]
+
+        speech_intervals.append(song_dict["all_singing"])
+        dancing_intervals.append(song_dict["all_dancing"])
+        self.speech_intervals = speech_intervals
+        self.dancing_intervals = dancing_intervals
 
     def is_speaking(self, curr_time):
         return any(start <= curr_time <= end for start, end in self.speech_intervals)
