@@ -106,15 +106,16 @@ def motion_tracker():
 
 if __name__ == "__main__":
     # Check if the file exists
-    if os.path.exists('config.json'):
+    # config_multi_song
+    if os.path.exists('config_multi_song.json'):
         # Read the file and load it into a dictionary
-        with open('config.json', 'r') as f:
+        with open('config_multi_song.json', 'r') as f:
             config_dict = json.load(f)
     else:
         raise ValueError("missing config")
 
-    all_singing = config_dict["all_singing"] or []
-    all_dancing = config_dict["all_dancing"] or []
+    # all_singing = config_dict["all_singing"] or []
+    # all_dancing = config_dict["all_dancing"] or []
     birds = []
 
     for dict in config_dict["birds"]:
