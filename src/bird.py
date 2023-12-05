@@ -28,8 +28,8 @@ class Bird:
         dancing_intervals = individual["dancing"]
         print("speech_intervals=",speech_intervals)
         print("dancing_intervals=",dancing_intervals)
-        speech_intervals.append(song_dict["all_singing"])
-        dancing_intervals.append(song_dict["all_dancing"])
+        speech_intervals += song_dict["all_singing"]
+        dancing_intervals += song_dict["all_dancing"]
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
         print("self.speech_intervals=",self.speech_intervals)
