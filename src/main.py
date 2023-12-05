@@ -128,4 +128,5 @@ if __name__ == "__main__":
 
     # TODO: add button press to select song
     for song in config_dict["songs"]:
-        play_audio_with_speech_indicator(song, birds)
+        if song["name"] == "the_seasons_upon_us":
+            play_audio_with_speech_indicator(song, birds)
