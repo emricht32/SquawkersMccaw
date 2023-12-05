@@ -21,10 +21,13 @@ class Bird:
         self.event = threading.Event()
 
     def prepare_song(self, song_dict):
+        print("prepare_song")
         individual= [individual for individual in song_dict["individuals"] if individual["name"] == self.name][0]
+        print("individual=",individual)
         speech_intervals = individual["singing"]
         dancing_intervals = individual["dancing"]
-
+        print("speech_intervals=",speech_intervals)
+        print("dancing_intervals=",dancing_intervals)
         speech_intervals.append(song_dict["all_singing"])
         dancing_intervals.append(song_dict["all_dancing"])
         self.speech_intervals = speech_intervals
