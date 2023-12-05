@@ -32,8 +32,12 @@ class Bird:
         dancing_intervals.append(song_dict["all_dancing"])
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
+        print("self.speech_intervals=",self.speech_intervals)
+        print("self.dancing_intervals=",self.dancing_intervals)
 
     def is_speaking(self, curr_time):
+        print("is_speaking")
+        print("speech_intervals=",self.speech_intervals)
         return any(start <= curr_time <= end for start, end in self.speech_intervals)
     
     def is_dancing(self, curr_time):
