@@ -84,8 +84,9 @@ def play_audio_with_speech_indicator(song, birds):
             seconds = len(data[0]) / data[1]
             print('seconds = {}'.format(seconds))
         manage_leds(birds, seconds)
-        for thread, device_index in zip(threads, usb_sound_card_indices):
+        for thread, device_index, bird in zip(threads, usb_sound_card_indices, birds):
             print("Waiting for device", device_index, "to finish")
+            bird.stop_moving()
             thread.join()
 
     except KeyboardInterrupt:
