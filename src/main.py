@@ -35,6 +35,8 @@ def manage_leds(birds, audio_duration):
                     # print(bird.name, ".is_dancing")                   
                     bird.start_dancing()
         time.sleep(sleep_time)
+    for bird in birds:
+        bird.stop_moving()
 
 def play_audio_with_speech_indicator(song, birds):
     def good_filepath(path):
@@ -84,7 +86,7 @@ def play_audio_with_speech_indicator(song, birds):
             seconds = len(data[0]) / data[1]
             print('seconds = {}'.format(seconds))
         manage_leds(birds, seconds)
-        for thread, device_index, bird in zip(threads, usb_sound_card_indices, birds):
+        for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")
             bird.stop_moving()
             thread.join()
