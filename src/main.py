@@ -43,7 +43,7 @@ def play_audio_with_speech_indicator(song, birds):
         :param path: path to the file
         :return: true if a non-hidden wav, false if not a wav or hidden
         """
-        return (str(path).endswith(".wav") or str(path).endswith(".mp3")) and (not str(path).startswith("."))
+        return str(path).endswith(".wav")  and (not str(path).startswith("."))
     
     for bird in birds:
         bird.prepare_song(song)
