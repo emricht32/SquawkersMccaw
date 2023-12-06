@@ -7,6 +7,8 @@ Adopted from: https://github.com/esologic/pear/blob/master/pear.py
 import sounddevice
 import soundfile
 import pathlib
+from math import sqrt
+import numpy as np
 
 DATA_TYPE = "float32"
 
@@ -22,7 +24,11 @@ def load_sound_file_into_memory(path):
         sounddevice.default.samplerate = sf.samplerate
         if "instrumental" in path.lower():
             print("upping volume")
-            nparray *= 10
+            # https://stackoverflow.com/questions/60969400/how-can-i-increase-the-volume-of-a-byte-array-which-is-from-pyaudio-in-python
+            volumeFactor = 2
+            multiplier = pow(2, (sqrt(sqrt(sqrt(volumeFactor))) * 192 - 192)/6)
+            np.multiply(nparray, multiplier, 
+                out=nparray, casting="unsafe")
         return nparray, sf.samplerate
 
 
