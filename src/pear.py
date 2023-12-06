@@ -20,6 +20,8 @@ def load_sound_file_into_memory(path):
         nparray = sf.read(dtype='float32')
         print("sounddevice.default.samplerate=",sounddevice.default.samplerate)
         sounddevice.default.samplerate = sf.samplerate
+        if "instrumental" in path.lower():
+            nparray *= 2
         return nparray, sf.samplerate
 
 
