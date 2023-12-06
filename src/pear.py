@@ -22,7 +22,7 @@ def load_sound_file_into_memory(path):
         sounddevice.default.samplerate = sf.samplerate
         if "instrumental" in path.lower():
             print("upping volume")
-            nparray *= 5
+            nparray *= 10
         return nparray, sf.samplerate
 
 
