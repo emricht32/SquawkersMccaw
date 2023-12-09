@@ -22,13 +22,13 @@ def load_sound_file_into_memory(path):
         nparray = sf.read(dtype='float32')
         print("sounddevice.default.samplerate=",sounddevice.default.samplerate)
         sounddevice.default.samplerate = sf.samplerate
-        if "instrumental" in path.lower():
-            print("upping volume")
-            # https://stackoverflow.com/questions/60969400/how-can-i-increase-the-volume-of-a-byte-array-which-is-from-pyaudio-in-python
-            volumeFactor = 10
-            multiplier = pow(2, (sqrt(sqrt(sqrt(volumeFactor))) * 192 - 192)/6)
-            np.multiply(nparray, multiplier, 
-                out=nparray, casting="unsafe")
+        # if "instrumental" in path.lower():
+        #     print("upping volume")
+        #     # https://stackoverflow.com/questions/60969400/how-can-i-increase-the-volume-of-a-byte-array-which-is-from-pyaudio-in-python
+        #     volumeFactor = 10
+        #     multiplier = pow(2, (sqrt(sqrt(sqrt(volumeFactor))) * 192 - 192)/6)
+        #     np.multiply(nparray, multiplier, 
+        #         out=nparray, casting="unsafe")
         return nparray, sf.samplerate
 
 
