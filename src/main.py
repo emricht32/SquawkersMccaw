@@ -11,7 +11,7 @@ import sounddevice
 # import soundfile
 
 try:
-    from gpiozero import MotionSensor, Button
+    from gpiozero import MotionSensor, Button, LED
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
@@ -74,22 +74,28 @@ def play_audio_with_speech_indicator(song, birds):
     # print("streams.count=", len(streams))
     # print("files.count=", len(files))
     # print("usb_sound_card_indices.count=", len(usb_sound_card_indices))
+    AUDIO_POWER = LED(26)
     try:
         seconds = 0
         for thread in threads:
             thread.start()
         for data, stream in zip(files, streams):
-            # print('data = {}'.format(data))
-            # print('len(data[0]) = {}'.format(len(data[0])))
-            # print('sample rate = {}'.format(data[1]))
-            # print('stream = {}'.format(stream))
             seconds = len(data[0]) / data[1]
             print('seconds = {}'.format(seconds))
+        if GPIO_AVAILABLE:
+            AUDIO_POWER.on()
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")
             bird.stop_moving()
             thread.join()
+        if not GPIO_AVAILABLE:
+            AUDIO_POWER.off()
+        print("Stopping stream")
+        for stream in streams:
+            stream.stop(ignore_errors=True)
+            stream.close()
+        print("Streams stopped")
 
     except KeyboardInterrupt:
         print("Stopping stream")
