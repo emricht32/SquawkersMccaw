@@ -146,11 +146,11 @@ if __name__ == "__main__":
         try:
             if YELLOW.is_pressed:
                 song = songs[0]
-            elif YELLOW.is_pressed:
+            elif GREEN.is_pressed:
                 song = songs[1]
-            elif YELLOW.is_pressed:
+            elif BLUE.is_pressed:
                 song = songs[2]
-            elif YELLOW.is_pressed:
+            elif BLACK.is_pressed:
                 song = songs[3]
 
             if song is not None:
