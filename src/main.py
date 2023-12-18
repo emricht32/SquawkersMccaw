@@ -18,6 +18,11 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
+YELLOW = Button(5)
+GREEN = Button(1)
+BLUE = Button(7)
+BLACK = Button(8)
+
 def manage_leds(birds, audio_duration):
     print("manage_leds")
     sleep_time = 0.3
@@ -135,7 +140,26 @@ if __name__ == "__main__":
         bird = Bird(name, beak, body, light)
         birds.append(bird)
 
-    # TODO: add button press to select song
-    for song in config_dict["songs"]:
-        # if song["name"] == "Wellerman":
-        play_audio_with_speech_indicator(song, birds)
+    songs = config_dict["songs"]
+    while True:
+        song = None
+        try:
+            if YELLOW.is_pressed:
+                song = songs[0]
+            elif YELLOW.is_pressed:
+                song = songs[1]
+            elif YELLOW.is_pressed:
+                song = songs[2]
+            elif YELLOW.is_pressed:
+                song = songs[3]
+
+            if song is not None:
+                 play_audio_with_speech_indicator(song, birds)
+
+        except IndexError:
+            continue
+
+
+    # for song in config_dict["songs"]:
+    #     # if song["name"] == "Wellerman":
+    #     play_audio_with_speech_indicator(song, birds)
