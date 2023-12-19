@@ -6,5 +6,5 @@ for f in $(find $MUSIC_FOLDER -name '*.mp3'); do
         ffmpeg -i "$f" -ar 48000 "${f%.mp3}.wav"
     fi
 done
-
+pip3 install -r pi-requirements.txt
 python3 src/main.py
