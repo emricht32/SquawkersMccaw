@@ -21,7 +21,7 @@ LAST_MOTION, PIR = None, None
 YELLOW = Button(5)
 GREEN = Button(1)
 BLUE = Button(7)
-BLACK = Button(8)
+RED = Button(8)
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
@@ -150,7 +150,7 @@ if __name__ == "__main__":
                 song = songs[1]
             elif BLUE.is_pressed:
                 song = songs[2]
-            elif BLACK.is_pressed:
+            elif RED.is_pressed:
                 song = songs[3]
 
             if song is not None:
