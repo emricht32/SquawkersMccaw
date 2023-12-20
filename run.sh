@@ -7,4 +7,5 @@ for f in $(find $MUSIC_FOLDER -name '*.mp3'); do
     fi
 done
 pip3 install -r pi-requirements.txt
+git pull
 python3 src/main.py
