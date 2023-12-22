@@ -127,6 +127,12 @@ if __name__ == "__main__":
             config_dict = json.load(f)
     else:
         raise ValueError("missing config")
+    
+    usb_sound_card_indices = list(filter(lambda x: x is not False,
+                                         map(pear.get_device_number_if_usb_soundcard,
+                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+
+    print("Discovered the following usb sound devices", usb_sound_card_indices)
 
     # all_singing = config_dict["all_singing"] or []
     # all_dancing = config_dict["all_dancing"] or []
