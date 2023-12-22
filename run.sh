@@ -12,4 +12,3 @@ sleep 5
 pip3 install -r pi-requirements.txt
 # git pull
 python3 src/main.py
-unset -x
