@@ -27,16 +27,23 @@ BLUE = Button(7)
 RED = Button(8)
 
 remoteMap = {
-    "45":1,
-    "46":2,
-    "47":3,
-    "44":4,
-    "40":5,
-    "43":6,
-    "07":7,
-    "15":8,
-    "09":9,
-    "19":0,
+    69:0,
+    70:1,
+    71:2,
+    68:3,
+    64:4,
+    67:5,
+    7:6,
+    21:7,
+    9:8,
+    25:9,
+    22:10,
+    13:11,
+    24:12,
+    82:13,
+    8:14,
+    90:15,
+    28:16,
     # "16":"*",
     # "0d":"#",
     # "18":"UP",
@@ -186,7 +193,7 @@ if __name__ == "__main__":
             event = dev.read_one()
             if (event):
                 print("Received commands = ", event.value)
-                # print("Mapped Value      = ", remoteMap[event.value])
+                print("Mapped Value      = ", remoteMap[event.value])
 
             if YELLOW.is_pressed:
                 song = songs[0]
