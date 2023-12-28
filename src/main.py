@@ -5,6 +5,8 @@ import threading
 import json
 import os
 import pear
+import evdev
+
 # import numpy
 
 import sounddevice
@@ -12,6 +14,7 @@ import sounddevice
 
 try:
     from gpiozero import MotionSensor, Button, LED
+    import pigpio
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
@@ -22,6 +25,36 @@ YELLOW = Button(5)
 GREEN = Button(1)
 BLUE = Button(7)
 RED = Button(8)
+
+remoteMap = {
+    "45":1,
+    "46":2,
+    "47":3,
+    "44":4,
+    "40":5,
+    "43":6,
+    "07":7,
+    "15":8,
+    "09":9,
+    "19":0,
+    # "16":"*",
+    # "0d":"#",
+    # "18":"UP",
+    # "52":"DOWN",
+    # "08":"LEFT",
+    # "5a":"RIGHT",
+    # "1c":"OK",
+}
+
+def get_ir_device():
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    for device in devices:
+        if (device.name == "gpio_ir_recv"):
+            print("Using device", device.path, "\n")
+            return device
+    print("No device found!")
+
+dev = get_ir_device()
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
@@ -150,6 +183,11 @@ if __name__ == "__main__":
     while True:
         song = None
         try:
+            event = dev.read_one()
+            if (event):
+                print("Received commands = ", event.value)
+                print("Mapped Value      = ", remoteMap[event.value])
+
             if YELLOW.is_pressed:
                 song = songs[0]
             elif GREEN.is_pressed:

@@ -8,7 +8,7 @@ for f in $(find $MUSIC_FOLDER -name '*.mp3'); do
     fi
 done
 sleep 5
-
+ir-keytable -p all
 pip3 install -r pi-requirements.txt
 # git pull
 python3 src/main.py
