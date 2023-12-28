@@ -197,6 +197,8 @@ if __name__ == "__main__":
                 print("Mapped Value      = ", remoteMap[event.value])
                 index = remoteMap[event.value]
                 song = songs[index]
+                event2 = dev.read()
+                print("Received commands = ", event2.value)
 
             if YELLOW.is_pressed:
                 song = songs[0]
@@ -212,11 +214,13 @@ if __name__ == "__main__":
 
         except IndexError:
             continue
+        except BlockingIOError:
+            continue
         except KeyError:
             if (event):
                 print("KeyError: Received commands = ", event.value)
-
-
+    
+    dev.close()
     # for song in config_dict["songs"]:
     #     # if song["name"] == "Wellerman":
     #     play_audio_with_speech_indicator(song, birds)
