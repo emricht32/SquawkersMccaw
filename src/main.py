@@ -189,11 +189,14 @@ if __name__ == "__main__":
     songs = config_dict["songs"]
     while True:
         song = None
+        event = None
         try:
             event = dev.read_one()
             if (event):
                 print("Received commands = ", event.value)
                 print("Mapped Value      = ", remoteMap[event.value])
+                index = remoteMap[event.value]
+                song = songs[index]
 
             if YELLOW.is_pressed:
                 song = songs[0]
