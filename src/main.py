@@ -186,7 +186,7 @@ if __name__ == "__main__":
             event = dev.read_one()
             if (event):
                 print("Received commands = ", event.value)
-                print("Mapped Value      = ", remoteMap[event.value])
+                # print("Mapped Value      = ", remoteMap[event.value])
 
             if YELLOW.is_pressed:
                 song = songs[0]
@@ -202,6 +202,9 @@ if __name__ == "__main__":
 
         except IndexError:
             continue
+        except KeyError:
+            if (event):
+                print("KeyError: Received commands = ", event.value)
 
 
     # for song in config_dict["songs"]:
