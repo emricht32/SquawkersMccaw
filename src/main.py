@@ -193,12 +193,12 @@ if __name__ == "__main__":
         try:
             event = dev.read_one()
             if (event):
-                print("Received commands = ", event.value)
+                print("Received event = ", event)
                 print("Mapped Value      = ", remoteMap[event.value])
-                index = remoteMap[event.value]
-                song = songs[index]
-                generator = dev.read()
-                print("generator = ", generator)
+                if event.code == 4 and event.type == 4:
+                    index = remoteMap[event.value]
+                    song = songs[index]
+                
 
             if YELLOW.is_pressed:
                 song = songs[0]
