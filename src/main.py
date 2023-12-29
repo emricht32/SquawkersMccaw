@@ -210,8 +210,9 @@ if __name__ == "__main__":
                 song = songs[3]
 
             if song is not None:
-                 play_audio_with_speech_indicator(song, birds)
-
+                play_audio_with_speech_indicator(song, birds)
+                for event in dev.read():
+                    print("clearing event:", event)
         except IndexError:
             continue
         except BlockingIOError:
