@@ -197,8 +197,8 @@ if __name__ == "__main__":
                 print("Mapped Value      = ", remoteMap[event.value])
                 index = remoteMap[event.value]
                 song = songs[index]
-                event2 = dev.read()
-                print("Received commands = ", event2.value)
+                generator = dev.read()
+                print("generator = ", generator)
 
             if YELLOW.is_pressed:
                 song = songs[0]
