@@ -8,14 +8,14 @@
     },
     {
         "name": "Jose",
-        "beak": 6,
-        "body": 19,
+        "beak": 19,
+        "body": 6,
         "light": 11
     },
     {
         "name": "Michael",
-        "beak": 22,
-        "body": 24,
+        "beak": 24,
+        "body": 22,
         "light": 9
     },
     {
