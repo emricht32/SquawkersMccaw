@@ -5,6 +5,8 @@ import threading
 import json
 import os
 import pear
+import evdev
+
 # import numpy
 
 import sounddevice
@@ -12,6 +14,7 @@ import sounddevice
 
 try:
     from gpiozero import MotionSensor, Button, LED
+    import pigpio
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
@@ -21,7 +24,44 @@ LAST_MOTION, PIR = None, None
 YELLOW = Button(5)
 GREEN = Button(1)
 BLUE = Button(7)
-BLACK = Button(8)
+RED = Button(8)
+
+remoteMap = {
+    69:0,
+    70:1,
+    71:2,
+    68:3,
+    64:4,
+    67:5,
+    7:6,
+    21:7,
+    9:8,
+    25:9,
+    22:10,
+    13:11,
+    24:12,
+    82:13,
+    8:14,
+    90:15,
+    28:16,
+    # "16":"*",
+    # "0d":"#",
+    # "18":"UP",
+    # "52":"DOWN",
+    # "08":"LEFT",
+    # "5a":"RIGHT",
+    # "1c":"OK",
+}
+
+def get_ir_device():
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    for device in devices:
+        if (device.name == "gpio_ir_recv"):
+            print("Using device", device.path, "\n")
+            return device
+    print("No device found!")
+
+dev = get_ir_device()
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
@@ -127,6 +167,12 @@ if __name__ == "__main__":
             config_dict = json.load(f)
     else:
         raise ValueError("missing config")
+    
+    usb_sound_card_indices = list(filter(lambda x: x is not False,
+                                         map(pear.get_device_number_if_usb_soundcard,
+                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+
+    print("Discovered the following usb sound devices", usb_sound_card_indices)
 
     # all_singing = config_dict["all_singing"] or []
     # all_dancing = config_dict["all_dancing"] or []
@@ -143,23 +189,39 @@ if __name__ == "__main__":
     songs = config_dict["songs"]
     while True:
         song = None
+        event = None
         try:
+            event = dev.read_one()
+            if (event):
+                print("Received event = ", event)
+                print("Mapped Value      = ", remoteMap[event.value])
+                if event.code == 4 and event.type == 4:
+                    index = remoteMap[event.value]
+                    song = songs[index]
+                
+
             if YELLOW.is_pressed:
                 song = songs[0]
             elif GREEN.is_pressed:
                 song = songs[1]
             elif BLUE.is_pressed:
                 song = songs[2]
-            elif BLACK.is_pressed:
+            elif RED.is_pressed:
                 song = songs[3]
 
             if song is not None:
-                 play_audio_with_speech_indicator(song, birds)
-
+                play_audio_with_speech_indicator(song, birds)
+                for event in dev.read():
+                    print("clearing event:", event)
         except IndexError:
             continue
-
-
+        except BlockingIOError:
+            continue
+        except KeyError:
+            if (event):
+                print("KeyError: Received commands = ", event.value)
+    
+    dev.close()
     # for song in config_dict["songs"]:
     #     # if song["name"] == "Wellerman":
     #     play_audio_with_speech_indicator(song, birds)

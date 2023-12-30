@@ -45,8 +45,8 @@ sudo apt upgrade
 
 sudo apt-get install git-lfs
 sudo apt-get install python3-pip python3-numpy libportaudio2 libsndfile1 screen git
-```
 
+```
 2. Clone this repository.
 ```bash
 git clone https://github.com/emricht32/SquawkersMccaw.git
@@ -65,6 +65,45 @@ But either way on, the Pi run:
 ```bash
 pip3 install -r pi-requirements.txt
 ```
+
+5.  (Optional) IR Remote Receiver setup (taken from [https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html](https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html))
+Enabling IR communication on the Raspberry Pi
+
+Before we start, as always it’s best to update everything using `sudo apt-get update && sudo apt-get upgrade`
+
+There are four main tasks we need to achieve:
+
+Enable Device Tree overlays (dtoverlay) to enable the kernel to talk to the IR receiver:
+
+Edit the Raspberry Pi config file:
+
+```bash
+sudo nano /boot/config.txt
+```
+
+Uncomment this to enable infrared communication. Change the pin to suit your configuration if required.
+
+```
+dtoverlay=gpio-ir,gpio_pin=4
+```
+    
+Reboot when finished:
+
+```bash
+sudo reboot
+```
+   
+Install ir-keytable to receive IR scancodes via the sensor:
+
+Install the ir-keytable package and temporarily enable all protocols: 
+
+```bash
+sudo apt-get install ir-keytable
+sudo ir-keytable -p all
+```
+
+Note that the last command will not persist a reboot and is for testing only (we’ll take care of this later!)
+
 ## Hardware Setup
 
 1. **Squawkers McCaw**: Disassemble the bird carefully and identify the control wires for the servo motors. Pic examples in docs/media.
