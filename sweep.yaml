@@ -11,5 +11,5 @@ rules:
   - "Any clearly inefficient or repeated code should be optimized or refactored."
   - "Remove any comments before code that are obvious. For example `# this prints hello world; print('hello world')`."
 
-#  - "All new business logic should have corresponding unit tests in the tests/ directory."
+
 #  - "We use unit tests for our code. If we have "class.py", we should have "class_test.py" in the same directory."
