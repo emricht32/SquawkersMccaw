@@ -150,3 +150,32 @@
     }
     ]
 }
+    },
+    {
+        "audio_dir": "music/shipping_up_to_boston",
+        "name": "Shipping Up To Boston",
+        "individuals": [
+            {
+                "name": "Jose",
+                "singing": [],
+                "dancing": []
+            },
+            {
+                "name": "Michael",
+                "singing": [],
+                "dancing": []
+            },
+            {
+                "name": "Fritz",
+                "singing": [],
+                "dancing": []
+            },
+            {
+                "name": "Pierre",
+                "singing": [],
+                "dancing": []
+            }
+        ],
+        "all_singing": [],
+        "all_dancing": []
+    }

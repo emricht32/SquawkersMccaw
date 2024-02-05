@@ -120,6 +120,86 @@ def play_audio_with_speech_indicator(song, birds):
     # print("files.count=", len(files))
     # print("usb_sound_card_indices.count=", len(usb_sound_card_indices))
     AUDIO_POWER = LED(26)
+def manage_leds_with_roles(birds, audio_duration, lead_singer, background_singers):
+    print("manage_leds_with_roles")
+    sleep_time = 0.3
+    start_time = time.time()
+    while time.time() - start_time < audio_duration:
+        curr_time = time.time() - start_time
+        for bird in birds:
+            if bird.name == lead_singer and bird.is_speaking(curr_time):
+                bird.start_moving(sleep_time)
+            elif bird.name in background_singers and bird.is_speaking(curr_time):
+                bird.start_dancing()
+            else:
+                bird.stop_moving()
+        time.sleep(sleep_time)
+    for bird in birds:
+        bird.stop_moving()
+
+def play_audio_with_speech_indicator_and_roles(song, birds):
+    def good_filepath(path):
+        return str(path).endswith(".wav")  and (not str(path).startswith("."))
+    
+    lead_singer = None
+    background_singers = []
+    for individual in song.get("individuals", []):
+        if individual.get("name") == "Jose":  # Assuming Jose is always the lead singer for simplicity
+            lead_singer = "Jose"
+        else:
+            background_singers.append(individual.get("name"))
+    
+    for bird in birds:
+        bird.prepare_song(song)
+    dir = song["audio_dir"]
+    sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(lambda path: good_filepath(path), os.listdir(dir)))]
+    print("sound_file_paths=",sound_file_paths)
+    files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
+
+    print("Files loaded into memory:", files)
+
+    usb_sound_card_indices = list(filter(lambda x: x is not False,
+                                         map(pear.get_device_number_if_usb_soundcard,
+                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+
+    print("Discovered the following usb sound devices", usb_sound_card_indices)
+
+    streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
+
+    print("Playing files")
+
+    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
+                for data, stream in zip(files, streams)]
+    AUDIO_POWER = LED(26)
+    try:
+        seconds = 0
+        for thread in threads:
+            thread.start()
+        for data, stream in zip(files, streams):
+            seconds = len(data[0]) / data[1]
+            print('seconds = {}'.format(seconds))
+        if GPIO_AVAILABLE:
+            AUDIO_POWER.on()
+        manage_leds_with_roles(birds, seconds, lead_singer, background_singers)
+        for thread, device_index in zip(threads, usb_sound_card_indices):
+            print("Waiting for device", device_index, "to finish")
+            thread.join()
+        if not GPIO_AVAILABLE:
+            AUDIO_POWER.off()
+        print("Stopping stream")
+        for stream in streams:
+            stream.stop(ignore_errors=True)
+            stream.close()
+        print("Streams stopped")
+
+    except KeyboardInterrupt:
+        print("Stopping stream")
+        for stream in streams:
+            stream.abort(ignore_errors=True)
+            stream.close()
+        print("Streams stopped")
+
+    print("Bye.")
     try:
         seconds = 0
         for thread in threads:
