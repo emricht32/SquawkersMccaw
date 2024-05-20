@@ -15,6 +15,9 @@ if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; 
     SOURCE_FOLDER="/media/BIRDS/music"
 fi
 
+echo "Source folder: $SOURCE_FOLDER"
+echo "Destination folder: $MUSIC_FOLDER"
+
 find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     # Determine the relative path of the .mp3 file
     relative_path="${f#"$SOURCE_FOLDER/"}"
