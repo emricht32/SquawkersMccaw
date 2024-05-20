@@ -20,10 +20,10 @@ echo "Destination folder: $MUSIC_FOLDER"
 
 find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     # Determine the relative path of the .mp3 file
-    relative_path="${f#"$SOURCE_FOLDER/"}"
+    relative_path='${f#"$SOURCE_FOLDER/"}'
     
     # Create the corresponding directory structure in the destination folder
-    dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
+    dest_dir='$MUSIC_FOLDER/$(dirname "$relative_path")'
     mkdir -p "$dest_dir"
     
     # Define the destination .wav file path
