@@ -18,17 +18,16 @@ fi
 echo "Source folder: $SOURCE_FOLDER"
 echo "Destination folder: $MUSIC_FOLDER"
 
-find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -d '' f; do
-    F="$f"
+find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     # Determine the relative path of the .mp3 file
-    relative_path="${f#"$SOURCE_FOLDER/"}"
+    relative_path="${f#$SOURCE_FOLDER/}"
     
     # Create the corresponding directory structure in the destination folder
     dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
     mkdir -p "$dest_dir"
     
     # Define the destination .wav file path
-    wav_file="$dest_dir/$(basename "${relative_path%.mp3}.wav")"
+    wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
 
     echo "Processing file: $f"
     echo "Relative path: $relative_path"
@@ -44,12 +43,8 @@ find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -d '' f; do
     else
         echo "WAV file already exists for $f"
     fi
-
-    echo "*Processing file: $f"
-    echo "*Relative path: $relative_path"
-    echo "*Destination directory: $dest_dir"
-    echo "*WAV file path: $wav_file"
 done
+
 
 # Allow some time for processing if necessary
 sleep 5
