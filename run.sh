@@ -7,13 +7,25 @@ set -e
 # Default music folder
 MUSIC_FOLDER="./music"
 
+# Source folder for .mp3 files
+SOURCE_FOLDER="./music"
+
 # Check if /media/BIRDS/music and /media/BIRDS/config_multi_song.json exist
 if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
-    MUSIC_FOLDER="/media/BIRDS/music"
+    SOURCE_FOLDER="/media/BIRDS/music"
 fi
 
-find "$MUSIC_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
-    wav_file="${f%.mp3}.wav"
+find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
+    # Determine the relative path of the .mp3 file
+    relative_path="${f#"$SOURCE_FOLDER/"}"
+    
+    # Create the corresponding directory structure in the destination folder
+    dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
+    mkdir -p "$dest_dir"
+    
+    # Define the destination .wav file path
+    wav_file="$dest_dir/$(basename "${relative_path%.mp3}.wav")"
+
     if ! [ -f "$wav_file" ]; then
         echo "Creating WAV file for $f"
         if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then

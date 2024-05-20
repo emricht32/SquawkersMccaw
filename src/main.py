@@ -115,10 +115,7 @@ def play_audio_with_speech_indicator(song, birds):
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
-    # print("threads.count=", len(threads))
-    # print("streams.count=", len(streams))
-    # print("files.count=", len(files))
-    # print("usb_sound_card_indices.count=", len(usb_sound_card_indices))
+    
     AUDIO_POWER = LED(26)
     try:
         seconds = 0
