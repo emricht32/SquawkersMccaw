@@ -13,6 +13,7 @@ SOURCE_FOLDER="./music"
 # Check if /media/BIRDS/music and /media/BIRDS/config_multi_song.json exist
 if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
     SOURCE_FOLDER="/media/BIRDS/music"
+    cp /media/BIRDS/config_multi_song.json .
 fi
 
 find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
