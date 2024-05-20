@@ -18,7 +18,7 @@ fi
 echo "Source folder: $SOURCE_FOLDER"
 echo "Destination folder: $MUSIC_FOLDER"
 
-find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read f; do
+find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -d '' f; do
     # Determine the relative path of the .mp3 file
     relative_path="${f#"$SOURCE_FOLDER/"}"
     
