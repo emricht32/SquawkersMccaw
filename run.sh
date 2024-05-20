@@ -13,7 +13,6 @@ SOURCE_FOLDER="./music"
 # Check if /media/BIRDS/music and /media/BIRDS/config_multi_song.json exist
 if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
     SOURCE_FOLDER="/media/BIRDS/music"
-    cp /media/BIRDS/config_multi_song.json .
 fi
 
 find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
@@ -26,6 +25,11 @@ find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     
     # Define the destination .wav file path
     wav_file="$dest_dir/$(basename "${relative_path%.mp3}.wav")"
+
+    echo "Processing file: $f"
+    echo "Relative path: $relative_path"
+    echo "Destination directory: $dest_dir"
+    echo "WAV file path: $wav_file"
 
     if ! [ -f "$wav_file" ]; then
         echo "Creating WAV file for $f"
