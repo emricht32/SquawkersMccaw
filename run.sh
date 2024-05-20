@@ -29,20 +29,22 @@ find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     # Define the destination .wav file path
     wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
 
+    F="$f"
     echo "Processing file: $f"
+    echo "Processing File: $F"
     echo "Relative path: $relative_path"
     echo "Destination directory: $dest_dir"
     echo "WAV file path: $wav_file"
-
-    # if ! [ -f "$wav_file" ]; then
-    #     echo "Creating WAV file for $f"
-    #     if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
-    #         echo "Error converting $f to WAV" >&2
-    #         exit 1
-    #     fi
-    # else
-    #     echo "WAV file already exists for $f"
-    # fi
+    
+    if ! [ -f "$wav_file" ]; then
+        echo "Creating WAV file for $F"
+        if ! ffmpeg -i "$F" -ar 48000 "$wav_file"; then
+            echo "Error converting $f to WAV" >&2
+            exit 1
+        fi
+    else
+        echo "WAV file already exists for $f"
+    fi
 
     echo "*Processing file: $f"
     echo "*Relative path: $relative_path"
