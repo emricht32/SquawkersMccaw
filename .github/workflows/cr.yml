@@ -1,0 +1,32 @@
+name: Code Review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    # branches: 
+    #   - main
+    #   - release/**
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Token Limit
+        id: set_token_limit
+        run: |
+          if [[ "${{ github.base_ref }}" == "main" ]]; then
+            echo "TOKEN_LIMIT=4096" >> $GITHUB_ENV
+          elif [[ "${{ github.base_ref }}" =~ ^release/.* ]]; then
+            echo "TOKEN_LIMIT=2000" >> $GITHUB_ENV
+          else
+            echo "TOKEN_LIMIT=1000" >> $GITHUB_ENV
+          fi
+      - uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TOKEN_LIMIT: ${{ env.TOKEN_LIMIT }}
