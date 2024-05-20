@@ -19,6 +19,7 @@ echo "Source folder: $SOURCE_FOLDER"
 echo "Destination folder: $MUSIC_FOLDER"
 
 find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -d '' f; do
+    F="$f"
     # Determine the relative path of the .mp3 file
     relative_path="${f#"$SOURCE_FOLDER/"}"
     
@@ -34,15 +35,20 @@ find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -d '' f; do
     echo "Destination directory: $dest_dir"
     echo "WAV file path: $wav_file"
 
-    # if ! [ -f "$wav_file" ]; then
-    #     echo "Creating WAV file for $f"
-    #     if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
-    #         echo "Error converting $f to WAV" >&2
-    #         exit 1
-    #     fi
-    # else
-    #     echo "WAV file already exists for $f"
-    # fi
+    if ! [ -f "$wav_file" ]; then
+        echo "Creating WAV file for $f"
+        if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
+            echo "Error converting $f to WAV" >&2
+            exit 1
+        fi
+    else
+        echo "WAV file already exists for $f"
+    fi
+
+    echo "*Processing file: $f"
+    echo "*Relative path: $relative_path"
+    echo "*Destination directory: $dest_dir"
+    echo "*WAV file path: $wav_file"
 done
 
 # Allow some time for processing if necessary
