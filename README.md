@@ -23,14 +23,13 @@ This project aims to recreate Disney's Enchanted Tiki Room using Squawkers McCaw
 - [3 x 3.5mm Male to Male Auxiliary Audio Cable](https://www.amazon.com/dp/B07TCFQ3MG) (there are 6 in this)
 - [3 X Plugable USB Audio Adapter](https://www.amazon.com/dp/B00NMXY2MO)
 - [Anker 7-Port USB 3.0 Data Hub with 36W Power Adapter](https://www.amazon.com/dp/B014ZQ07NE)
-- [2 Pieces Audio Amplifier Board](https://www.amazon.com/dp/B08RDN58SZ)
+- [3 Pieces Audio Amplifier Board](https://www.amazon.com/dp/B08RDN58SZ)
 - [IR motion sensor](https://www.amazon.com/dp/B07KZW86YR)
 - [Mini spotlights](https://www.amazon.com/dp/B0BLVBQVKS)
 - [Waterproof Outdoor Electrical Box](https://www.amazon.com/dp/B0BHVHSNY6)
+- [8-Pin Waterproof DT Connector](https://www.amazon.com/dp/B0C3XG8MVZ)(for easily conecting cables to box)
 - [Servo Motor Hat](https://www.amazon.com/dp/B07H9ZTWNC) (for Drummers which is not yet implemented)
 - [Servo motors](https://www.amazon.com/dp/B0C7KQKH68) (for Drummers which is not yet implemented)
-- [8-Pin Waterproof DT Connector](https://www.amazon.com/dp/B0C3XG8MVZ)(for easily conecting cables to box)
-- [~~Audio Amplifier~~](https://www.amazon.com/dp/B01N053XQS) ~~(for the speaker in the bird, currently not used)~~
 - other basic electronics tools
 - Python 3.x
 - [Git](https://git-scm.com/)
@@ -64,11 +63,22 @@ But either way on, the Pi run:
 ```bash
 pip3 install -r pi-requirements.txt
 ```
+5.  (Optional) If you want this to run on startup, you need to edit the /etc/rc.local file.
 
-5.  (Optional) IR Remote Receiver setup (taken from [https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html](https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html))
+```bash
+nano /etc/rc.local
+```
+Add the run script before the `exit 0` line
+
+```bash
+cd /path/to/SquawkersMccaw && bash -c '/usr/bin/bash run.sh > ~/squawker.log 2>&1' &
+```
+This will run the run.sh script and output the logs to ~/squawker.log
+
+6.  (Optional) IR Remote Receiver setup (taken from [https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html](https://www.ignorantofthings.com/2022/03/receiving-infrared-on-raspberry-pi-with.html))
 Enabling IR communication on the Raspberry Pi
 
-Before we start, as always it’s best to update everything using `sudo apt-get update && sudo apt-get upgrade`
+Before we start, as always it's best to update everything using `sudo apt-get update && sudo apt-get upgrade`
 
 There are four main tasks we need to achieve:
 
@@ -101,7 +111,7 @@ sudo apt-get install ir-keytable
 sudo ir-keytable -p all
 ```
 
-Note that the last command will not persist a reboot and is for testing only (we’ll take care of this later!)
+Note that the last command will not persist a reboot and is for testing only (we'll take care of this later!)
 
 ## Hardware Setup
 
@@ -114,20 +124,43 @@ Note that the last command will not persist a reboot and is for testing only (we
    
 2. **Wiring**: Use the diagram provided in the `/hardware` folder for reference. 
 
-![V2](docs/hardware/TikiBirds.png)
+![V3](docs/hardware/TikiBirds_v3.3.png)
 
 3. **Servo Motors**: Connect the servo motors to the Raspberry Pi's GPIO pins.  (For the Drummers which is a TODO)
 
-## Software Configuration
+## Using a thumb drive
 
-1. Edit the `config.json` file to set up GPIO pins, timers, and other settings.
+1. Create a folder called BIRDS in your thumb drive.
+
+2. Edit the `config_multi_song.json` file to set up GPIO pins, timers, and other settings and store it in the BIRDS folder.
+
+3. Create a music folder and store the music files in the same path denoted in the config_multi_song.json file.
+
+The folder and files should have the following structure:
+
+music
+├── mele-kalikimaka
+│   ├── 1_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   ├── 2_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   └── 3_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+├── the_seasons_upon_us
+│   ├── 1_the_seasons_upon_us_main_L_second_R.mp3
+│   ├── 2_the_seasons_upon_us_backup.mp3
+│   └── 3_the_seasons_upon_us_instrumental.mp3
+├── tiki
+│   ├── 1_Jose_L_Michael_R_48.mp3
+│   ├── 2_Fritz_L_Pierre_R_48.mp3
+│   └── 3_Instrumental_48.mp3
+└── wellerman
+    ├── 1_wellerman_main_L_bass_R.mp3
+    └── 2_wellerman_backup.mp3
 
 ## Usage
 
 To start the Enchanted Tiki Room experience, run:
 
 ```bash
-python3 src/main.py
+./run.sh
 ```
 
 ## Notes/Thoughts

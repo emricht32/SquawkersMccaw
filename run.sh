@@ -15,10 +15,11 @@ if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; 
     SOURCE_FOLDER="/media/BIRDS/music"
 fi
 
-echo "Source folder: $SOURCE_FOLDER"
-echo "Destination folder: $MUSIC_FOLDER"
+# Save the result of find into a variable
+mp3_files=$(find "$SOURCE_FOLDER" -name '*.mp3' -print0 | tr '\0' '\n')
 
-find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
+# Iterate over the list stored in the variable
+for f in $mp3_files; do
     # Determine the relative path of the .mp3 file
     relative_path="${f#$SOURCE_FOLDER/}"
     
@@ -29,25 +30,13 @@ find "$SOURCE_FOLDER" -name '*.mp3' -print0 | while IFS= read -r -d '' f; do
     # Define the destination .wav file path
     wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
 
-    F="$f"
-    echo "Processing file: $f"
-    echo "Processing File: $F"
-    echo "Relative path: $relative_path"
-    echo "Destination directory: $dest_dir"
-    echo "WAV file path: $wav_file"
-    
     if ! [ -f "$wav_file" ]; then
-        echo "Creating WAV file for $F"
-        if ! ffmpeg -i "$F" -ar 48000 "$wav_file"; then
+        echo "Creating WAV file for $f"
+        if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
             echo "Error converting $f to WAV" >&2
             exit 1
         fi
     else
         echo "WAV file already exists for $f"
     fi
-
-    echo "*Processing file: $f"
-    echo "*Relative path: $relative_path"
-    echo "*Destination directory: $dest_dir"
-    echo "*WAV file path: $wav_file"
 done
