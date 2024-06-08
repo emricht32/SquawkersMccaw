@@ -40,3 +40,16 @@ for f in $mp3_files; do
         echo "WAV file already exists for $f"
     fi
 done
+# Install Python dependencies
+if ! pip3 install -r pi-requirements.txt; then
+    echo "Error installing Python dependencies" >&2
+    exit 1
+fi
+# Pull the latest code from the repository
+# Uncomment if needed
+# git pull
+# Run the Python script
+if ! python3 src/main.py; then
+    echo "Error running the Python script" >&2
+    exit 1
+fi
