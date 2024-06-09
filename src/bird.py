@@ -26,14 +26,14 @@ class Bird:
         print("individual=",individual)
         speech_intervals = individual["singing"]
         dancing_intervals = individual["dancing"]
-        # print("speech_intervals=",speech_intervals)
-        # print("dancing_intervals=",dancing_intervals)
+        print("speech_intervals=",speech_intervals)
+        print("dancing_intervals=",dancing_intervals)
         speech_intervals += song_dict["all_singing"]
         dancing_intervals += song_dict["all_dancing"]
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
-        # print("self.speech_intervals=",self.speech_intervals)
-        # print("self.dancing_intervals=",self.dancing_intervals)
+        print("self.speech_intervals=",self.speech_intervals)
+        print("self.dancing_intervals=",self.dancing_intervals)
 
     def is_speaking(self, curr_time):
         # print("is_speaking")

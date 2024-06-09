@@ -65,16 +65,17 @@ dev = get_ir_device()
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
+    print("audio_duration=",audio_duration)
     sleep_time = 0.3
     start_time = time.time()
     while time.time() - start_time < audio_duration:
         curr_time = time.time() - start_time
         for bird in birds:
             if bird.is_speaking(curr_time):
-                # print(bird.name, ".is_speaking")
+                print(bird.name, ".is_speaking")
                 bird.start_moving(sleep_time)
             else:
-                # print(bird.name, ".stop_moving")
+                print(bird.name, ".stop_moving")
                 bird.stop_moving()
                 if bird.is_dancing(curr_time):     
                     # print(bird.name, ".is_dancing")                   
