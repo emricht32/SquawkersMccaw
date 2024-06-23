@@ -22,10 +22,10 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
-YELLOW = Button(6)
-GREEN = Button(13)
-BLUE = Button(19)
-RED = Button(26)
+YELLOW = Button(0)
+GREEN = Button(5)
+BLUE = Button(6)
+RED = Button(13)
 
 remoteMap = {
     69:0,
@@ -59,6 +59,7 @@ def get_ir_device():
     for device in devices:
         if (device.name == "gpio_ir_recv"):
             print("Using device", device.path, "\n")
+            print("device pins", device.capabilities(verbose=True))
             return device
     print("No device found!")
 
