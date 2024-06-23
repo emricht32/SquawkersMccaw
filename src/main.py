@@ -22,10 +22,10 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
-YELLOW = Button(0)
-GREEN = Button(5)
-BLUE = Button(6)
-RED = Button(13)
+# YELLOW = Button(0)
+# GREEN = Button(5)
+# BLUE = Button(6)
+# RED = Button(13)
 
 remoteMap = {
     69:0,
@@ -202,7 +202,7 @@ if __name__ == "__main__":
                     song = songs[index]
                 
 
-            if YELLOW.is_pressed or True:
+            if True or YELLOW.is_pressed or True:
                 song = songs[0]
             elif GREEN.is_pressed:
                 song = songs[1]
