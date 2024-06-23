@@ -49,7 +49,7 @@ fi
 # Uncomment if needed
 # git pull
 # Run the Python script
-if ! python3 src/main.py; then
+if ! sudo python3 src/main.py; then
     echo "Error running the Python script" >&2
     exit 1
 fi
