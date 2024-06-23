@@ -25,7 +25,7 @@ LAST_MOTION, PIR = None, None
 YELLOW = Button(6)
 GREEN = Button(13)
 BLUE = Button(19)
-RED = Button(25)
+RED = Button(26)
 
 remoteMap = {
     69:0,
