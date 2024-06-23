@@ -2,27 +2,27 @@
     "birds": [
     {
         "name": "Pierre",
-        "beak": 27,
-        "body": 17,
+        "beak": 14,
+        "body": 15,
         "light": 25
     },
     {
         "name": "Jose",
-        "beak": 19,
-        "body": 6,
-        "light": 11
+        "beak": 18,
+        "body": 17,
+        "light": 8
     },
     {
         "name": "Michael",
-        "beak": 24,
+        "beak": 27,
         "body": 22,
-        "light": 9
+        "light": 7
     },
     {
         "name": "Fritz",
-        "beak": 20,
-        "body": 21,
-        "light": 10
+        "beak": 23,
+        "body": 24,
+        "light": 1
     }],
     "songs":[
     {

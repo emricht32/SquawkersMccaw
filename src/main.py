@@ -22,10 +22,10 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
-YELLOW = Button(5)
-GREEN = Button(1)
-BLUE = Button(7)
-RED = Button(8)
+YELLOW = Button(6)
+GREEN = Button(13)
+BLUE = Button(19)
+RED = Button(25)
 
 remoteMap = {
     69:0,
@@ -118,7 +118,7 @@ def play_audio_with_speech_indicator(song, birds):
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
     
-    AUDIO_POWER = LED(26)
+    AUDIO_POWER = LED(21)
     try:
         seconds = 0
         for thread in threads:
