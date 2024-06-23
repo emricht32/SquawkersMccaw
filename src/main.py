@@ -172,6 +172,8 @@ if __name__ == "__main__":
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
 
     print("Discovered the following usb sound devices", usb_sound_card_indices)
+    if len(usb_sound_card_indices) == 0:
+        raise ValueError("No USB sound card found")
 
     # all_singing = config_dict["all_singing"] or []
     # all_dancing = config_dict["all_dancing"] or []
