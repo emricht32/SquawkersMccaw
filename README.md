@@ -42,7 +42,7 @@ sudo apt update
 sudo apt upgrade
 
 sudo apt-get install git-lfs
-sudo apt-get install python3-pip python3-numpy libportaudio2 libsndfile1 screen git
+sudo apt-get install python3-pip python3-numpy libportaudio2 libsndfile1 screen git evenv
 
 ```
 2. Clone this repository.

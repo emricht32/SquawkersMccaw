@@ -17,6 +17,7 @@ try:
     import pigpio
     GPIO_AVAILABLE = True
 except ImportError:
+    print("GPIO not available")
     GPIO_AVAILABLE = False
 
 LAST_MOTION, PIR = None, None
