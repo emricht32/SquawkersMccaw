@@ -13,6 +13,7 @@ SOURCE_FOLDER="./music"
 # Check if /media/BIRDS/music and /media/BIRDS/config_multi_song.json exist
 if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
     SOURCE_FOLDER="/media/BIRDS/music"
+    cp /media/BIRDS/config_multi_song.json .
 fi
 
 # Save the result of find into a variable
