@@ -22,6 +22,29 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
+import RPi.GPIO as GPIO
+
+def check_gpio_pins():
+    GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbering
+    pins_in_use = []
+    for pin in range(2, 28):  # Check GPIO pins from 2 to 27
+        try:
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # Set pin to input with no pull-up/down
+            status = GPIO.input(pin)
+            if status is not None:
+                pins_in_use.append(pin)
+        except RuntimeError as e:
+            print(f"GPIO {pin} is in use: {e}")
+    
+    GPIO.cleanup()  # Reset all GPIO pins
+    
+    if pins_in_use:
+        print("Pins in use:", pins_in_use)
+    else:
+        print("No GPIO pins are currently in use.")
+
+check_gpio_pins()
+
 # YELLOW = Button(0)
 # GREEN = Button(5)
 # BLUE = Button(6)
