@@ -45,6 +45,8 @@ def check_gpio_pins():
 
 check_gpio_pins()
 
+check_gpio_pins()
+
 # YELLOW = Button(0)
 # GREEN = Button(5)
 # BLUE = Button(6)
