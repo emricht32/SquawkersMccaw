@@ -8,6 +8,7 @@ except ImportError:
 
 class Bird:
     def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
+        print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
         self.name = name
         self.speech_intervals = []
         self.dancing_intervals = []
