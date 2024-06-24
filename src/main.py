@@ -146,11 +146,13 @@ def play_audio_with_speech_indicator(song, birds):
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
     
-    for i in range(2, 28):
-        try:
-            AUDIO_POWER = LED(i)
-        except:
-            print("LED %i not available", i)
+    # for i in range(2, 28):
+    #     try:
+    #         AUDIO_POWER = LED(i)
+    #     except:
+    #         print("LED %i not available", i)
+
+    AUDIO_POWER = LED(21) if GPIO_AVAILABLE else None
     try:
         seconds = 0
         for thread in threads:
