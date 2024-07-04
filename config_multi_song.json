@@ -4,7 +4,7 @@
         "name": "Pierre",
         "beak": 14,
         "body": 15,
-        "light": 25
+        "light": 1
     },
     {
         "name": "Jose",
@@ -22,7 +22,7 @@
         "name": "Fritz",
         "beak": 23,
         "body": 24,
-        "light": 1
+        "light": 25
     }],
     "songs":[
     {
