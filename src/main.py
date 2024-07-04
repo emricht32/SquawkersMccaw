@@ -235,7 +235,7 @@ if __name__ == "__main__":
                     song = songs[index]
                 
 
-            if True or YELLOW.is_pressed or True:
+            if YELLOW.is_pressed:
                 song = songs[0]
             elif GREEN.is_pressed:
                 song = songs[1]
