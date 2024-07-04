@@ -24,7 +24,7 @@ LAST_MOTION, PIR = None, None
 
 import RPi.GPIO as GPIO
 
-GPIO.cleanup()  # Reset all GPIO pins
+# GPIO.cleanup()  # Reset all GPIO pins
 
 # def check_gpio_pins():
 #     GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbering
@@ -49,10 +49,10 @@ GPIO.cleanup()  # Reset all GPIO pins
 
 # check_gpio_pins()
 
-# YELLOW = Button(0)
-# GREEN = Button(5)
-# BLUE = Button(6)
-# RED = Button(13)
+YELLOW = Button(0)
+GREEN = Button(5)
+BLUE = Button(6)
+RED = Button(13)
 
 remoteMap = {
     69:0,
