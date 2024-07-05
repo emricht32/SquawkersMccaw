@@ -221,7 +221,7 @@ if __name__ == "__main__":
         bird = Bird(name, beak, body, light)
         birds.append(bird)
 
-    songs = config_dict["songs"]
+    # songs = config_dict["songs"]
     # while True:
     #     time.sleep(1)
     #     print("start while loop")
