@@ -223,10 +223,13 @@ if __name__ == "__main__":
 
     songs = config_dict["songs"]
     while True:
+        time.sleep(1)
+        print("start while loop")
         song = None
         event = None
         try:
             event = dev.read_one()
+            print("event=",event)
             if (event):
                 print("Received event = ", event)
                 print("Mapped Value      = ", remoteMap[event.value])
@@ -256,7 +259,7 @@ if __name__ == "__main__":
             if (event):
                 print("KeyError: Received commands = ", event.value)
     
-    dev.close()
+        dev.close()
     # for song in config_dict["songs"]:
     #     # if song["name"] == "Wellerman":
     #     play_audio_with_speech_indicator(song, birds)
