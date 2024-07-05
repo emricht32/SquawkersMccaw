@@ -222,44 +222,44 @@ if __name__ == "__main__":
         birds.append(bird)
 
     songs = config_dict["songs"]
-    while True:
-        time.sleep(1)
-        print("start while loop")
-        song = None
-        event = None
-        try:
-            event = dev.read_one()
-            print("event=",event)
-            if (event):
-                print("Received event = ", event)
-                print("Mapped Value      = ", remoteMap[event.value])
-                if event.code == 4 and event.type == 4:
-                    index = remoteMap[event.value]
-                    song = songs[index]
+    # while True:
+    #     time.sleep(1)
+    #     print("start while loop")
+    #     song = None
+    #     event = None
+    #     try:
+    #         event = dev.read_one()
+    #         print("event=",event)
+    #         if (event):
+    #             print("Received event = ", event)
+    #             print("Mapped Value      = ", remoteMap[event.value])
+    #             if event.code == 4 and event.type == 4:
+    #                 index = remoteMap[event.value]
+    #                 song = songs[index]
                 
 
-            if YELLOW.is_pressed:
-                song = songs[0]
-            elif GREEN.is_pressed:
-                song = songs[1]
-            elif BLUE.is_pressed:
-                song = songs[2]
-            elif RED.is_pressed:
-                song = songs[3]
+    #         if YELLOW.is_pressed:
+    #             song = songs[0]
+    #         elif GREEN.is_pressed:
+    #             song = songs[1]
+    #         elif BLUE.is_pressed:
+    #             song = songs[2]
+    #         elif RED.is_pressed:
+    #             song = songs[3]
 
-            if song is not None:
-                play_audio_with_speech_indicator(song, birds)
-                for event in dev.read():
-                    print("clearing event:", event)
-        except IndexError:
-            continue
-        except BlockingIOError:
-            continue
-        except KeyError:
-            if (event):
-                print("KeyError: Received commands = ", event.value)
+    #         if song is not None:
+    #             play_audio_with_speech_indicator(song, birds)
+    #             for event in dev.read():
+    #                 print("clearing event:", event)
+    #     except IndexError:
+    #         continue
+    #     except BlockingIOError:
+    #         continue
+    #     except KeyError:
+    #         if (event):
+    #             print("KeyError: Received commands = ", event.value)
     
-        dev.close()
-    # for song in config_dict["songs"]:
-    #     # if song["name"] == "Wellerman":
-    #     play_audio_with_speech_indicator(song, birds)
+    #     dev.close()
+    for song in config_dict["songs"]:
+        if song["name"] == "lets_get_it_started":
+            play_audio_with_speech_indicator(song, birds)
