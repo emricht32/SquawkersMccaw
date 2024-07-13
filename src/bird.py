@@ -81,10 +81,10 @@ class Bird:
             self.body_led.off()
         else:
             print(f"{self.name} Body ON")
-        if self.speeker_led:
-            self.speeker_led.off() 
-        else:
-            print(f"{self.name} Body ON")
+        # if self.speeker_led:
+        #     self.speeker_led.off() 
+        # else:
+        #     print(f"{self.name} Body ON")
             
 def oscillate_led(event, duration, led):
     on_time = 0.005
