@@ -54,6 +54,7 @@ class Bird:
             print(f"{self.name} Spotlight ON")
         if self.body_led:
             self.body_led.on() 
+            print(f"{self.name} Body ON")
         else:
             print(f"{self.name} Body ON")
 
@@ -65,13 +66,14 @@ class Bird:
             print(f"{self.name} Spotlight OFF")
         if self.body_led:
             self.body_led.off()
+            print(f"{self.name} Body OFF")
         else:
             print(f"{self.name} Body OFF")
         if self.beak_led:
             self.beak_led.off()
             
 def oscillate_led(event, duration, led):
-    on_time = 0.005
+    on_time = 0.01
     off_time = duration - on_time
     while event.is_set():
         led.on()
