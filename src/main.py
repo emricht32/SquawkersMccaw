@@ -79,7 +79,6 @@ def manage_leds(birds, audio_duration):
                 print(bird.name, ".stop_moving")
                 bird.stop_moving()
                 if bird.is_dancing(curr_time):     
-                    # print(bird.name, ".is_dancing")                   
                     bird.start_dancing()
         time.sleep(sleep_time)
     for bird in birds:
@@ -137,8 +136,9 @@ def play_audio_with_speech_indicator(song, birds):
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
             print("Waiting for device", device_index, "to finish")
-            bird.stop_moving()
             thread.join()
+        for bird in birds:
+            bird.stop_moving()
         if not GPIO_AVAILABLE:
             AUDIO_POWER.off()
         print("Stopping stream")

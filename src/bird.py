@@ -17,8 +17,6 @@ class Bird:
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         if self.spotlight_led is not None:
             self.spotlight_led.on()
-        # self.speeker_led = LED(speaker_led_pin) if GPIO_AVAILABLE else None
-        # self.audio_path = audio_path
         self.event = threading.Event()
 
     def prepare_song(self, song_dict):
@@ -27,18 +25,12 @@ class Bird:
         print("individual=",individual)
         speech_intervals = individual["singing"]
         dancing_intervals = individual["dancing"]
-        # print("speech_intervals=",speech_intervals)
-        # print("dancing_intervals=",dancing_intervals)
         speech_intervals += song_dict["all_singing"]
         dancing_intervals += song_dict["all_dancing"]
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
-        # print("self.speech_intervals=",self.speech_intervals)
-        # print("self.dancing_intervals=",self.dancing_intervals)
 
     def is_speaking(self, curr_time):
-        # print("is_speaking")
-        # print("speech_intervals=",self.speech_intervals)
         return any(start <= curr_time <= end for start, end in self.speech_intervals)
     
     def is_dancing(self, curr_time):
@@ -54,10 +46,6 @@ class Bird:
             threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
-        # if self.speeker_led:
-        #     self.speeker_led.on() 
-        # else:
-        #     print(f"{self.name} Speaker ON")
         
     def start_dancing(self):
         if self.spotlight_led:
@@ -70,8 +58,6 @@ class Bird:
             print(f"{self.name} Body ON")
 
     def stop_moving(self):
-        # if not self.event.is_set():
-        #     return
         self.event.clear()
         if self.spotlight_led:
             self.spotlight_led.on() #reversed
@@ -80,11 +66,9 @@ class Bird:
         if self.body_led:
             self.body_led.off()
         else:
-            print(f"{self.name} Body ON")
-        # if self.speeker_led:
-        #     self.speeker_led.off() 
-        # else:
-        #     print(f"{self.name} Body ON")
+            print(f"{self.name} Body OFF")
+        if self.beak_led:
+            self.beak_led.off()
             
 def oscillate_led(event, duration, led):
     on_time = 0.005
