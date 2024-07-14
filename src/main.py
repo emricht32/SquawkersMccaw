@@ -1,16 +1,10 @@
-from bird import Bird
 import time
 import threading
-# from pydub import AudioSegment, playback
 import json
 import os
 import pear
 import evdev
-
-# import numpy
-
 import sounddevice
-# import soundfile
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -19,66 +13,48 @@ except ImportError:
     print("GPIO not available")
     GPIO_AVAILABLE = False
 
+from bird import Bird
+
 LAST_MOTION, PIR = None, None
 
+# Button setup
 YELLOW = Button(0)
 GREEN = Button(5)
 BLUE = Button(6)
 RED = Button(13)
 
+# IR remote mapping
 remoteMap = {
-    69:0,
-    70:1,
-    71:2,
-    68:3,
-    64:4,
-    67:5,
-    7:6,
-    21:7,
-    9:8,
-    25:9,
-    22:10,
-    13:11,
-    24:12,
-    82:13,
-    8:14,
-    90:15,
-    28:16,
-    # "16":"*",
-    # "0d":"#",
-    # "18":"UP",
-    # "52":"DOWN",
-    # "08":"LEFT",
-    # "5a":"RIGHT",
-    # "1c":"OK",
+    69: 0, 70: 1, 71: 2, 68: 3, 64: 4, 67: 5,
+    7: 6, 21: 7, 9: 8, 25: 9, 22: 10, 13: 11,
+    24: 12, 82: 13, 8: 14, 90: 15, 28: 16,
 }
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
-        if (device.name == "gpio_ir_recv"):
-            print("Using device", device.path, "\n")
-            print("device pins", device.capabilities(verbose=True))
+        if device.name == "gpio_ir_recv":
+            print("Using device", device.path)
+            print("Device pins", device.capabilities(verbose=True))
             return device
     print("No device found!")
+    return None
 
 dev = get_ir_device()
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
-    print("audio_duration=",audio_duration)
+    print("audio_duration=", audio_duration)
     sleep_time = 0.3
     start_time = time.time()
     while time.time() - start_time < audio_duration:
         curr_time = time.time() - start_time
         for bird in birds:
             if bird.is_speaking(curr_time):
-                print(bird.name, ".is_speaking")
                 bird.start_moving(sleep_time)
             else:
-                print(bird.name, ".stop_moving")
                 bird.stop_moving()
-                if bird.is_dancing(curr_time):     
+                if bird.is_dancing(curr_time):
                     bird.start_dancing()
         time.sleep(sleep_time)
     for bird in birds:
@@ -86,75 +62,43 @@ def manage_leds(birds, audio_duration):
 
 def play_audio_with_speech_indicator(song, birds):
     def good_filepath(path):
-        """
-        Macro for returning false if the file is not a non-hidden wav file
-        :param path: path to the file
-        :return: true if a non-hidden wav, false if not a wav or hidden
-        """
-        return str(path).endswith(".wav")  and (not str(path).startswith("."))
-    
+        return str(path).endswith(".wav") and not str(path).startswith(".")
+
     for bird in birds:
         bird.prepare_song(song)
     dir = song["audio_dir"]
-    sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(lambda path: good_filepath(path),
-                                                                               os.listdir(dir)))]
-    print("sound_file_paths=",sound_file_paths)
-    # print("pwd=",os.getcwd())
-    files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
+    sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(good_filepath, os.listdir(dir)))]
 
-    print("Files loaded into memory:", files)
+    files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
 
     usb_sound_card_indices = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
 
-    print("Discovered the following usb sound devices", usb_sound_card_indices)
-
     streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
-
-    print("Playing files")
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
-    
-    # for i in range(2, 28):
-    #     try:
-    #         AUDIO_POWER = LED(i)
-    #     except:
-    #         print("LED %i not available", i)
 
     AUDIO_POWER = LED(21) if GPIO_AVAILABLE else None
     try:
-        seconds = 0
         for thread in threads:
             thread.start()
-        for data, stream in zip(files, streams):
-            seconds = len(data[0]) / data[1]
-            print('seconds = {}'.format(seconds))
+        seconds = max(len(data[0]) / data[1] for data in files)
         if GPIO_AVAILABLE:
             AUDIO_POWER.on()
         manage_leds(birds, seconds)
         for thread, device_index in zip(threads, usb_sound_card_indices):
-            print("Waiting for device", device_index, "to finish")
             thread.join()
-        for bird in birds:
-            bird.stop_moving()
-        if not GPIO_AVAILABLE:
+        if GPIO_AVAILABLE:
             AUDIO_POWER.off()
-        print("Stopping stream")
         for stream in streams:
             stream.stop(ignore_errors=True)
             stream.close()
-        print("Streams stopped")
-
     except KeyboardInterrupt:
-        print("Stopping stream")
         for stream in streams:
             stream.abort(ignore_errors=True)
             stream.close()
-        print("Streams stopped")
-
-    print("Bye.")
 
 def motion_tracker():
     global LAST_MOTION, PIR
@@ -164,53 +108,33 @@ def motion_tracker():
         time.sleep(1)
 
 if __name__ == "__main__":
-    # Check if the file exists
-    # config_multi_song
     if os.path.exists('config_multi_song.json'):
-        # Read the file and load it into a dictionary
         with open('config_multi_song.json', 'r') as f:
             config_dict = json.load(f)
     else:
-        raise ValueError("missing config")
-    
+        raise ValueError("Missing config")
+
     usb_sound_card_indices = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
 
-    print("Discovered the following usb sound devices", usb_sound_card_indices)
     if len(usb_sound_card_indices) == 0:
         raise ValueError("No USB sound card found")
 
-    # all_singing = config_dict["all_singing"] or []
-    # all_dancing = config_dict["all_dancing"] or []
-    birds = []
-
-    for dict in config_dict["birds"]:
-        beak = dict["beak"]
-        body = dict["body"]
-        light = dict["light"]
-        name = dict["name"]
-        bird = Bird(name, beak, body, light)
-        birds.append(bird)
-
+    birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
+
     while True:
         time.sleep(1)
-        print("start while loop")
         song = None
         event = None
         try:
             event = dev.read_one()
-            print("event=",event)
-            if (event):
-                print("Received event = ", event)
-                print("Mapped Value      = ", remoteMap[event.value])
-                if event.code == 4 and event.type == 4:
-                    index = remoteMap[event.value]
+            if event and event.code == 4 and event.type == 4:
+                index = remoteMap.get(event.value)
+                if index is not None:
                     song = songs[index]
-                
-
-            if YELLOW.is_pressed:
+            elif YELLOW.is_pressed:
                 song = songs[0]
             elif GREEN.is_pressed:
                 song = songs[1]
@@ -219,19 +143,16 @@ if __name__ == "__main__":
             elif RED.is_pressed:
                 song = songs[3]
 
-            if song is not None:
+            if song:
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
-                    print("clearing event:", event)
+                    print("Clearing event:", event)
         except IndexError:
             continue
         except BlockingIOError:
             continue
         except KeyError:
-            if (event):
-                print("KeyError: Received commands = ", event.value)
-    
+            if event:
+                print("KeyError: Received commands =", event.value)
+
     dev.close()
-    # for song in config_dict["songs"]:
-    #     if song["name"] == "lets_get_it_started":
-    #         play_audio_with_speech_indicator(song, birds)
