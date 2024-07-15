@@ -49,6 +49,7 @@ def manage_leds(birds, audio_duration):
     start_time = time.time()
     while time.time() - start_time < audio_duration:
         curr_time = time.time() - start_time
+        print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
                 bird.start_moving(sleep_time)
