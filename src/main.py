@@ -131,6 +131,7 @@ if __name__ == "__main__":
         event = None
         try:
             event = dev.read_one()
+            print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
                 if index is not None:
