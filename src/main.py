@@ -81,7 +81,7 @@ def play_audio_with_speech_indicator(song, birds):
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                 for data, stream in zip(files, streams)]
 
-    AUDIO_POWER = LED(21) if GPIO_AVAILABLE else None
+    AUDIO_POWER = LED(20) if GPIO_AVAILABLE else None
     try:
         for thread in threads:
             thread.start()
@@ -109,6 +109,10 @@ def motion_tracker():
         time.sleep(1)
 
 if __name__ == "__main__":
+    POWER_LIGHT = LED(21) if GPIO_AVAILABLE else None
+    if POWER_LIGHT:
+        POWER_LIGHT.on()
+
     if os.path.exists('config_multi_song.json'):
         with open('config_multi_song.json', 'r') as f:
             config_dict = json.load(f)
@@ -131,7 +135,7 @@ if __name__ == "__main__":
         event = None
         try:
             event = dev.read_one()
-            print("Received commands =", event)
+            # print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
                 if index is not None:
@@ -156,5 +160,10 @@ if __name__ == "__main__":
         except KeyError:
             if event:
                 print("KeyError: Received commands =", event.value)
-
+        except KeyboardInterrupt:
+            break
+    for bird in birds:
+        bird.stop_moving()
+    if POWER_LIGHT:
+        POWER_LIGHT.off()
     dev.close()
