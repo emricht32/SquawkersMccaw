@@ -1,10 +1,10 @@
 {
     "birds": [
     {
-        "name": "Pierre",
+        "name": "Fritz",
         "beak": 24,
         "body": 23,
-        "light": 25
+        "light": 1
     },
     {
         "name": "Jose",
@@ -19,10 +19,10 @@
         "light": 8
     },
     {
-        "name": "Fritz",
+        "name": "Pierre",
         "beak": 14,
         "body": 15,
-        "light": 1
+        "light": 25
     }],
     "songs":[
     {
