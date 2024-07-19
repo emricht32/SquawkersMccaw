@@ -52,9 +52,10 @@ def manage_leds(birds, audio_duration):
     while (time.time() - start_time < audio_duration) and (index != CLEAR):
         try:
             event = dev.read_one()
-            # print("Received commands =", event)
+            print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
+                print("index=", index)
         except IndexError:
             continue
         curr_time = time.time() - start_time
@@ -118,8 +119,10 @@ def motion_tracker():
         time.sleep(1)
 
 if __name__ == "__main__":
+    print("Starting main")
     POWER_LIGHT = LED(21) if GPIO_AVAILABLE else None
     if POWER_LIGHT:
+        print("POWER_LIGHT on")
         POWER_LIGHT.on()
 
     if os.path.exists('config_multi_song.json'):
@@ -174,5 +177,6 @@ if __name__ == "__main__":
     for bird in birds:
         bird.stop_moving()
     if POWER_LIGHT:
+        print("POWER_LIGHT off")
         POWER_LIGHT.off()
     dev.close()
