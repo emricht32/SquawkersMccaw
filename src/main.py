@@ -23,7 +23,6 @@ GREEN = Button(5)
 BLUE = Button(6)
 RED = Button(13)
 
-CLEAR = 16
 # IR remote mapping
 remoteMap = {
     69: 0, 70: 1, 71: 2, 68: 3, 64: 4, 67: 5,
@@ -46,10 +45,11 @@ dev = get_ir_device()
 def manage_leds(birds, audio_duration):
     print("manage_leds")
     print("audio_duration=", audio_duration)
+    CLEAR = 16
     sleep_time = 0.3
     start_time = time.time()
     index = 0
-    while time.time() - start_time < audio_duration and index != CLEAR:
+    while (time.time() - start_time < audio_duration) and (index != CLEAR):
         try:
             event = dev.read_one()
             # print("Received commands =", event)
