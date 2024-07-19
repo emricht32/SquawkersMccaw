@@ -49,13 +49,15 @@ def manage_leds(birds, audio_duration):
     sleep_time = 0.3
     start_time = time.time()
     index = 0
-    while (time.time() - start_time < audio_duration) and (index != CLEAR):
+    while (time.time() - start_time < audio_duration):
         try:
             event = dev.read_one()
             print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
                 print("index=", index)
+                if index == CLEAR:
+                    raise KeyboardInterrupt
         except IndexError:
             continue
         curr_time = time.time() - start_time
