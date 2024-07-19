@@ -23,6 +23,7 @@ GREEN = Button(5)
 BLUE = Button(6)
 RED = Button(13)
 
+CLEAR = 16
 # IR remote mapping
 remoteMap = {
     69: 0, 70: 1, 71: 2, 68: 3, 64: 4, 67: 5,
@@ -47,7 +48,15 @@ def manage_leds(birds, audio_duration):
     print("audio_duration=", audio_duration)
     sleep_time = 0.3
     start_time = time.time()
-    while time.time() - start_time < audio_duration:
+    index = 0
+    while time.time() - start_time < audio_duration and index != CLEAR:
+        try:
+            event = dev.read_one()
+            # print("Received commands =", event)
+            if event and event.code == 4 and event.type == 4:
+                index = remoteMap.get(event.value)
+        except IndexError:
+            continue
         curr_time = time.time() - start_time
         # print("curr_time=", curr_time)
         for bird in birds:
