@@ -50,25 +50,25 @@ class Bird:
     def start_dancing(self):
         if self.spotlight_led:
             self.spotlight_led.off() #spotlight is reversed 
-        else:
-            print(f"{self.name} Spotlight ON")
+        # else:
+        #     print(f"{self.name} Spotlight ON")
         if self.body_led:
             self.body_led.on() 
-            print(f"{self.name} Body ON")
-        else:
-            print(f"{self.name} Body ON")
+        #     print(f"{self.name} Body ON")
+        # else:
+        #     print(f"{self.name} Body ON")
 
     def stop_moving(self):
         self.event.clear()
         if self.spotlight_led:
             self.spotlight_led.on() #reversed
-        else:
-            print(f"{self.name} Spotlight OFF")
+        # else:
+            # print(f"{self.name} Spotlight OFF")
         if self.body_led:
             self.body_led.off()
-            print(f"{self.name} Body OFF")
-        else:
-            print(f"{self.name} Body OFF")
+            # print(f"{self.name} Body OFF")
+        # else:
+            # print(f"{self.name} Body OFF")
         if self.beak_led:
             self.beak_led.off()
             
