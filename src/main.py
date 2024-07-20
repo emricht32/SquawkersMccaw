@@ -4,7 +4,7 @@ import json
 import os
 import pear
 import evdev
-import sounddevice
+import sounddevice as sd
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -32,6 +32,8 @@ remoteMap = {
 
 CLEAR = 16
 stop_flag = threading.Event()
+threads = []
+streams = []
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -75,6 +77,17 @@ def manage_leds(birds, audio_duration):
     for bird in birds:
         bird.stop_moving()
 
+def stop_audio():
+    stop_flag.set()
+    for thread in threads:
+        if thread.is_alive():
+            thread.join()
+    for stream in streams:
+        stream.stop(ignore_errors=True)
+        stream.close()
+    threads.clear()
+    streams.clear()
+
 def play_audio_with_speech_indicator(song, birds):
     def good_filepath(path):
         return str(path).endswith(".wav") and not str(path).startswith(".")
@@ -88,34 +101,35 @@ def play_audio_with_speech_indicator(song, birds):
 
     usb_sound_card_indices = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
-                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+                                             [index_info for index_info in enumerate(sd.query_devices())])))
 
-    streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
+    global streams
+    streams = []
+    for index in usb_sound_card_indices:
+        device_info = sd.query_devices(index)
+        num_channels = device_info['max_output_channels']
+        stream = sd.OutputStream(device=index, channels=num_channels)
+        streams.append(stream)
 
-    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream, stop_flag])
+    global threads
+    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                for data, stream in zip(files, streams)]
 
     AUDIO_POWER = LED(20) if GPIO_AVAILABLE else None
     try:
+        for stream in streams:
+            stream.start()
         for thread in threads:
             thread.start()
         seconds = max(len(data[0]) / data[1] for data in files)
         if GPIO_AVAILABLE:
             AUDIO_POWER.on()
         manage_leds(birds, seconds)
-        stop_flag.set()  # Signal threads to stop
-        for thread in threads:
-            thread.join()
+        stop_audio()  # Ensure all threads and streams are stopped
         if GPIO_AVAILABLE:
             AUDIO_POWER.off()
-        for stream in streams:
-            stream.stop(ignore_errors=True)
-            stream.close()
     except KeyboardInterrupt:
-        stop_flag.set()
-        for stream in streams:
-            stream.abort(ignore_errors=True)
-            stream.close()
+        stop_audio()
 
 def motion_tracker():
     global LAST_MOTION, PIR
@@ -139,7 +153,7 @@ if __name__ == "__main__":
 
     usb_sound_card_indices = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
-                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
+                                             [index_info for index_info in enumerate(sd.query_devices())])))
 
     if len(usb_sound_card_indices) == 0:
         raise ValueError("No USB sound card found")
@@ -168,6 +182,7 @@ if __name__ == "__main__":
 
             if song:
                 stop_flag.clear()
+                stop_audio()  # Stop any currently playing audio
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
                     print("Clearing event:", event)
@@ -179,8 +194,9 @@ if __name__ == "__main__":
             if event:
                 print("KeyError: Received commands =", event.value)
         except KeyboardInterrupt:
-            continue
-        except sounddevice.PortAudioError:
+            stop_audio()
+            break
+        except sd.PortAudioError:
             print("PortAudioError")
             continue
     for bird in birds:
