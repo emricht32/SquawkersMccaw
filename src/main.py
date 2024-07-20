@@ -52,19 +52,9 @@ def manage_leds(birds, audio_duration):
     print("audio_duration=", audio_duration)
     sleep_time = 0.3
     start_time = time.time()
-    index = 0
     while (time.time() - start_time < audio_duration):
         if stop_flag.is_set():
             break
-        try:
-            event = dev.read_one()
-            if event and event.code == 4 and event.type == 4:
-                index = remoteMap.get(event.value)
-                if index == CLEAR:
-                    stop_flag.set()
-                    break
-        except IndexError:
-            continue
         curr_time = time.time() - start_time
         for bird in birds:
             if bird.is_speaking(curr_time):
@@ -115,19 +105,21 @@ def play_audio_with_speech_indicator(song, birds):
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                for data, stream in zip(files, streams)]
 
-    AUDIO_POWER = LED(20) if GPIO_AVAILABLE else None
     try:
         for stream in streams:
             stream.start()
         for thread in threads:
             thread.start()
         seconds = max(len(data[0]) / data[1] for data in files)
-        if GPIO_AVAILABLE:
-            AUDIO_POWER.on()
-        manage_leds(birds, seconds)
-        stop_audio()  # Ensure all threads and streams are stopped
-        if GPIO_AVAILABLE:
-            AUDIO_POWER.off()
+        
+        # Start managing LEDs in a separate thread to ensure it runs concurrently
+        led_thread = threading.Thread(target=manage_leds, args=(birds, seconds))
+        led_thread.start()
+
+        # Wait for the audio and LED threads to finish
+        for thread in threads:
+            thread.join()
+        led_thread.join()
     except KeyboardInterrupt:
         stop_audio()
 
