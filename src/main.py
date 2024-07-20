@@ -177,7 +177,10 @@ if __name__ == "__main__":
             if event:
                 print("KeyError: Received commands =", event.value)
         except KeyboardInterrupt:
-            break
+            continue
+        except sounddevice.PortAudioError:
+            print("PortAudioError")
+            continue
     for bird in birds:
         bird.stop_moving()
     if POWER_LIGHT:

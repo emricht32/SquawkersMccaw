@@ -2,7 +2,7 @@
 set -e
 
 # Enable debug mode if needed
-set -x
+# set -x
 
 # Default music folder
 MUSIC_FOLDER="./music"
