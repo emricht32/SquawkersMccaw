@@ -30,6 +30,9 @@ remoteMap = {
     24: 12, 82: 13, 8: 14, 90: 15, 28: 16,
 }
 
+CLEAR = 16
+stop_flag = threading.Event()
+
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
@@ -45,25 +48,22 @@ dev = get_ir_device()
 def manage_leds(birds, audio_duration):
     print("manage_leds")
     print("audio_duration=", audio_duration)
-    CLEAR = 16
     sleep_time = 0.3
     start_time = time.time()
     index = 0
     while (time.time() - start_time < audio_duration):
+        if stop_flag.is_set():
+            break
         try:
             event = dev.read_one()
-            print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
-                print("index=", index)
                 if index == CLEAR:
-                    for bird in birds:
-                        bird.stop_moving()
-                    raise KeyboardInterrupt
+                    stop_flag.set()
+                    break
         except IndexError:
             continue
         curr_time = time.time() - start_time
-        # print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
                 bird.start_moving(sleep_time)
@@ -92,8 +92,8 @@ def play_audio_with_speech_indicator(song, birds):
 
     streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
 
-    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
-                for data, stream in zip(files, streams)]
+    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream, stop_flag])
+               for data, stream in zip(files, streams)]
 
     AUDIO_POWER = LED(20) if GPIO_AVAILABLE else None
     try:
@@ -103,7 +103,8 @@ def play_audio_with_speech_indicator(song, birds):
         if GPIO_AVAILABLE:
             AUDIO_POWER.on()
         manage_leds(birds, seconds)
-        for thread, device_index in zip(threads, usb_sound_card_indices):
+        stop_flag.set()  # Signal threads to stop
+        for thread in threads:
             thread.join()
         if GPIO_AVAILABLE:
             AUDIO_POWER.off()
@@ -111,6 +112,7 @@ def play_audio_with_speech_indicator(song, birds):
             stream.stop(ignore_errors=True)
             stream.close()
     except KeyboardInterrupt:
+        stop_flag.set()
         for stream in streams:
             stream.abort(ignore_errors=True)
             stream.close()
@@ -151,7 +153,6 @@ if __name__ == "__main__":
         event = None
         try:
             event = dev.read_one()
-            # print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
                 if index is not None:
@@ -166,6 +167,7 @@ if __name__ == "__main__":
                 song = songs[3]
 
             if song:
+                stop_flag.clear()
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
                     print("Clearing event:", event)
