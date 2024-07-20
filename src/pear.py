@@ -71,7 +71,7 @@ def get_device_number_if_usb_soundcard(index_info):
 #     stream_object.write(audio_data)
 
 
-def play_wav_on_index(wav_data, stream, stop_flag = None):
+def play_wav_on_index(wav_data, stream, stop_flag):
     try:
         with stream:
             for chunk in wav_data:
