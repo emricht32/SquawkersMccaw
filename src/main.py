@@ -57,6 +57,8 @@ def manage_leds(birds, audio_duration):
                 index = remoteMap.get(event.value)
                 print("index=", index)
                 if index == CLEAR:
+                    for bird in birds:
+                        bird.stop_moving()
                     raise KeyboardInterrupt
         except IndexError:
             continue
