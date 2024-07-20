@@ -60,15 +60,29 @@ def get_device_number_if_usb_soundcard(index_info):
     return False
 
 
-def play_wav_on_index(audio_data, stream_object):
-    """
-    Play an audio file given as the result of `load_sound_file_into_memory`
-    :param audio_data: A two-dimensional NumPy array
-    :param stream_object: a sounddevice.OutputStream object that will immediately start playing any data written to it.
-    :return: None, returns when the data has all been consumed
-    """
+# def play_wav_on_index(audio_data, stream_object):
+#     """
+#     Play an audio file given as the result of `load_sound_file_into_memory`
+#     :param audio_data: A two-dimensional NumPy array
+#     :param stream_object: a sounddevice.OutputStream object that will immediately start playing any data written to it.
+#     :return: None, returns when the data has all been consumed
+#     """
 
-    stream_object.write(audio_data)
+#     stream_object.write(audio_data)
+
+
+def play_wav_on_index(wav_data, stream, stop_flag = None):
+    try:
+        with stream:
+            for chunk in wav_data:
+                if stop_flag.is_set():
+                    break
+                stream.write(chunk)
+    except sounddevice.PortAudioError as e:
+        print("PortAudioError:", e)
+    except Exception as e:
+        print("Error:", e)
+
 
 
 def create_running_output_stream(index):
