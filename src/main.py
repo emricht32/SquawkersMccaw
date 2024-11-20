@@ -177,7 +177,7 @@ if __name__ == "__main__":
     #         print("PortAudioError")
     #         continue
     for song in songs:
-        if song["name"] == "jack_sparrow":
+        if song["name"] == "happy_birthday":
             play_audio_with_speech_indicator(song, birds)
     for bird in birds:
         bird.stop_moving()
