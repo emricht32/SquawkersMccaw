@@ -81,19 +81,56 @@ def play_audio_with_speech_indicator(song, birds):
 
     for bird in birds:
         bird.prepare_song(song)
-    dir = song["audio_dir"]
-    sound_file_paths = [os.path.join(dir, path) for path in sorted(filter(good_filepath, os.listdir(dir)))]
+    audio_dir = song["audio_dir"]
+    sound_file_paths = [os.path.join(audio_dir, path) for path in sorted(filter(good_filepath, os.listdir(audio_dir)))]
 
-    files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
+    # files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
+    # Separate master file and other files
+    master_file_paths = next(
+        path for path in sound_file_paths if path.startswith("0"),
+        None
+    )
+    non_master_file_paths = [path for path in sound_file_paths if not path.startswith("0")]
 
-    usb_sound_card_indices = list(filter(lambda x: x is not False,
+    # Ensure there is only one master file
+    master_file = None
+    if master_file_paths:
+        master_file = pear.load_sound_file_into_memory(master_file_paths[0])  # Take the first master file
+
+    usb_sound_card_indices_touple = list(filter(lambda x: x is not False and x[1] is False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
+    master_card_touple = next(
+        (x for x in map(pear.get_device_number_if_usb_soundcard, 
+                        enumerate(sounddevice.query_devices())) 
+        if x and x[1] is True), 
+        None
+    )
 
-    streams = [pear.create_running_output_stream(index) for index in usb_sound_card_indices]
+    # Create non-master streams
+    streams = [
+        pear.create_running_output_stream(index)
+        for (index, isMaster) in usb_sound_card_indices_touple
+        if not isMaster
+    ]
+
+    # Create the master stream 
+    master_stream = next(
+        (pear.create_running_output_stream(index) for (index, isMaster) in usb_sound_card_indices_touple if isMaster),
+        None
+    )
+
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
-                for data, stream in zip(files, streams)]
+                for data, stream in zip(non_master_file_paths, streams)]
+
+    # Create the master thread (assuming master_stream and master_file are defined)
+    if master_stream is not None and master_file is not None:
+        master_thread = threading.Thread(
+            target=pear.play_wav_on_index,
+            args=[master_file, master_stream]
+        )
+        threads.append(master_thread)
 
     try:
         for thread in threads:
@@ -130,11 +167,11 @@ if __name__ == "__main__":
     else:
         raise ValueError("Missing config")
 
-    usb_sound_card_indices = list(filter(lambda x: x is not False,
+    usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
 
-    if len(usb_sound_card_indices) == 0:
+    if len(usb_sound_card_indices_touple) == 0:
         raise ValueError("No USB sound card found")
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]

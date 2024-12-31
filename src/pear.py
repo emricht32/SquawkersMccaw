@@ -50,13 +50,15 @@ def get_device_number_if_usb_soundcard(index_info):
     """
     Given a device dict, return True if the device is one of our USB sound cards and False if otherwise
     :param index_info: a device info dict from PyAudio.
-    :return: True if usb sound card, False if otherwise
+    :return: touple (index, isMasterCard) if usb sound card, False if otherwise
     """
 
     index, info = index_info
 
+    if "Plugable USB Audio Device" in info["name"]:
+        return index, False
     if "USB Audio Device" in info["name"]:
-        return index
+        return index, True
     return False
 
 
