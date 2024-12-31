@@ -99,7 +99,7 @@ def play_audio_with_speech_indicator(song, birds):
     # Ensure there is only one master file
     master_file = None
     if master_file_path:
-        master_file = pear.load_sound_file_into_memory(master_file_path[0])  # Take the first master file
+        master_file = pear.load_sound_file_into_memory(master_file_path)  # Take the first master file
 
     usb_sound_card_indices_touple = list(filter(lambda x: x is not False and x[1] is False,
                                          map(pear.get_device_number_if_usb_soundcard,
