@@ -139,7 +139,7 @@ def play_audio_with_speech_indicator(song, birds):
     try:
         for thread in threads:
             thread.start()
-        seconds = max(len(data[0]) / data[1] for data in non_master_file_paths)
+        seconds = max(len(data[0]) / data[1] for data in files)
         manage_leds(birds, seconds)
         for thread in threads: #, device_index in zip(threads, usb_sound_card_indices):
             thread.join()
