@@ -48,7 +48,7 @@ if ! pip3 install -r pi-requirements.txt; then
 fi
 
 echo "waiting for usb sound devices to initialize"
-python3 /home/pi/pear/wait_devices_init.py
+python3 src/wait_devices_init.py
 echo "usb sound devices initialized"
 
 # Pull the latest code from the repository
