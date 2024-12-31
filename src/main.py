@@ -91,7 +91,7 @@ def play_audio_with_speech_indicator(song, birds):
         None
     )
     print("master_file_path=", master_file_path)
-    non_master_file_paths = [path for path in sound_file_paths if not path.startswith("0")]
+    non_master_file_paths = [path for path in sound_file_paths if not os.path.basename(path).startswith("0")]
     files = [pear.load_sound_file_into_memory(path) for path in non_master_file_paths]
 
     print("non_master_file_paths=", non_master_file_paths)
