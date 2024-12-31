@@ -83,7 +83,7 @@ def play_audio_with_speech_indicator(song, birds):
         bird.prepare_song(song)
     audio_dir = song["audio_dir"]
     sound_file_paths = [os.path.join(audio_dir, path) for path in sorted(filter(good_filepath, os.listdir(audio_dir)))]
-
+    print("sound_file_paths=", sound_file_paths)
     # files = [pear.load_sound_file_into_memory(path) for path in sound_file_paths]
     # Separate master file and other files
     master_file_path = next(
