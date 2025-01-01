@@ -111,6 +111,7 @@ def play_audio_with_speech_indicator(song, birds):
         if x and x[1] is True), 
         None
     )
+    print("master_card_touple=",master_card_touple)
 
     # Create non-master streams
     streams = [
@@ -120,10 +121,8 @@ def play_audio_with_speech_indicator(song, birds):
     ]
 
     # Create the master stream 
-    master_stream = next(
-        (pear.create_running_output_stream(index) for (index, isMaster) in usb_sound_card_indices_touple if isMaster),
-        None
-    )
+    master_stream = pear.create_running_output_stream(master_card_touple[0])  
+    print("master_stream=",master_stream)
 
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
