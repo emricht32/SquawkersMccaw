@@ -100,6 +100,7 @@ def play_audio_with_speech_indicator(song, birds):
     master_file = None
     if master_file_path:
         master_file = pear.load_sound_file_into_memory(master_file_path)  # Take the first master file
+        print("master_file=", master_file)
 
     usb_sound_card_indices_touple = list(filter(lambda x: x is not False and x[1] is False,
                                          map(pear.get_device_number_if_usb_soundcard,
@@ -130,11 +131,14 @@ def play_audio_with_speech_indicator(song, birds):
 
     # Create the master thread (assuming master_stream and master_file are defined)
     if master_stream is not None and master_file is not None:
+        print("master_stream is not None and master_file is not None")
         master_thread = threading.Thread(
             target=pear.play_wav_on_index,
             args=[master_file, master_stream]
         )
         threads.append(master_thread)
+    else:
+        print("Master not running")
 
     try:
         for thread in threads:
