@@ -133,7 +133,7 @@ def play_audio_with_speech_indicator(song, birds):
         print("master_stream is not None and master_file is not None")
         master_thread = threading.Thread(
             target=pear.play_wav_on_index,
-            args=[master_file, master_stream]
+            args=[master_file[0], master_stream]
         )
         threads.append(master_thread)
     else:
