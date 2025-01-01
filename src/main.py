@@ -90,11 +90,11 @@ def play_audio_with_speech_indicator(song, birds):
         (path for path in sound_file_paths if os.path.basename(path).startswith("0")),
         None
     )
-    print("master_file_path=", master_file_path)
+    # print("master_file_path=", master_file_path)
     non_master_file_paths = [path for path in sound_file_paths if not os.path.basename(path).startswith("0")]
     files = [pear.load_sound_file_into_memory(path) for path in non_master_file_paths]
 
-    print("non_master_file_paths=", non_master_file_paths)
+    # print("non_master_file_paths=", non_master_file_paths)
 
     # Ensure there is only one master file
     master_file = None
@@ -111,7 +111,7 @@ def play_audio_with_speech_indicator(song, birds):
         if x and x[1] is True), 
         None
     )
-    print("master_card_touple=",master_card_touple)
+    # print("master_card_touple=",master_card_touple)
 
     # Create non-master streams
     streams = [
@@ -122,7 +122,7 @@ def play_audio_with_speech_indicator(song, birds):
 
     # Create the master stream 
     master_stream = pear.create_running_output_stream(master_card_touple[0])  
-    print("master_stream=",master_stream)
+    # print("master_stream=",master_stream)
 
 
     threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
@@ -130,7 +130,7 @@ def play_audio_with_speech_indicator(song, birds):
 
     # Create the master thread (assuming master_stream and master_file are defined)
     if master_stream is not None and master_file is not None:
-        print("master_stream is not None and master_file is not None")
+        # print("master_stream is not None and master_file is not None")
         master_thread = threading.Thread(
             target=pear.play_wav_on_index,
             args=[master_file[0], master_stream]

@@ -138,22 +138,49 @@ Note that the last command will not persist a reboot and is for testing only (we
 
 The folder and files should have the following structure:
 
+```
 music
+├── beverly_hills
+│   ├── 0-BeverlyHills.mp3
+│   ├── 1-BeverlyHills.mp3
+│   ├── 2-BeverlyHills.mp3
+│   └── 3-BeverlyHills.mp3
+├── happy_birthday
+│   ├── 0_happy_birthday.mp3
+│   ├── 1_happy-birthday-mens-choir-117258.mp3
+│   └── 2_happy-birthday-mens-choir-117258.mp3
+├── jack_sparrow
+│   ├── 0-JackSparrow.mp3
+│   ├── 1-JackSparrow.mp3
+│   ├── 2-JackSparrow.mp3
+│   └── 3-JackSparrow.mp3
+├── lets_get_it_started
+│   ├── 0-TheBlackEyedPeas-LetsGetItStarted.mp3
+│   ├── 1_Fergie_L_and_will.i.am_R.mp3
+│   ├── 2_apl.de.ap_L_and_taboo_R.mp3
+│   └── 3_The_Black_Eyed_Peas-Lets_Get_It_Started.mp3
 ├── mele-kalikimaka
-│   ├── 1_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
-│   ├── 2_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
-│   └── 3_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   ├── 0_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   ├── 1_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   ├── 2_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
+│   └── 3_Bing-Crosby-Ft-The-Andrews-Sisters-Mele-Kalikimaka-dp.mp3
 ├── the_seasons_upon_us
-│   ├── 1_the_seasons_upon_us_main_L_second_R.mp3
-│   ├── 2_the_seasons_upon_us_backup.mp3
-│   └── 3_the_seasons_upon_us_instrumental.mp3
+│   ├── 0_the_seasons_upon_us.mp3
+│   ├── 1_the_seasons_upon_us_main_L_second_R.mp3
+│   ├── 2_the_seasons_upon_us_backup.mp3
+│   └── 3_the_seasons_upon_us_instrumental.mp3
 ├── tiki
-│   ├── 1_Jose_L_Michael_R_48.mp3
-│   ├── 2_Fritz_L_Pierre_R_48.mp3
-│   └── 3_Instrumental_48.mp3
+│   ├── 0_BJB_TR_InTRoomSong.mp3
+│   ├── 1_Jose_L_Michael_R_48.mp3
+│   ├── 2_Fritz_L_Pierre_R_48.mp3
+│   └── 3_Instrumental_48.mp3
 └── wellerman
+    ├── 0_wellerman.mp3
     ├── 1_wellerman_main_L_bass_R.mp3
     └── 2_wellerman_backup.mp3
+```
+
+Files that start with `0` represent an unedited version of the file and is now used to play audio to an optional 3.5mm audio output.
 
 ## Usage
 
