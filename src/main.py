@@ -178,7 +178,7 @@ if __name__ == "__main__":
     usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
-
+    print("usb_sound_card_indices_touple=",usb_sound_card_indices_touple)
     if len(usb_sound_card_indices_touple) == 0:
         raise ValueError("No USB sound card found")
 
