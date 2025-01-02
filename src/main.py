@@ -140,19 +140,37 @@ def play_audio_with_speech_indicator(song, birds):
         print("Master not running")
 
     try:
-        for thread in threads:
-            thread.start()
-        seconds = max(len(data[0]) / data[1] for data in files)
-        manage_leds(birds, seconds)
-        for thread in threads: #, device_index in zip(threads, usb_sound_card_indices):
-            thread.join()
+        try:
+            # Start all playback threads
+            for thread in threads:
+                thread.start()
+
+            # Calculate the longest playback duration
+            seconds = max(len(data[0]) / data[1] for data in files)
+
+            # Manage LEDs during audio playback
+            manage_leds(birds, seconds)
+
+            # Wait for all threads to complete
+            for thread in threads:
+                thread.join()
+        except KeyboardInterrupt:
+            print("Playback interrupted by user")
+            for stream in streams:
+                stream.abort(ignore_errors=True)
+                stream.close()
+        except Exception as e:
+            print(f"An error occurred during playback: {e}")
+    finally:
+        # Ensure all streams are properly stopped and closed
         for stream in streams:
-            stream.stop(ignore_errors=True)
-            stream.close()
-    except KeyboardInterrupt:
-        for stream in streams:
-            stream.abort(ignore_errors=True)
-            stream.close()
+            if not stream.closed:
+                stream.stop(ignore_errors=True)
+                stream.close()
+        if master_stream and not master_stream.closed:
+            master_stream.stop(ignore_errors=True)
+            master_stream.close()
+
 
 def motion_tracker():
     global LAST_MOTION, PIR
