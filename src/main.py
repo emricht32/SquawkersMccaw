@@ -184,45 +184,45 @@ if __name__ == "__main__":
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
 
-    # while True:
-    #     time.sleep(1)
-    #     song = None
-    #     event = None
-    #     try:
-    #         event = dev.read_one()
-    #         # print("Received commands =", event)
-    #         if event and event.code == 4 and event.type == 4:
-    #             index = remoteMap.get(event.value)
-    #             if index is not None:
-    #                 song = songs[index]
-    #         elif YELLOW.is_pressed:
-    #             song = songs[0]
-    #         elif GREEN.is_pressed:
-    #             song = songs[1]
-    #         elif BLUE.is_pressed:
-    #             song = songs[2]
-    #         elif RED.is_pressed:
-    #             song = songs[3]
+    while True:
+        time.sleep(1)
+        song = None
+        event = None
+        try:
+            event = dev.read_one()
+            # print("Received commands =", event)
+            if event and event.code == 4 and event.type == 4:
+                index = remoteMap.get(event.value)
+                if index is not None:
+                    song = songs[index]
+            elif YELLOW.is_pressed:
+                song = songs[0]
+            elif GREEN.is_pressed:
+                song = songs[1]
+            elif BLUE.is_pressed:
+                song = songs[2]
+            elif RED.is_pressed:
+                song = songs[3]
 
-    #         if song:
-    #             play_audio_with_speech_indicator(song, birds)
-    #             for event in dev.read():
-    #                 print("Clearing event:", event)
-    #     except IndexError:
-    #         continue
-    #     except BlockingIOError:
-    #         continue
-    #     except KeyError:
-    #         if event:
-    #             print("KeyError: Received commands =", event.value)
-    #     except KeyboardInterrupt:
-    #         continue
-    #     except sounddevice.PortAudioError:
-    #         print("PortAudioError")
-    #         continue
-    for song in songs:
-        if song["name"] == "Wellerman":
-            play_audio_with_speech_indicator(song, birds)
+            if song:
+                play_audio_with_speech_indicator(song, birds)
+                for event in dev.read():
+                    print("Clearing event:", event)
+        except IndexError:
+            continue
+        except BlockingIOError:
+            continue
+        except KeyError:
+            if event:
+                print("KeyError: Received commands =", event.value)
+        except KeyboardInterrupt:
+            continue
+        except sounddevice.PortAudioError:
+            print("PortAudioError")
+            continue
+    # for song in songs:
+    #     if song["name"] == "Wellerman":
+    #         play_audio_with_speech_indicator(song, birds)
     for bird in birds:
         bird.stop_moving()
     if POWER_LIGHT:
