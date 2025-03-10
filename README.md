@@ -212,3 +212,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 ## Acknowledgements
 
 I started this project a couple years ago.  First I bought a [Squawker Talker](https://www.halloweenforum.com/threads/new-all-in-one-board-for-hacking-squawkers-mccaw.167858/page-4) from J-Man. If you are only looking for a single bird setup I highly recommend and suggest using this.  If I remember correctly it was about $80 and came with super easy to use instructions.  You can email him at info@audioservocontroller.com.  I also **borrowed** his images for disassembaling the bird and how to get access to the needed wires.
+
