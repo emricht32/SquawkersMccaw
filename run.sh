@@ -60,3 +60,4 @@ if ! python3 src/main.py; then
     echo "Error running the Python script" >&2
     exit 1
 fi
+
