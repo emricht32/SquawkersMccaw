@@ -208,19 +208,19 @@ if __name__ == "__main__":
         event = None
         try:
             event = dev.read_one()
-            # print("Received commands =", event)
+            print("Received commands =", event)
             if event and event.code == 4 and event.type == 4:
                 index = remoteMap.get(event.value)
                 if index is not None:
                     song = songs[index]
-            elif YELLOW.is_pressed:
-                song = songs[0]
-            elif GREEN.is_pressed:
-                song = songs[1]
-            elif BLUE.is_pressed:
-                song = songs[2]
-            elif RED.is_pressed:
-                song = songs[3]
+            # elif YELLOW.is_pressed:
+            #     song = songs[0]
+            # elif GREEN.is_pressed:
+            #     song = songs[1]
+            # elif BLUE.is_pressed:
+            #     song = songs[2]
+            # elif RED.is_pressed:
+            #     song = songs[3]
 
             if song:
                 play_audio_with_speech_indicator(song, birds)
