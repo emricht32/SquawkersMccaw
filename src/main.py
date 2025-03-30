@@ -48,9 +48,9 @@ def manage_leds(birds, audio_duration):
     CLEAR = 16
     sleep_time = 0.3
     start_time = time.time()
-    curr_time = time.time()
+    curr_time = time.time() - start_time
     index = 0
-    while (start_time - curr_time < audio_duration):
+    while (curr_time < audio_duration):
         try:
             event = dev.read_one()
             print("Received commands =", event)
@@ -63,7 +63,7 @@ def manage_leds(birds, audio_duration):
                     raise KeyboardInterrupt
         except IndexError:
             continue
-        curr_time = time.time()
+        curr_time = time.time() - start_time
         print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
@@ -73,9 +73,8 @@ def manage_leds(birds, audio_duration):
                 if bird.is_dancing(curr_time):
                     bird.start_dancing()
         time.sleep(sleep_time)
-
     for bird in birds:
-        print("STOPPING Bird:", bird)
+        print("STOPPING Bird:", bird.name)
         bird.stop_moving()
 
 def play_audio_with_speech_indicator(song, birds):
@@ -128,8 +127,8 @@ def play_audio_with_speech_indicator(song, birds):
     print("master_stream=",master_stream)
 
 
-    threads = [threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
-                for data, stream in zip(files, streams)]
+    threads = [] #[threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
+               # for data, stream in zip(files, streams)]
 
     # Create the master thread (assuming master_stream and master_file are defined)
     if master_stream is not None and master_file is not None:
