@@ -63,7 +63,7 @@ def manage_leds(birds, audio_duration):
                     raise KeyboardInterrupt
         except IndexError:
             continue
-        curr_time = time.time() - start_time
+        curr_time = time.time()
         print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
