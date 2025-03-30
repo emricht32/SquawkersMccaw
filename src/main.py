@@ -191,7 +191,7 @@ if __name__ == "__main__":
             config_dict = json.load(f)
     else:
         raise ValueError("Missing config")
-
+    print("sounddevice.query_devices()=",sounddevice.query_devices())
     usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
