@@ -71,8 +71,10 @@ def play_wav_on_index(audio_data, stream_object):
     :param stream_object: a sounddevice.OutputStream object that will immediately start playing any data written to it.
     :return: None, returns when the data has all been consumed
     """
-
-    stream_object.write(audio_data)
+    try:
+        stream_object.write(audio_data)
+    except sounddevice.PortAudioError:
+        print("PortAudioError")
 
 
 def create_running_output_stream(index):
