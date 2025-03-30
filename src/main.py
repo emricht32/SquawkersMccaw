@@ -247,3 +247,12 @@ if __name__ == "__main__":
         print("POWER_LIGHT off")
         POWER_LIGHT.off()
     dev.close()
+
+
+    # "birds": [
+    # {
+    #     "name": "Fritz",
+    #     "beak": 24,
+    #     "body": 23,
+    #     "light": 25
+    # },
