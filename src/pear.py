@@ -59,6 +59,8 @@ def get_device_number_if_usb_soundcard(index_info):
         return index, False
     if "USB Audio Device" in info["name"]:
         return index, True
+    elif "Headphones" in info["name"]:
+        return index, True
     return False
 
 
