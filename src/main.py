@@ -49,7 +49,7 @@ def manage_leds(birds, audio_duration):
     sleep_time = 0.3
     start_time = time.time()
     index = 0
-    while (time.time() - start_time < audio_duration):
+    while (start_time - curr_time < audio_duration):
         try:
             event = dev.read_one()
             print("Received commands =", event)
@@ -72,7 +72,9 @@ def manage_leds(birds, audio_duration):
                 if bird.is_dancing(curr_time):
                     bird.start_dancing()
         time.sleep(sleep_time)
+
     for bird in birds:
+        print("STOPPING Bird:", bird)
         bird.stop_moving()
 
 def play_audio_with_speech_indicator(song, birds):
