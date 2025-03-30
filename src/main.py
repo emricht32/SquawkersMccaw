@@ -18,10 +18,10 @@ from bird import Bird
 LAST_MOTION, PIR = None, None
 
 # Button setup
-YELLOW = Button(0)
-GREEN = Button(5)
-BLUE = Button(6)
-RED = Button(13)
+# YELLOW = Button(0)
+# GREEN = Button(5)
+# BLUE = Button(6)
+# RED = Button(13)
 
 # IR remote mapping
 remoteMap = {
