@@ -2,7 +2,7 @@
     "birds": [
     {
         "name": "Fritz",
-        "beak": 10,
+        "beak": 23,
         "body": 24,
         "light": 25
     },
