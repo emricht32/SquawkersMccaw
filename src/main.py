@@ -173,6 +173,10 @@ def play_audio_with_speech_indicator(song, birds):
             master_stream.stop(ignore_errors=True)
             master_stream.close()
 
+        for bird in birds:
+            print("STOPPING Bird:", bird.name)
+            bird.stop_moving()
+
 
 def motion_tracker():
     global LAST_MOTION, PIR
