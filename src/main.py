@@ -48,6 +48,7 @@ def manage_leds(birds, audio_duration):
     CLEAR = 16
     sleep_time = 0.3
     start_time = time.time()
+    curr_time = time.time()
     index = 0
     while (start_time - curr_time < audio_duration):
         try:
