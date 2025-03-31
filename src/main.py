@@ -227,7 +227,7 @@ if __name__ == "__main__":
             #     song = songs[2]
             # elif RED.is_pressed:
             #     song = songs[3]
-
+            song = songs[5]
             if song:
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
