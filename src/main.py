@@ -232,6 +232,7 @@ if __name__ == "__main__":
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
                     print("Clearing event:", event)
+            break
         except IndexError:
             continue
         except BlockingIOError:
