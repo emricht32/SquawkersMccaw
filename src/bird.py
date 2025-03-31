@@ -7,8 +7,8 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
-        print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
+    def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin, on_time):
+        print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin, on_time)
         self.name = name
         self.speech_intervals = []
         self.dancing_intervals = []
@@ -18,6 +18,7 @@ class Bird:
         if self.spotlight_led is not None:
             self.spotlight_led.on()
         self.event = threading.Event()
+        self.on_time = on_time
 
     def prepare_song(self, song_dict):
         print("prepare_song")
@@ -43,7 +44,7 @@ class Bird:
         self.start_dancing()
 
         if self.beak_led:
-            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
+            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led, self.on_time)).start()
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
         
@@ -72,8 +73,8 @@ class Bird:
         if self.beak_led:
             self.beak_led.off()
             
-def oscillate_led(event, duration, led):
-    on_time = 0.015
+def oscillate_led(event, duration, led, on_time):
+    # on_time = 0.015
     off_time = duration - on_time
     while event.is_set():
         led.on()
