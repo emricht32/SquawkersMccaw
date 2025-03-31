@@ -50,11 +50,11 @@ class Bird:
         
     def start_dancing(self):
         if self.spotlight_led:
-            self.spotlight_led.on() #spotlight is reversed 
+            self.spotlight_led.off() #spotlight is reversed 
         # else:
         #     print(f"{self.name} Spotlight ON")
         if self.body_led:
-            self.body_led.off() # reversed 
+            self.body_led.on() 
         #     print(f"{self.name} Body ON")
         # else:
         #     print(f"{self.name} Body ON")
@@ -66,20 +66,20 @@ class Bird:
         # else:
             # print(f"{self.name} Spotlight OFF")
         if self.body_led:
-            self.body_led.on() #reversed
+            self.body_led.off()
             # print(f"{self.name} Body OFF")
         # else:
             # print(f"{self.name} Body OFF")
         if self.beak_led:
-            self.beak_led.on() #reversed
+            self.beak_led.off()
             
 def oscillate_led(event, duration, led, on_time):
     # on_time = 0.015
     off_time = duration - on_time
     while event.is_set():
-        led.off() # reversed
-        time.sleep(on_time)
         led.on()
+        time.sleep(on_time)
+        led.off()
         time.sleep(off_time)
 
 def oscillate_logs(event, duration, name):
