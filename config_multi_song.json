@@ -5,28 +5,28 @@
         "beak": 5,
         "body": 6,
         "light": 25,
-        "on_time": 0.25
+        "on_time": 0.1
     },
     {
         "name": "Jose",
         "beak": 22,
         "body": 27,
         "light": 8,
-        "on_time": 0.25
+        "on_time": 0.1
     },
     {
         "name": "Michael",
         "beak": 17,
         "body": 18,
         "light": 7,
-        "on_time": 0.25
+        "on_time": 0.1
     },
     {
         "name": "Pierre",
         "beak": 15,
         "body": 14,
         "light": 1,
-        "on_time": 0.25
+        "on_time": 0.1
     }],
     "songs":[
     {
