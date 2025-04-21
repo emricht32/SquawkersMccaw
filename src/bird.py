@@ -1,5 +1,7 @@
 import time
 import threading
+import random
+
 try:
     from gpiozero import LED
     GPIO_AVAILABLE = True
@@ -7,12 +9,13 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Bird:
-    def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
-        print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
+    def __init__(self, name, beak_led_pin, eyes_led_pin, body_led_pin, spotlight_led_pin):
+        print("Bird", name, beak_led_pin, eyes_led_pin, body_led_pin, spotlight_led_pin)
         self.name = name
         self.speech_intervals = []
         self.dancing_intervals = []
         self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
+        self.eyes_led = LED(eyes_led_pin) if GPIO_AVAILABLE else None
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         if self.spotlight_led is not None:
@@ -72,12 +75,18 @@ class Bird:
         if self.beak_led:
             self.beak_led.off()
             
-def oscillate_led(event, duration, led):
+def oscillate_led(event, duration, led, eyes):
     on_time = 0.025
     off_time = duration - on_time
     while event.is_set():
         led.on()
         time.sleep(on_time)
+        random_number = random.randint(1, 20)
+        if random_number > 16:
+            eyes.on()
+            time.sleep(0.01)
+            eyes.off()
+
         led.off()
         time.sleep(off_time)
 
