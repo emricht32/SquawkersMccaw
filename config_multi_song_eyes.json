@@ -2,8 +2,8 @@
     "birds": [
     {
         "name": "Jose",
-        "beak": 14,
-        "eyes":15,
+        "beak": 15,
+        "eyes":14,
         "body": 6,
         "light": 8,
         "on_time": 0.5
