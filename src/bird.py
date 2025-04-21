@@ -46,7 +46,7 @@ class Bird:
         self.start_dancing()
 
         if self.beak_led:
-            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
+            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led, self.eyes_led)).start()
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
         
