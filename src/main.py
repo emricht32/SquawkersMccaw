@@ -205,7 +205,7 @@ if __name__ == "__main__":
     if len(usb_sound_card_indices_touple) == 0:
         raise ValueError("No USB sound card found")
 
-    birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["eyes"], bird["light"]) for bird in config_dict["birds"]]
+    birds = [Bird(bird["name"], bird["beak"], bird["eyes"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
 
     while True:
