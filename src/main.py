@@ -192,8 +192,8 @@ if __name__ == "__main__":
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
 
-    if os.path.exists('config_multi_song.json'):
-        with open('config_multi_song.json', 'r') as f:
+    if os.path.exists('config_multi_song_eyes.json'): #config_multi_song.json
+        with open('config_multi_song_eyes.json', 'r') as f:
             config_dict = json.load(f)
     else:
         raise ValueError("Missing config")
