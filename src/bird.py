@@ -3,7 +3,7 @@ import threading
 import random
 
 try:
-    from gpiozero import LED
+    from gpiozero import LED, Motor
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
@@ -14,8 +14,9 @@ class Bird:
         self.name = name
         self.speech_intervals = []
         self.dancing_intervals = []
-        self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
-        self.eyes_led = LED(eyes_led_pin) if GPIO_AVAILABLE else None
+        # self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
+        # self.eyes_led = LED(eyes_led_pin) if GPIO_AVAILABLE else None
+        self.head = Motor(forward=beak_led_pin, backward=eyes_led_pin)
         self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
         self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
         if self.spotlight_led is not None:
@@ -45,8 +46,8 @@ class Bird:
         self.event.set()
         self.start_dancing()
 
-        if self.beak_led:
-            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led, self.eyes_led)).start()
+        if self.head:
+            threading.Thread(target=oscillate_led, args=(self.event, duration, self.head)).start()
         else:
             threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
         
@@ -75,19 +76,21 @@ class Bird:
         if self.beak_led:
             self.beak_led.off()
             
-def oscillate_led(event, duration, led, eyes):
+def oscillate_led(event, duration, head):
     on_time = 0.025
     off_time = duration - on_time
     while event.is_set():
-        led.on()
+        head.forward()
         time.sleep(on_time)
+        head.stop()
+
         random_number = random.randint(1, 20)
         if random_number > 16:
-            eyes.on()
-            time.sleep(0.01)
-            eyes.off()
+            head.backward()
+            time.sleep(1)
+            head.stop()
 
-        led.off()
+        # led.off()
         time.sleep(off_time)
 
 def oscillate_logs(event, duration, name):
