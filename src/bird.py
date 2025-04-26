@@ -73,7 +73,7 @@ class Bird:
             self.beak_led.off()
             
 def oscillate_led(event, duration, led):
-    on_time = 0.1
+    on_time = 0.05
     off_time = duration - on_time
     while event.is_set():
         led.on()
