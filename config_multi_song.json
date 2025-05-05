@@ -16,15 +16,15 @@
     },
     {
         "name": "Michael",
-        "beak": 4,
-        "body": 27,
+        "beak": 27,
+        "body": 4,
         "light": 9,
         "on_time": 0.5
     },
     {
         "name": "Pierre",
-        "beak": 21,
-        "body": 13,
+        "beak": 13,
+        "body": 21,
         "light": 11,
         "on_time": 0.5
     }],
