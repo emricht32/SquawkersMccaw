@@ -9,23 +9,23 @@
     },
     {
         "name": "Jose",
-        "beak": 16,
-        "body": 19,
-        "light": 8,
+        "beak": 19,
+        "body": 16,
+        "light": 10,
         "on_time": 0.5
     },
     {
         "name": "Michael",
-        "beak": 17,
-        "body": 18,
-        "light": 7,
+        "beak": 4,
+        "body": 27,
+        "light": 9,
         "on_time": 0.5
     },
     {
         "name": "Pierre",
-        "beak": 15,
-        "body": 14,
-        "light": 1,
+        "beak": 21,
+        "body": 13,
+        "light": 11,
         "on_time": 0.5
     }],
     "songs":[
