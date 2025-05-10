@@ -5,6 +5,9 @@ import os
 import pear
 import evdev
 import sounddevice
+from vosk import Model, KaldiRecognizer
+import pyaudio
+import json
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -16,6 +19,7 @@ except ImportError:
 from bird import Bird
 
 LAST_MOTION, PIR = None, None
+playback_lock = threading.Lock()
 
 # Button setup
 # YELLOW = Button(0)
@@ -78,6 +82,16 @@ def manage_leds(birds, audio_duration):
         bird.stop_moving()
 
 def play_audio_with_speech_indicator(song, birds):
+    if playback_lock.acquire(blocking=False):
+        try:
+            _play_audio_with_speech_indicator(song, birds)
+        finally:
+            playback_lock.release()
+    else:
+        print("⚠️ Playback already in progress, ignoring new voice command.")
+
+
+def _play_audio_with_speech_indicator(song, birds):
     def good_filepath(path):
         return str(path).endswith(".wav") and not str(path).startswith(".")
 
@@ -185,6 +199,48 @@ def motion_tracker():
         LAST_MOTION = time.time()
         time.sleep(1)
 
+def voice_listener(songs, birds):
+    model = Model("vosk-model-small-en-us-0.15")
+    recognizer = KaldiRecognizer(model, 16000)
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000,
+                    input=True, frames_per_buffer=8000)
+    stream.start_stream()
+
+    # Map phrases to songs
+    trigger_map = {}
+    for song in songs:
+        for phrase in song.get("triggers", []):
+            trigger_map[phrase.lower()] = song
+
+    def match_song(transcript):
+        transcript = transcript.lower()
+        for phrase, song in trigger_map.items():
+            if phrase in transcript:
+                return song
+        return None
+
+    print("🎤 Voice listener ready...")
+
+    try:
+        while True:
+            data = stream.read(4000, exception_on_overflow=False)
+            if recognizer.AcceptWaveform(data):
+                result = json.loads(recognizer.Result())
+                text = result.get("text", "")
+                print(f"🗣️ Recognized: {text}")
+                matched_song = match_song(text)
+                if matched_song:
+                    print(f"🎶 Voice Triggered: {matched_song['name']}")
+                    play_audio_with_speech_indicator(matched_song, birds)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+
 if __name__ == "__main__":
     print("Starting main")
     POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
@@ -192,8 +248,8 @@ if __name__ == "__main__":
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
 
-    if os.path.exists('config_multi_song.json'):
-        with open('config_multi_song.json', 'r') as f:
+    if os.path.exists('config_multi_song_with_triggers.json'):
+        with open('config_multi_song_with_triggers.json', 'r') as f:
             config_dict = json.load(f)
     else:
         raise ValueError("Missing config")
@@ -207,6 +263,8 @@ if __name__ == "__main__":
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
+
+    threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
 
     while True:
         time.sleep(1)
