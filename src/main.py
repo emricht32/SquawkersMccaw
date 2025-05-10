@@ -187,7 +187,7 @@ def motion_tracker():
 
 if __name__ == "__main__":
     print("Starting main")
-    POWER_LIGHT = None # LED(21) if GPIO_AVAILABLE else None
+    POWER_LIGHT = LED(21) if GPIO_AVAILABLE else None
     if POWER_LIGHT:
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
@@ -219,15 +219,7 @@ if __name__ == "__main__":
                 index = remoteMap.get(event.value)
                 if index is not None:
                     song = songs[index]
-            # elif YELLOW.is_pressed:
-            #     song = songs[0]
-            # elif GREEN.is_pressed:
-            #     song = songs[1]
-            # elif BLUE.is_pressed:
-            #     song = songs[2]
-            # elif RED.is_pressed:
-            #     song = songs[3]
-            song = songs[5]
+            # song = songs[5] happy bday
             if song:
                 play_audio_with_speech_indicator(song, birds)
                 for event in dev.read():
