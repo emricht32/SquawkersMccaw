@@ -187,7 +187,7 @@ def motion_tracker():
 
 if __name__ == "__main__":
     print("Starting main")
-    POWER_LIGHT = LED(21) if GPIO_AVAILABLE else None
+    POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
     if POWER_LIGHT:
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
