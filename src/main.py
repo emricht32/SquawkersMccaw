@@ -7,7 +7,6 @@ import evdev
 import sounddevice
 from vosk import Model, KaldiRecognizer
 import pyaudio
-import json
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -362,10 +361,10 @@ if __name__ == "__main__":
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
 
-    # threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
+    threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
     # threading.Thread(target=remote_listener, args=(songs, birds), daemon=True).start()
 
-    voice_listener(songs=songs, birds=birds)
+    # voice_listener(songs=songs, birds=birds)
 
     # "birds": [
     # {

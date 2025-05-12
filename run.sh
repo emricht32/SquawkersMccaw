@@ -42,6 +42,13 @@ for f in $mp3_files; do
     fi
 done
 
+# sudo apt update
+# sudo apt install portaudio19-dev python3-dev
+mkdir -p models
+cd models
+wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+unzip vosk-model-small-en-us-0.15.zip
+
 # Install Python dependencies
 if ! pip3 install -r pi-requirements.txt; then
     echo "Error installing Python dependencies" >&2
