@@ -225,14 +225,22 @@ def voice_listener(songs, birds):
         recognizer = KaldiRecognizer(model, 16000)
         print("Recognizer created")
 
+        print("Creating PyAudio object...")
         p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000,
-                        input=True, frames_per_buffer=8000)
+        print("Opening stream...")
+        stream = p.open(...)
+        print("Starting stream...")
         stream.start_stream()
-        print("Stream started")
+        print("Stream started ✅")
+
 
         while True:
-            data = stream.read(4000, exception_on_overflow=False)
+            try:
+                data = stream.read(4000, exception_on_overflow=False)
+            except Exception as e:
+                print("⚠️ Error reading audio stream:", e)
+                continue
+
             if recognizer.AcceptWaveform(data):
                 result = recognizer.Result()
                 print("Recognized:", result)
