@@ -213,8 +213,11 @@ def voice_listener(songs, birds):
     """
     models/vosk-model-small-en-us-0.15
     """
-    model = Model("models")
-    print("1")
+    try:
+        model = Model("models/vosk-model-small-en-us-0.15")
+    except Exception as e:
+        print("1", e)
+    print("11")
     recognizer = KaldiRecognizer(model, 16000)
     print("2")
     p = pyaudio.PyAudio()
