@@ -215,8 +215,11 @@ def voice_listener(songs, birds):
     """
     try:
         model = Model("models/vosk-model-small-en-us-0.15")
+        print("Model loaded successfully.")
     except Exception as e:
-        print("1", e)
+        print("❌ Failed to load model:", e)
+        return  # Prevent crashing if model load fails
+
     print("11")
     recognizer = KaldiRecognizer(model, 16000)
     print("2")
