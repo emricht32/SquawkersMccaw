@@ -210,7 +210,10 @@ def voice_listener(songs, birds):
                 return song
         return None
     print("0")
-    model = Model("models/vosk-model-small-en-us-0.15")
+    """
+    models/vosk-model-small-en-us-0.15
+    """
+    model = Model("models")
     print("1")
     recognizer = KaldiRecognizer(model, 16000)
     print("2")
