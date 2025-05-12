@@ -211,11 +211,19 @@ def voice_listener(songs, birds):
         print("Trigger map:", trigger_map)
 
         def match_song(transcript):
+            from rapidfuzz import process
             transcript = transcript.lower()
-            for phrase, song in trigger_map.items():
-                if phrase in transcript:
+            for trigger, song in trigger_map.items():
+                if trigger in transcript:
                     return song
+
+            # fallback to fuzzy matching
+            best_match, score, _ = process.extractOne(transcript, list(trigger_map.keys()), score_cutoff=70)
+            if best_match:
+                return trigger_map[best_match]
+
             return None
+
 
         print("Loading Vosk model...")
         model = Model("models/vosk-model-small-en-us-0.15")

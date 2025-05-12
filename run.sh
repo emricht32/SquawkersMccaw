@@ -44,10 +44,27 @@ done
 
 # sudo apt update
 # sudo apt install portaudio19-dev python3-dev
-mkdir -p models
-cd models
-wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-unzip vosk-model-small-en-us-0.15.zip
+
+MODEL_DIR="models/vosk-model-small-en-us-0.15"
+ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"
+
+if [ ! -d "$MODEL_DIR" ]; then
+  echo "🔍 Model not found. Downloading and extracting..."
+  mkdir -p models
+  cd models || exit 1
+
+  # Only download if the ZIP isn't already present
+  if [ ! -f "$(basename "$ZIP_FILE")" ]; then
+    wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+  fi
+
+  unzip -q vosk-model-small-en-us-0.15.zip
+  echo "✅ Model downloaded and extracted."
+  rm vosk-model-small-en-us-0.15.zip
+  echo "✅ Removed zip file"
+else
+  echo "✅ Model already exists. Skipping download."
+fi
 
 # Install Python dependencies
 if ! pip3 install -r pi-requirements.txt; then
