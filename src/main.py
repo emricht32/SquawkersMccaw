@@ -228,7 +228,14 @@ def voice_listener(songs, birds):
         print("Creating PyAudio object...")
         p = pyaudio.PyAudio()
         print("Opening stream...")
-        stream = p.open(...)
+        stream = p.open(
+            format=pyaudio.paInt16,        # 16-bit signed int
+            channels=1,                    # Mono channel
+            rate=16000,                    # Sample rate (Hz)
+            input=True,                    # Input stream
+            frames_per_buffer=8000         # Buffer size
+        )
+
         print("Starting stream...")
         stream.start_stream()
         print("Stream started ✅")
