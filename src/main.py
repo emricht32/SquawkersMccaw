@@ -201,43 +201,50 @@ def motion_tracker():
 
 
 def voice_listener(songs, birds):
-
-    def match_song(transcript):
-        print("6")
-        transcript = transcript.lower()
-        for phrase, song in trigger_map.items():
-            if phrase in transcript:
-                return song
-        return None
-    print("0")
-    """
-    models/vosk-model-small-en-us-0.15
-    """
     try:
+        print("🔊 Starting voice listener thread")
+        
+        # Build trigger map first
+        trigger_map = {}
+        for song in songs:
+            for phrase in song.get("triggers", []):
+                trigger_map[phrase.lower()] = song
+        print("Trigger map:", trigger_map)
+
+        def match_song(transcript):
+            transcript = transcript.lower()
+            for phrase, song in trigger_map.items():
+                if phrase in transcript:
+                    return song
+            return None
+
+        print("Loading Vosk model...")
         model = Model("models/vosk-model-small-en-us-0.15")
-        print("Model loaded successfully.")
+        print("Model loaded")
+
+        recognizer = KaldiRecognizer(model, 16000)
+        print("Recognizer created")
+
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000,
+                        input=True, frames_per_buffer=8000)
+        stream.start_stream()
+        print("Stream started")
+
+        while True:
+            data = stream.read(4000, exception_on_overflow=False)
+            if recognizer.AcceptWaveform(data):
+                result = recognizer.Result()
+                print("Recognized:", result)
+                # TODO: match and trigger birds
+            else:
+                print("Partial:", recognizer.PartialResult())
+
     except Exception as e:
-        print("❌ Failed to load model:", e)
-        return  # Prevent crashing if model load fails
+        print("❌ Exception in voice_listener thread:", e)
+        import traceback
+        traceback.print_exc()
 
-    print("11")
-    recognizer = KaldiRecognizer(model, 16000)
-    print("2")
-    p = pyaudio.PyAudio()
-    print("3")
-    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000,
-                    input=True, frames_per_buffer=8000)
-    print("4")
-    stream.start_stream()
-    print("5")
-    # Map phrases to songs
-    trigger_map = {}
-    for song in songs:
-        for phrase in song.get("triggers", []):
-            trigger_map[phrase.lower()] = song
-    print("trigger_map=", trigger_map)
-
-    print("🎤 Voice listener ready...")
 
     # p = pyaudio.PyAudio()
     # stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True,
@@ -251,12 +258,12 @@ def voice_listener(songs, birds):
     #     else:
     #         print(recognizer.PartialResult())
 
-    while True:
-        data = stream.read(4000, exception_on_overflow=False)
-        if recognizer.AcceptWaveform(data):
-            print(recognizer.Result())
-        else:
-            print(recognizer.PartialResult())
+    # while True:
+    #     data = stream.read(4000, exception_on_overflow=False)
+    #     if recognizer.AcceptWaveform(data):
+    #         print(recognizer.Result())
+    #     else:
+    #         print(recognizer.PartialResult())
 
     # try:
     #     while True:
