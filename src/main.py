@@ -200,7 +200,7 @@ def motion_tracker():
         time.sleep(1)
 
 def voice_listener(songs, birds):
-    model = Model("vosk-model-small-en-us-0.15")
+    model = Model("models/vosk-model-small-en-us-0.15")
     recognizer = KaldiRecognizer(model, 16000)
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000,
