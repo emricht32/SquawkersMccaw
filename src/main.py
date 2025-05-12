@@ -199,7 +199,16 @@ def motion_tracker():
         LAST_MOTION = time.time()
         time.sleep(1)
 
+
 def voice_listener(songs, birds):
+
+    def match_song(transcript):
+        transcript = transcript.lower()
+        for phrase, song in trigger_map.items():
+            if phrase in transcript:
+                return song
+        return None
+
     model = Model("models/vosk-model-small-en-us-0.15")
     recognizer = KaldiRecognizer(model, 16000)
     p = pyaudio.PyAudio()
@@ -213,13 +222,6 @@ def voice_listener(songs, birds):
         for phrase in song.get("triggers", []):
             trigger_map[phrase.lower()] = song
     print("trigger_map=", trigger_map)
-
-    def match_song(transcript):
-        transcript = transcript.lower()
-        for phrase, song in trigger_map.items():
-            if phrase in transcript:
-                return song
-        return None
 
     print("🎤 Voice listener ready...")
 
