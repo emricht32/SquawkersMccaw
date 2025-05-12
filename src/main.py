@@ -212,6 +212,7 @@ def voice_listener(songs, birds):
     for song in songs:
         for phrase in song.get("triggers", []):
             trigger_map[phrase.lower()] = song
+    print("trigger_map=", trigger_map)
 
     def match_song(transcript):
         transcript = transcript.lower()
@@ -222,23 +223,42 @@ def voice_listener(songs, birds):
 
     print("🎤 Voice listener ready...")
 
-    try:
-        while True:
-            data = stream.read(4000, exception_on_overflow=False)
-            if recognizer.AcceptWaveform(data):
-                result = json.loads(recognizer.Result())
-                text = result.get("text", "")
-                print(f"🗣️ Recognized: {text}")
-                matched_song = match_song(text)
-                if matched_song:
-                    print(f"🎶 Voice Triggered: {matched_song['name']}")
-                    play_audio_with_speech_indicator(matched_song, birds)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+    # p = pyaudio.PyAudio()
+    # stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True,
+    #                 frames_per_buffer=8000)
+    # stream.start_stream()
+
+    # while True:
+    #     data = stream.read(4000, exception_on_overflow=False)
+    #     if recognizer.AcceptWaveform(data):
+    #         print(recognizer.Result())
+    #     else:
+    #         print(recognizer.PartialResult())
+
+    while True:
+        data = stream.read(4000, exception_on_overflow=False)
+        if recognizer.AcceptWaveform(data):
+            print(recognizer.Result())
+        else:
+            print(recognizer.PartialResult())
+
+    # try:
+    #     while True:
+    #         data = stream.read(4000, exception_on_overflow=False)
+    #         if recognizer.AcceptWaveform(data):
+    #             result = json.loads(recognizer.Result())
+    #             text = result.get("text", "")
+    #             print(f"🗣️ Recognized: {text}")
+    #             matched_song = match_song(text)
+    #             if matched_song:
+    #                 print(f"🎶 Voice Triggered: {matched_song['name']}")
+    #                 play_audio_with_speech_indicator(matched_song, birds)
+    # except KeyboardInterrupt:
+    #     pass
+    # finally:
+    #     stream.stop_stream()
+    #     stream.close()
+    #     p.terminate()
 
 def remote_listener(songs, birds):
 
