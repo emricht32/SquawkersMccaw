@@ -240,31 +240,7 @@ def voice_listener(songs, birds):
         stream.close()
         p.terminate()
 
-
-if __name__ == "__main__":
-    print("Starting main")
-    POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
-    if POWER_LIGHT:
-        print("POWER_LIGHT on")
-        POWER_LIGHT.on()
-
-    if os.path.exists('config_multi_song_with_triggers.json'):
-        with open('config_multi_song_with_triggers.json', 'r') as f:
-            config_dict = json.load(f)
-    else:
-        raise ValueError("Missing config")
-    print("sounddevice.query_devices()=",sounddevice.query_devices())
-    usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
-                                         map(pear.get_device_number_if_usb_soundcard,
-                                             [index_info for index_info in enumerate(sounddevice.query_devices())])))
-    print("usb_sound_card_indices_touple=",usb_sound_card_indices_touple)
-    if len(usb_sound_card_indices_touple) == 0:
-        raise ValueError("No USB sound card found")
-
-    birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
-    songs = config_dict["songs"]
-
-    threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
+def remote_listener(songs, birds):
 
     while True:
         time.sleep(1)
@@ -304,6 +280,32 @@ if __name__ == "__main__":
         POWER_LIGHT.off()
     dev.close()
 
+
+if __name__ == "__main__":
+    print("Starting main")
+    POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
+    if POWER_LIGHT:
+        print("POWER_LIGHT on")
+        POWER_LIGHT.on()
+
+    if os.path.exists('config_multi_song_with_triggers.json'):
+        with open('config_multi_song_with_triggers.json', 'r') as f:
+            config_dict = json.load(f)
+    else:
+        raise ValueError("Missing config")
+    print("sounddevice.query_devices()=",sounddevice.query_devices())
+    # usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
+    #                                      map(pear.get_device_number_if_usb_soundcard,
+    #                                          [index_info for index_info in enumerate(sounddevice.query_devices())])))
+    # print("usb_sound_card_indices_touple=",usb_sound_card_indices_touple)
+    # if len(usb_sound_card_indices_touple) == 0:
+    #     raise ValueError("No USB sound card found")
+
+    birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
+    songs = config_dict["songs"]
+
+    threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
+    threading.Thread(target=remote_listener, args=(songs, birds), daemon=True).start()
 
     # "birds": [
     # {
