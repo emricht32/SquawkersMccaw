@@ -305,7 +305,7 @@ if __name__ == "__main__":
     songs = config_dict["songs"]
 
     threading.Thread(target=voice_listener, args=(songs, birds), daemon=True).start()
-    threading.Thread(target=remote_listener, args=(songs, birds), daemon=True).start()
+    # threading.Thread(target=remote_listener, args=(songs, birds), daemon=True).start()
 
     # "birds": [
     # {
