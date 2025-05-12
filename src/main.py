@@ -203,6 +203,7 @@ def motion_tracker():
 def voice_listener(songs, birds):
 
     def match_song(transcript):
+        print("6")
         transcript = transcript.lower()
         for phrase, song in trigger_map.items():
             if phrase in transcript:
