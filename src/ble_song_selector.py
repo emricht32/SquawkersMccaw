@@ -32,12 +32,12 @@ class BLESongSelector:
         print(f"✅ Using adapter address: {adapter_addr}")
 
         self.ble = peripheral.Peripheral(adapter_address=adapter_addr, local_name='BirdPi')
-
+        print("self.ble = peripheral.Peripheral(adapter_address=adapter_addr, local_name='BirdPi')")
         # Add service with internal ID "song_service"
         self.ble.add_service(srv_id='song_service',
                             uuid='12345678-0000-0000-0000-abcdefabcdef',
                             primary=True)
-
+        print("self.ble.add_service")
         # Add characteristic 1: Readable list of display names
         self.ble.add_characteristic(srv_id='song_service',
                                     chr_id='display_names_char',
@@ -45,7 +45,7 @@ class BLESongSelector:
                                     value=self._get_display_names,
                                     notifying=False,
                                     flags=['read'])
-
+        print("self.ble.add_characteristic")
         # Add characteristic 2: Writable selected index
         self.ble.add_characteristic(srv_id='song_service',
                                     chr_id='index_select_char',
