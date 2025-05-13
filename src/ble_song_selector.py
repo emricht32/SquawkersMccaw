@@ -43,9 +43,13 @@ class BLESongSelector:
             'Write': self._on_index_received
         }
 
-        song_service = peripheral.Service('12345678-0000-0000-0000-abcdefabcdef')
-        song_service.add_characteristic(display_names_char)
-        song_service.add_characteristic(index_select_char)
+         # Define service directly
+        song_service = {
+            'uuid': '12345678-0000-0000-0000-abcdefabcdef',
+            'characteristics': [display_names_char, index_select_char]
+        }
+        # song_service.add_characteristic(display_names_char)
+        # song_service.add_characteristic(index_select_char)
 
         self.ble = peripheral.Peripheral(
             adapter_addr=adapter_addr,
