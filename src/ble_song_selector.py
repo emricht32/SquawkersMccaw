@@ -51,6 +51,7 @@ class BLESongSelector:
                                     write=self._on_index_received,
                                     notifying=False,
                                     flags=['write-without-response'])
+        print("_setup_ble -- DONE")
 
     def start(self):
         print("📡 Starting BLE advertising...")

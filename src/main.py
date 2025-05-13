@@ -396,6 +396,7 @@ if __name__ == "__main__":
 
 try:
     ble_handler = BLESongSelector(display_names, on_song_selected)
+    print("ble_handler.start()")
     ble_handler.start()
 
     voice_thread = threading.Thread(target=voice_listener, args=(songs, birds))
