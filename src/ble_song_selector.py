@@ -52,10 +52,11 @@ class BLESongSelector:
         # song_service.add_characteristic(index_select_char)
 
         self.ble = peripheral.Peripheral(
-            adapter_addr=adapter_addr,
+            adapter_address=adapter_addr,
             local_name='BirdPi',
             services=[song_service]
         )
+
 
     def start(self):
         print("📡 Starting BLE advertising as 'BirdPi'...")
