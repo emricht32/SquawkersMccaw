@@ -7,6 +7,8 @@ import evdev
 import sounddevice
 from vosk import Model, KaldiRecognizer
 import pyaudio
+from rapidfuzz import process
+
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -211,7 +213,6 @@ def voice_listener(songs, birds):
         print("Trigger map:", trigger_map)
 
         def match_song(transcript):
-            from rapidfuzz import process
             transcript = transcript.lower()
             for trigger, song in trigger_map.items():
                 if trigger in transcript:
@@ -259,6 +260,9 @@ def voice_listener(songs, birds):
                 result = recognizer.Result()
                 print("Recognized:", result)
                 # TODO: match and trigger birds
+                song = match_song(result)
+                if song:
+                    play_audio_with_speech_indicator(song, birds)
             else:
                 print("Partial:", recognizer.PartialResult())
 
@@ -345,6 +349,20 @@ def remote_listener(songs, birds):
         POWER_LIGHT.off()
     dev.close()
 
+from ble_song_selector import BLESongSelector
+
+# Example display names list
+display_names = [
+    "In The Tiki Room",
+    "The Seasons Upon Us",
+    "Wellerman",
+    "Mele-Kalikimaka",
+    "Lets Get It Started",
+    "Happy Birthday",
+    "Jack Sparrow",
+    "Beverly Hills"
+]
+
 
 if __name__ == "__main__":
     print("Starting main")
@@ -359,25 +377,42 @@ if __name__ == "__main__":
     else:
         raise ValueError("Missing config")
     print("sounddevice.query_devices()=",sounddevice.query_devices())
-    # usb_sound_card_indices_touple = list(filter(lambda x: x is not False,
-    #                                      map(pear.get_device_number_if_usb_soundcard,
-    #                                          [index_info for index_info in enumerate(sounddevice.query_devices())])))
-    # print("usb_sound_card_indices_touple=",usb_sound_card_indices_touple)
-    # if len(usb_sound_card_indices_touple) == 0:
-    #     raise ValueError("No USB sound card found")
+
+    # Example callback when app selects a song
+    def on_song_selected(index, name):
+        print(f"🎬 Playing song #{index}: {name}")
+        # Trigger your play_audio_with_speech_indicator() logic here
+        if index is not None:
+            song = songs[index]
+            # song = songs[5] happy bday
+            if song:
+                play_audio_with_speech_indicator(song, birds)
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
 
-    threading.Thread(target=voice_listener, args=(songs, birds), daemon=False).start()
-    # threading.Thread(target=remote_listener, args=(songs, birds), daemon=True).start()
 
-    # voice_listener(songs=songs, birds=birds)
+    display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
 
-    # "birds": [
-    # {
-    #     "name": "Fritz",
-    #     "beak": 24,
-    #     "body": 23,
-    #     "light": 25
-    # },
+try:
+    ble_handler = BLESongSelector(display_names, on_song_selected)
+    ble_handler.start()
+
+    voice_thread = threading.Thread(target=voice_listener, args=(songs, birds))
+    voice_thread.start()
+    voice_thread.join()
+
+except Exception as e:
+    print("❌ Exception occurred:", e)
+finally:
+    for bird in birds:
+        bird.stop_moving()
+    if POWER_LIGHT:
+        print("POWER_LIGHT off")
+        POWER_LIGHT.off()
+    dev.close()
+    if ble_handler:
+        ble_handler.stop()
+
+
+

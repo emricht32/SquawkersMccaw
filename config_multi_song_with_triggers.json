@@ -33,6 +33,7 @@
     {
       "audio_dir": "music/tiki",
       "name": "In the Tiki Room",
+      "display_name": "In the Tiki Room",
       "individuals": [
         {
           "name": "Pierre",
@@ -88,6 +89,7 @@
     {
       "audio_dir": "music/the_seasons_upon_us",
       "name": "the_seasons_upon_us",
+      "display_name": "The Season's upon us",
       "individuals": [
         {
           "name": "Pierre",
@@ -135,6 +137,7 @@
     {
       "audio_dir": "music/wellerman",
       "name": "Wellerman",
+      "display_name": "Wellerman",
       "individuals": [
         {
           "name": "Pierre",
@@ -179,6 +182,7 @@
     {
       "audio_dir": "music/mele-kalikimaka",
       "name": "mele-kalikimaka",
+      "display_name":"Mele Kalikimaka",
       "individuals": [
         {
           "name": "Pierre",
@@ -232,6 +236,7 @@
     {
       "audio_dir": "music/lets_get_it_started",
       "name": "lets_get_it_started",
+      "display_name": "Let's Get It Started",
       "individuals": [
         {
           "name": "Pierre",
@@ -285,6 +290,7 @@
     {
       "audio_dir": "music/happy_birthday",
       "name": "happy_birthday",
+      "display_name": "Happy Birthday",
       "individuals": [
         {
           "name": "Pierre",
@@ -328,6 +334,7 @@
     {
       "audio_dir": "music/jack_sparrow",
       "name": "jack_sparrow",
+      "display_name": "Jack Sparrow",
       "individuals": [
         {
           "name": "Pierre",
@@ -375,6 +382,7 @@
     {
       "audio_dir": "music/beverly_hills",
       "name": "beverly_hills",
+      "display_name": "Beverly Hills",
       "individuals": [
         {
           "name": "Pierre",
