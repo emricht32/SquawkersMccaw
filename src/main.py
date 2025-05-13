@@ -394,26 +394,24 @@ if __name__ == "__main__":
 
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
 
-try:
-    ble_handler = BLESongSelector(display_names, on_song_selected)
-    print("ble_handler.start()")
-    ble_handler.start()
+    try:
+        # your existing setup and run logic
+        ble_handler = BLESongSelector(display_names, on_song_selected)
+        ble_handler.start()
 
-    voice_thread = threading.Thread(target=voice_listener, args=(songs, birds))
-    voice_thread.start()
-    voice_thread.join()
+        threading.Thread(target=voice_listener, args=(songs, birds), daemon=False).start()
+        # ... other logic
 
-except Exception as e:
-    print("❌ Exception occurred:", e)
-finally:
-    for bird in birds:
-        bird.stop_moving()
-    if POWER_LIGHT:
-        print("POWER_LIGHT off")
-        POWER_LIGHT.off()
-    dev.close()
-    if ble_handler:
-        ble_handler.stop()
-
+    except Exception as e:
+        print("❌ Exception occurred:", e)
+    finally:
+        for bird in birds:
+            bird.stop_moving()
+        if POWER_LIGHT:
+            print("POWER_LIGHT off")
+            POWER_LIGHT.off()
+        dev.close()
+        if ble_handler:
+            ble_handler.stop()
 
 
