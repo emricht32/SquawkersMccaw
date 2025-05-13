@@ -1,17 +1,15 @@
+
 from bluezero import peripheral, adapter
+import json
 
 class BLESongSelector:
     def __init__(self, display_names, on_song_selected_callback):
         self.display_names = display_names
         self.on_song_selected_callback = on_song_selected_callback
-
-        self.characteristics = []
-        self.service = None
         self.ble = None
         self._setup_ble()
 
     def _get_display_names(self):
-        import json
         data = json.dumps(self.display_names, separators=(",", ":")).encode("utf-8")
         return list(data)
 
@@ -31,7 +29,7 @@ class BLESongSelector:
         adapter_addr = adapter_list[0].address
         print(f"✅ Using adapter address: {adapter_addr}")
 
-        # Define characteristics as Peripheral.Characteristic objects
+        # Define characteristics
         display_names_char = peripheral.Characteristic(
             uuid='abcd1111-2222-3333-4444-555566667777',
             flags=['read'],
@@ -44,16 +42,16 @@ class BLESongSelector:
             write=self._on_index_received
         )
 
-        # Create a Service
-        self.service = peripheral.Service(
+        # Define the service
+        song_service = peripheral.Service(
             uuid='12345678-0000-0000-0000-abcdefabcdef',
             primary=True,
             characteristics=[display_names_char, index_select_char]
         )
 
-        # Now create the Peripheral using add_service
+        # Create peripheral and add service
         self.ble = peripheral.Peripheral(adapter_addr)
-        self.ble.add_service(self.service)
+        self.ble.add_service(song_service)
         self.ble.local_name = 'BirdPi'
 
     def start(self):
