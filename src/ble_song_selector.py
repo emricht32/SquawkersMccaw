@@ -15,6 +15,8 @@ class BLESongSelector:
 
     def _on_index_received(self, value):
         try:
+            print("value=",value)
+            print(type(value)) 
             index = int(bytes(value).decode("utf-8"))
             song_name = self.display_names[index]
             print(f"🎵 BLE selected index {index}: {song_name}")
