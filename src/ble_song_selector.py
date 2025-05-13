@@ -1,4 +1,3 @@
-
 from bluezero import peripheral, adapter
 import json
 
@@ -10,14 +9,14 @@ class BLESongSelector:
         self._setup_ble()
 
     def _get_display_names(self):
+        # Return a list of byte values
         data = json.dumps(self.display_names, separators=(",", ":")).encode("utf-8")
         return list(data)
 
-    def _on_index_received(self, value):
+    def _on_index_received(self, value, options=None):
         try:
-            print("value=",value)
-            print(type(value)) 
-            index = int(bytes(value).decode("utf-8"))
+            raw = bytes(value)
+            index = int(raw.decode("utf-8"))
             song_name = self.display_names[index]
             print(f"🎵 BLE selected index {index}: {song_name}")
             self.on_song_selected_callback(index, song_name)
@@ -29,31 +28,34 @@ class BLESongSelector:
         if not adapter_list:
             raise RuntimeError("❌ No Bluetooth adapter found.")
         adapter_addr = adapter_list[0].address
-        print(f"✅ Using adapter address: {adapter_addr}")
+        print(f"✅ Using adapter: {adapter_addr}")
 
         self.ble = peripheral.Peripheral(adapter_address=adapter_addr, local_name='BirdPi')
-        print("self.ble = peripheral.Peripheral(adapter_address=adapter_addr, local_name='BirdPi')")
-        # Add service with internal ID "song_service"
-        self.ble.add_service(srv_id='song_service',
-                            uuid='12345678-0000-0000-0000-abcdefabcdef',
-                            primary=True)
-        print("self.ble.add_service")
-        # Add characteristic 1: Readable list of display names
-        self.ble.add_characteristic(srv_id='song_service',
-                                    chr_id='display_names_char',
-                                    uuid='abcd1111-2222-3333-4444-555566667777',
-                                    value=self._get_display_names,
-                                    notifying=False,
-                                    flags=['read'])
-        print("self.ble.add_characteristic")
-        # Add characteristic 2: Writable selected index
-        self.ble.add_characteristic(srv_id='song_service',
-                                    chr_id='index_select_char',
-                                    uuid='abcd8888-9999-aaaa-bbbb-ccccdddddddd',
-                                    write=self._on_index_received,
-                                    notifying=False,
-                                    flags=['write-without-response'])
-        print("_setup_ble -- DONE")
+
+        # Add service with numeric ID
+        self.ble.add_service(srv_id=1, uuid='12345678-0000-0000-0000-abcdefabcdef', primary=True)
+
+        # Add display names (readable)
+        self.ble.add_characteristic(
+            srv_id=1,
+            chr_id=1,
+            uuid='abcd1111-2222-3333-4444-555566667777',
+            value=[],  # initial value not used
+            notifying=False,
+            flags=['read'],
+            read_callback=self._get_display_names
+        )
+
+        # Add selected index (write-only)
+        self.ble.add_characteristic(
+            srv_id=1,
+            chr_id=2,
+            uuid='abcd8888-9999-aaaa-bbbb-ccccdddddddd',
+            value=[],  # not needed
+            notifying=False,
+            flags=['write-without-response'],
+            write_callback=self._on_index_received
+        )
 
     def start(self):
         print("📡 Starting BLE advertising...")
