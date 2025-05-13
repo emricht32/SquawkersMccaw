@@ -1,5 +1,5 @@
 
-from bluezero import peripheral, adapter
+from bluezero import adapter
 import json
 
 class BLESongSelector:
@@ -24,11 +24,11 @@ class BLESongSelector:
 
     def _setup_ble(self):
         # Get the adapter address automatically
-        adapter_list = adapter.Adapter.available()
+        adapter_list = list(adapter.Adapter.available())
         if not adapter_list:
             raise RuntimeError("❌ No Bluetooth adapter found.")
         adapter_addr = adapter_list[0].address
-        print(f"✅ Using adapter address: {adapter_addr}")
+        print(f"✅ Using adapter: {adapter_addr}")
 
         # Define characteristics
         display_names_char = {

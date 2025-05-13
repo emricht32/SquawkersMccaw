@@ -11,7 +11,7 @@ import SwiftUI
 struct MoaiLanaiApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SongPickerView()
         }
     }
 }
