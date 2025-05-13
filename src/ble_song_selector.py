@@ -1,5 +1,5 @@
 
-from bluezero import adapter
+from bluezero import adapter, peripheral
 import json
 
 class BLESongSelector:
