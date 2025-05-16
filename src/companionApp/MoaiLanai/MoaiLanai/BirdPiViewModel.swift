@@ -10,12 +10,36 @@ import Foundation
 import CoreBluetooth
 import Combine
 
+enum SortState {
+    case unsorted
+    case ascending
+    case descending
+
+    mutating func toggle() {
+        switch self {
+        case .unsorted: self = .ascending
+        case .ascending: self = .descending
+        case .descending: self = .unsorted
+        }
+    }
+    
+    var sortOrder: SortOrder? {
+        switch self {
+        case .unsorted: return nil
+        case .ascending: return .forward
+        case .descending: return .reverse
+        }
+    }
+}
+
+
 class BirdPiViewModel: NSObject, ObservableObject {
     var songsDict = [String: Int]()
     @Published var songDisplayNames: [String]
     @Published var isConnected: Bool = false
     @Published var selectedIndex: Int? = nil
     @Published var errorMessage: String? = nil
+    @Published var sortState: SortState = .unsorted
 
     private var centralManager: CBCentralManager!
     private var birdPiPeripheral: CBPeripheral?
@@ -68,6 +92,11 @@ class BirdPiViewModel: NSObject, ObservableObject {
         if selectedIndex == -1 {
             restartScan()
         }
+    }
+    
+    func toggleSortState() {
+        sortState.toggle()
+        sortSongsByName(order: sortState.sortOrder)
     }
 
     private func startConnectionTimeout() {
@@ -158,16 +187,13 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
            let data = characteristic.value,
            let jsonString = String(data: data, encoding: .utf8),
            let decoded = try? JSONDecoder().decode([String].self, from: Data(jsonString.utf8)) {
+            print("🎶 Song list received: \(decoded)")
+
             songsDict.removeAll()
-//            songsDict = decoded.enumerated().map { [$0.1: $0.0] }.reduce(into: [:]) {
-//                $0[$1.keys.first!] = $1.values.first!
-//            }
             for (index, song) in decoded.enumerated() {
                 songsDict[song] = index
             }
-            sortSongsByName()
-//            songDisplayNames = decoded
-            print("🎶 Song list received: \(decoded)")
+            sortSongsByName(order: sortState.sortOrder)
         }
     }
 }

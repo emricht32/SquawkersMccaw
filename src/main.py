@@ -302,6 +302,8 @@ from voice_input import voice_listener
 from remote_input import remote_listener
 
 if __name__ == "__main__":
+    current_index = None
+
     print("Starting main")
     POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
     if POWER_LIGHT:
@@ -324,8 +326,12 @@ if __name__ == "__main__":
             # Trigger your play_audio_with_speech_indicator() logic here
             # song = songs[5] happy bday
             if song:
+                current_index = index
                 play_audio_with_speech_indicator(song, birds)
 
+            ble_handler.send_playback_status(status="playing", index=current_index)
+
+    
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]

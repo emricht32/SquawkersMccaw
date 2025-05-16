@@ -34,11 +34,27 @@ struct SongPickerView: View {
                 }
             }
             .navigationTitle("Select a Song")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        viewModel.toggleSortState()
+                    }) {
+                        switch viewModel.sortState {
+                        case .unsorted:
+                            Image(systemName: "line.3.horizontal")
+                        case .ascending:
+                            Image(systemName: "arrow.up")
+                        case .descending:
+                            Image(systemName: "arrow.down")
+                        }
+                    }
+                    .accessibilityLabel("Sort Songs")
+                }
+            }
             .refreshable {
                 viewModel.songDisplayNames.removeAll()
                 viewModel.sendSelectedSongIndex(-1)
             }
-//#if !DEBUG
             .overlay {
                 if !viewModel.isConnected {
                     ProgressView("Connecting to BirdPi...")
@@ -46,7 +62,6 @@ struct SongPickerView: View {
                         .background(Color(.systemBackground).opacity(0.85))
                 }
             }
-//#endif
         }
     }
 }
