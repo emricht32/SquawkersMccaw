@@ -6,6 +6,7 @@ class BLESongSelector:
         self.display_names = display_names
         self.on_song_selected_callback = on_song_selected_callback
         self.ble = None
+        self.playback_chr_id = 3
         self._setup_ble()
 
     def _get_display_names(self):
@@ -19,7 +20,15 @@ class BLESongSelector:
             index = int(raw.decode("utf-8"))
             song_name = self.display_names[index]
             print(f"🎵 BLE selected index {index}: {song_name}")
-            self.on_song_selected_callback(index, song_name)
+            self.on_song_selected_callback(index)
+            # self.send_playback_status(status="playing", index=playing_index)
+            # if playing_index is not None:
+            #     #currently playing a song
+            #     self.send_playback_status(status="playing", index=playing_index)
+            # else:
+            #     #triggered a new song
+            #     self.send_playback_status(status="playing", index=index)
+
         except Exception as e:
             print(f"❌ Error decoding index: {e}")
 
@@ -57,6 +66,17 @@ class BLESongSelector:
             write_callback=self._on_index_received
         )
 
+        # Add playback status (notify-only)
+
+        self.ble.add_characteristic(
+            srv_id=1,
+            chr_id=3,
+            uuid='abcdaaaa-bbbb-cccc-dddd-eeeeffffffff',
+            value=[],  # not used directly
+            notifying=True,
+            flags=['notify']
+        )
+
     def start(self):
         print("📡 Starting BLE advertising...")
         self.ble.publish()
@@ -64,3 +84,21 @@ class BLESongSelector:
     def stop(self):
         print("🛑 Stopping BLE advertising...")
         self.ble.stop()
+    
+    # {"status": "playing", "index": 2}
+    # {"status": "finished"}
+    def send_playback_status(self, status: str, index: int = None):
+        payload = {"status": status}
+        if index is not None:
+            payload["index"] = index
+        try:
+            data = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+            self.ble.send_notify(
+                srv_id=1,
+                chr_id=self.playback_chr_id,
+                value=list(data)
+            )
+            print(f"📣 Sent playback status: {payload}")
+        except Exception as e:
+            print(f"❌ Failed to send playback status: {e}")
+
