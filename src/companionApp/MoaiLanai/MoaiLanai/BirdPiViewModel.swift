@@ -11,6 +11,7 @@ import CoreBluetooth
 import Combine
 
 class BirdPiViewModel: NSObject, ObservableObject {
+    var songsDict = [String: Int]()
     @Published var songDisplayNames: [String]
     @Published var isConnected: Bool = false
     @Published var selectedIndex: Int? = nil
@@ -35,6 +36,21 @@ class BirdPiViewModel: NSObject, ObservableObject {
         centralManager = CBCentralManager(delegate: self, queue: .main)
         centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
         startConnectionTimeout()
+    }
+    
+    func sortSongsByName(order: SortOrder? = nil) {
+        guard let order else {
+            songDisplayNames = songsDict.keys.sorted {
+                songsDict[$0]! < songsDict[$1]!
+            }
+            return
+        }
+        if order == .forward {
+            songDisplayNames = songsDict.keys.sorted(by: <)
+        }
+        else {
+            songDisplayNames = songsDict.keys.sorted(by: >)
+        }
     }
 
     func sendSelectedSongIndex(_ index: Int) {
@@ -142,7 +158,15 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
            let data = characteristic.value,
            let jsonString = String(data: data, encoding: .utf8),
            let decoded = try? JSONDecoder().decode([String].self, from: Data(jsonString.utf8)) {
-            songDisplayNames = decoded
+            songsDict.removeAll()
+//            songsDict = decoded.enumerated().map { [$0.1: $0.0] }.reduce(into: [:]) {
+//                $0[$1.keys.first!] = $1.values.first!
+//            }
+            for (index, song) in decoded.enumerated() {
+                songsDict[song] = index
+            }
+            sortSongsByName()
+//            songDisplayNames = decoded
             print("🎶 Song list received: \(decoded)")
         }
     }

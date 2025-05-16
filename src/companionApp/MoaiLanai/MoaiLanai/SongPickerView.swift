@@ -38,6 +38,7 @@ struct SongPickerView: View {
                 viewModel.songDisplayNames.removeAll()
                 viewModel.sendSelectedSongIndex(-1)
             }
+//#if !DEBUG
             .overlay {
                 if !viewModel.isConnected {
                     ProgressView("Connecting to BirdPi...")
@@ -45,6 +46,7 @@ struct SongPickerView: View {
                         .background(Color(.systemBackground).opacity(0.85))
                 }
             }
+//#endif
         }
     }
 }
