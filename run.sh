@@ -47,7 +47,7 @@ done
 sudo apt update
 sudo apt install -y libportaudio2 portaudio19-dev python3-pyaudio libcairo2-dev \
     libgirepository1.0-dev gir1.2-glib-2.0 python3-gi python3-cairo pkg-config python3-dbus \
-    cmake build-essential
+    cmake build-essential dbus
 
 MODEL_DIR="models/vosk-model-small-en-us-0.15"
 ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"
@@ -70,7 +70,7 @@ else
   echo "✅ Model already exists. Skipping download."
 fi
 
-sudo apt install python3-venv
+sudo apt install python3-venv 
 python3 -m venv ~/birdpi-venv
 source ~/birdpi-venv/bin/activate
 
