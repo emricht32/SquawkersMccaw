@@ -45,8 +45,7 @@ done
 # sudo apt update
 # sudo apt install portaudio19-dev python3-dev
 sudo apt update
-sudo apt install libportaudio2 portaudio19-dev
-
+sudo apt install libportaudio2 portaudio19-dev python3-pyaudio libcairo2-dev libgirepository1.0-dev gir1.2-glib-2.0 python3-gi python3-cairo pkg-config cmake build-essential
 
 MODEL_DIR="models/vosk-model-small-en-us-0.15"
 ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"

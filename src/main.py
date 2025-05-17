@@ -6,7 +6,7 @@ import pear
 import evdev
 import sounddevice
 from vosk import Model, KaldiRecognizer
-import pyaudio
+# import pyaudio
 from rapidfuzz import process
 
 

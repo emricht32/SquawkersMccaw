@@ -6,3 +6,6 @@ numpy==1.26.2
 rapidfuzz==3.13.0
 vosk==0.3.45
 evdev==1.9.2
+pyaudio==0.2.14
+rapidfuzz==3.13.0
+bluezero==0.9.1
