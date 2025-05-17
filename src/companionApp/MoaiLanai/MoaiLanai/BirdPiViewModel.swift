@@ -60,7 +60,7 @@ class BirdPiViewModel: NSObject, ObservableObject {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: .main)
         startConnectionTimeout()
-        startPings()
+//        startPings()
     }
     
     func sortSongsByName(order: SortOrder? = nil) {
@@ -90,9 +90,6 @@ class BirdPiViewModel: NSObject, ObservableObject {
         peripheral.writeValue(data, for: writeChar, type: .withoutResponse)
         selectedIndex = index
         print("📤 Sent index: \(index)")
-//        if selectedIndex == -1 {
-//            restartScan()
-//        }
     }
     
     func toggleSortState() {
@@ -156,7 +153,8 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("⚠️ Disconnected from BirdPi")
-        isConnected = false
+//        isConnected = false
+        restartScan()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -187,7 +185,7 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
            let decoded = try? JSONDecoder().decode([String].self, from: Data(jsonString.utf8)) {
             print("🎶 Song list received: \(decoded)")
 
-            songsDict.removeAll()
+//            songsDict.removeAll()
             for (index, song) in decoded.enumerated() {
                 print("\(index): \(song)")
                 songsDict[song] = index

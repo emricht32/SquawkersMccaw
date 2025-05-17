@@ -38,6 +38,9 @@ class BLESongSelector:
         print(f"✅ Using adapter: {adapter_addr}")
 
         self.ble = peripheral.Peripheral(adapter_address=adapter_addr, local_name='BirdPi')
+        print("self.ble")
+        self.ble.advertisement.advertising_flags = 0x06
+
 
         # Add service with numeric ID
         self.ble.add_service(srv_id=1, uuid='12345678-0000-0000-0000-abcdefabcdef', primary=True)
