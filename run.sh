@@ -67,6 +67,30 @@ if $INSTALL_FLAG; then
     echo "✅ Model already exists. Skipping download."
   fi
 
+  # Disable bonding and BR/EDR, enable LE-only mode
+  /usr/bin/btmgmt -i hci0 power off
+  sleep 1
+  /usr/bin/btmgmt -i hci0 le on
+  sleep 1
+  /usr/bin/btmgmt -i hci0 bredr off
+  sleep 1
+  /usr/bin/btmgmt -i hci0 bondable off
+  sleep 1
+  /usr/bin/btmgmt -i hci0 connectable on
+  sleep 1
+  /usr/bin/btmgmt -i hci0 power on
+  sleep 1
+
+  # Use bluetoothctl to enable discoverable + advertising mode
+  /usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
+  power on
+  agent NoInputNoOutput
+  default-agent
+  pairable off
+  discoverable on
+  advertise yes
+EOF
+
   python3 -m venv --system-site-packages ~/birdpi-venv
   source ~/birdpi-venv/bin/activate
 
