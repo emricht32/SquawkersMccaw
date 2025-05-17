@@ -5,3 +5,4 @@ soundfile==0.12.1
 numpy==1.26.2
 rapidfuzz==3.13.0
 vosk==0.3.45
+evdev==1.9.2
