@@ -35,7 +35,7 @@ discoverable on
 advertise yes
 EOF
 
-cd ~/code/SquawkersMccaw && /bin/bash run.sh &
+#cd ~/code/SquawkersMccaw && /bin/bash run.sh &
 
 exit 0
 
