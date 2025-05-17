@@ -29,7 +29,7 @@ struct SongPickerView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        viewModel.sendSelectedSongIndex(index)
+                        viewModel.sendSelectedSong(name)
                     }
                 }
             }
@@ -51,10 +51,9 @@ struct SongPickerView: View {
                     .accessibilityLabel("Sort Songs")
                 }
             }
-            .refreshable {
-                viewModel.songDisplayNames.removeAll()
-                viewModel.sendSelectedSongIndex(-1)
-            }
+//            .refreshable {
+//                viewModel.songDisplayNames.removeAll()
+//            }
             .overlay {
                 if !viewModel.isConnected {
                     ProgressView("Connecting to BirdPi...")

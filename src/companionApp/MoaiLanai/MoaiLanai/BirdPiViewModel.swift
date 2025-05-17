@@ -53,13 +53,14 @@ class BirdPiViewModel: NSObject, ObservableObject {
     private let indexSelectUUID = CBUUID(string: "abcd8888-9999-aaaa-bbbb-ccccdddddddd")
 
     private let connectionTimeout: TimeInterval = 10.0
+    private var pingTimer: Timer?
 
     init(songNames: [String] = []) {
         self.songDisplayNames = songNames
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: .main)
-        centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
         startConnectionTimeout()
+        startPings()
     }
     
     func sortSongsByName(order: SortOrder? = nil) {
@@ -77,21 +78,21 @@ class BirdPiViewModel: NSObject, ObservableObject {
         }
     }
 
-    func sendSelectedSongIndex(_ index: Int) {
+    func sendSelectedSong(_ song: String) {
         guard let peripheral = birdPiPeripheral,
               let writeChar = indexSelectChar else {
             print("❌ BLE not connected or characteristic not ready")
             errorMessage = "Not connected"
             return
         }
-
+        let index = songsDict[song] ?? -1
         let data = "\(index)".data(using: .utf8)!
         peripheral.writeValue(data, for: writeChar, type: .withoutResponse)
         selectedIndex = index
         print("📤 Sent index: \(index)")
-        if selectedIndex == -1 {
-            restartScan()
-        }
+//        if selectedIndex == -1 {
+//            restartScan()
+//        }
     }
     
     func toggleSortState() {
@@ -101,9 +102,9 @@ class BirdPiViewModel: NSObject, ObservableObject {
 
     private func startConnectionTimeout() {
         connectionTimeoutTimer?.invalidate()
-        connectionTimeoutTimer = Timer.scheduledTimer(withTimeInterval: connectionTimeout, repeats: false) { _ in
-            self.errorMessage = "Connection timed out."
-            self.restartScan()
+        connectionTimeoutTimer = Timer.scheduledTimer(withTimeInterval: connectionTimeout, repeats: false) {[weak self] _ in
+            self?.errorMessage = "Connection timed out."
+            self?.restartScan()
         }
     }
 
@@ -144,7 +145,6 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
         birdPiPeripheral = peripheral
         birdPiPeripheral?.delegate = self
         central.connect(peripheral, options: nil)
-        startConnectionTimeout()
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -157,7 +157,6 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("⚠️ Disconnected from BirdPi")
         isConnected = false
-        restartScan()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -169,7 +168,6 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
-
         for characteristic in characteristics {
             if characteristic.uuid == displayNamesUUID {
                 displayNamesChar = characteristic
@@ -191,9 +189,22 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
 
             songsDict.removeAll()
             for (index, song) in decoded.enumerated() {
+                print("\(index): \(song)")
                 songsDict[song] = index
             }
             sortSongsByName(order: sortState.sortOrder)
+        }
+    }
+    
+    func startPings() {
+        pingTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
+            guard let self = self,
+                  let peripheral = self.birdPiPeripheral,
+                  let displayChar = self.displayNamesChar else {
+                self?.pingTimer?.invalidate();
+                return
+            }
+            peripheral.readValue(for: displayChar)
         }
     }
 }

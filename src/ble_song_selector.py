@@ -18,16 +18,14 @@ class BLESongSelector:
         try:
             raw = bytes(value)
             index = int(raw.decode("utf-8"))
-            song_name = self.display_names[index]
-            print(f"🎵 BLE selected index {index}: {song_name}")
-            self.on_song_selected_callback(index)
-            # self.send_playback_status(status="playing", index=playing_index)
-            # if playing_index is not None:
-            #     #currently playing a song
-            #     self.send_playback_status(status="playing", index=playing_index)
-            # else:
-            #     #triggered a new song
-            #     self.send_playback_status(status="playing", index=index)
+            if 0 <= index < len(self.display_names):
+                song_name = self.display_names[index]
+                print(f"🎵 BLE selected index {index}: {song_name}")
+                self.on_song_selected_callback(index)
+            else:
+                print(f"⚠️ Invalid index received: {index}")
+                self.send_playback_status("error", index=index)
+
 
         except Exception as e:
             print(f"❌ Error decoding index: {e}")
