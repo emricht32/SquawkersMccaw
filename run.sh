@@ -71,7 +71,7 @@ else
 fi
 
 sudo apt install python3-venv 
-python3 -m venv ~/birdpi-venv
+python3 -m venv --system-site-packages ~/birdpi-venv
 source ~/birdpi-venv/bin/activate
 
 # Install Python dependencies
