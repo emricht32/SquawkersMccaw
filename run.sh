@@ -68,17 +68,17 @@ if $INSTALL_FLAG; then
   fi
 
   # Disable bonding and BR/EDR, enable LE-only mode
-  /usr/bin/btmgmt -i hci0 power off
+  sudo /usr/bin/btmgmt -i hci0 power off
   sleep 1
-  /usr/bin/btmgmt -i hci0 le on
+  sudo /usr/bin/btmgmt -i hci0 le on
   sleep 1
-  /usr/bin/btmgmt -i hci0 bredr off
+  sudo /usr/bin/btmgmt -i hci0 bredr off
   sleep 1
-  /usr/bin/btmgmt -i hci0 bondable off
+  sudo /usr/bin/btmgmt -i hci0 bondable off
   sleep 1
-  /usr/bin/btmgmt -i hci0 connectable on
+  sudo /usr/bin/btmgmt -i hci0 connectable on
   sleep 1
-  /usr/bin/btmgmt -i hci0 power on
+  sudo /usr/bin/btmgmt -i hci0 power on
   sleep 1
 
   # Use bluetoothctl to enable discoverable + advertising mode
