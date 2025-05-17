@@ -66,6 +66,10 @@ else
   echo "✅ Model already exists. Skipping download."
 fi
 
+sudo apt install python3-venv
+python3 -m venv ~/birdpi-venv
+source ~/birdpi-venv/bin/activate
+
 # Install Python dependencies
 if ! pip3 install -r pi-requirements.txt; then
     echo "Error installing Python dependencies" >&2
