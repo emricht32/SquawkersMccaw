@@ -84,7 +84,7 @@ class BLESongSelector:
 
     def stop(self):
         print("🛑 Stopping BLE advertising...")
-        self.ble.stop()
+        self.ble.dongle.stop()
     
     # {"status": "playing", "index": 2}
     # {"status": "finished"}
