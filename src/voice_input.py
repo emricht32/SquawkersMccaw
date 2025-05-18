@@ -35,7 +35,7 @@ def voice_listener(songs, callback):
         
         # Build trigger map first
         trigger_map = {}
-        for index, song in songs.enumerated():
+        for index, song in enumerate(songs):
             for phrase in song.get("triggers", []):
                 trigger_map[phrase.lower()] = index
 
