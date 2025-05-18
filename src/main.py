@@ -97,6 +97,7 @@ def _play_audio_with_speech_indicator(song, birds):
     usb_sound_card_indices_touple = list(filter(lambda x: x is not False and x[1] is False,
                                          map(pear.get_device_number_if_usb_soundcard,
                                              [index_info for index_info in enumerate(sounddevice.query_devices())])))
+    print("usb_sound_card_indices_touple=", usb_sound_card_indices_touple)
     master_card_touple = next(
         (x for x in map(pear.get_device_number_if_usb_soundcard, 
                         enumerate(sounddevice.query_devices())) 
