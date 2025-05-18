@@ -337,12 +337,14 @@ if __name__ == "__main__":
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
 
     try:
+
+        threading.Thread(target=voice_listener, args=(songs, on_song_selected), daemon=False).start()
+        threading.Thread(target=remote_listener, args=(on_song_selected), daemon=False).start()
+
         # your existing setup and run logic
         ble_handler = BLESongSelector(display_names, on_song_selected)
         ble_handler.start()
 
-        threading.Thread(target=voice_listener, args=(songs, on_song_selected), daemon=False).start()
-        threading.Thread(target=remote_listener, args=(on_song_selected), daemon=False).start()
         # ... other logic
         while True:
             continue
