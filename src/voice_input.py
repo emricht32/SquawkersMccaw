@@ -95,8 +95,8 @@ def voice_listener(songs, callback):
                 index = match_song(result)
                 if index:
                     callback(index)
-            else:
-                print("Partial:", recognizer.PartialResult())
+            # else:
+            #     print("Partial:", recognizer.PartialResult())
 
     except Exception as e:
         print("❌ Exception in voice_listener thread:", e)
