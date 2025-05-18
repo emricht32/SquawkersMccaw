@@ -85,10 +85,10 @@ def create_running_output_stream(index):
     :return: a started sounddevice.OutputStream object ready to be written to
     """
 
-    output = sounddevice.OutputStream(
-        device=index,
-        dtype=DATA_TYPE
-    )
-
-    output.start()
-    return output
+    # output = sounddevice.OutputStream(
+    #     device=index,
+    #     dtype=DATA_TYPE
+    # )
+    with sounddevice.OutputStream(device=index, dtype='float32') as output:
+        output.start()
+        return output
