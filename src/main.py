@@ -339,8 +339,8 @@ if __name__ == "__main__":
 
     try:
 
-        threading.Thread(target=voice_listener, args=(songs, on_song_selected), daemon=False).start()
-        threading.Thread(target=remote_listener, args=(on_song_selected), daemon=False).start()
+        # threading.Thread(target=voice_listener, args=(songs, on_song_selected), daemon=False).start()
+        # threading.Thread(target=remote_listener, args=(on_song_selected), daemon=False).start()
 
         # your existing setup and run logic
         ble_handler = BLESongSelector(display_names, on_song_selected)
