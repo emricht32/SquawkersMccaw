@@ -29,20 +29,7 @@ def manage_leds(birds, audio_duration):
     sleep_time = 0.3
     start_time = time.time()
     curr_time = time.time() - start_time
-    index = 0
     while (curr_time < audio_duration):
-        try:
-            event = dev.read_one()
-            print("Received commands =", event)
-            if event and event.code == 4 and event.type == 4:
-                index = remoteMap.get(event.value)
-                print("index=", index)
-                if index == CLEAR:
-                    for bird in birds:
-                        bird.stop_moving()
-                    raise KeyboardInterrupt
-        except IndexError:
-            continue
         curr_time = time.time() - start_time
         print("curr_time=", curr_time)
         for bird in birds:
@@ -117,7 +104,6 @@ def _play_audio_with_speech_indicator(song, birds):
     master_stream = pear.create_running_output_stream(master_card_touple[0])  
     print("master_stream=",master_stream)
 
-
     threads = [] #[threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                # for data, stream in zip(files, streams)]
 
@@ -134,17 +120,17 @@ def _play_audio_with_speech_indicator(song, birds):
 
     try:
         try:
-            # Start all playback threads
+            print("# Start all playback threads")
             for thread in threads:
                 thread.start()
 
-            # Calculate the longest playback duration
+            print("# Calculate the longest playback duration")
             seconds = max(len(data[0]) / data[1] for data in files)
 
-            # Manage LEDs during audio playback
+            print("# Manage LEDs during audio playback")
             manage_leds(birds, seconds)
 
-            # Wait for all threads to complete
+            print("# Wait for all threads to complete")
             for thread in threads:
                 thread.join()
         except KeyboardInterrupt:
