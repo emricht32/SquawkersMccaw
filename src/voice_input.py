@@ -41,14 +41,22 @@ def voice_listener(songs, callback):
 
         def match_song(transcript):
             transcript = transcript.lower()
+
+            # First, try direct substring matches
             for trigger, index in trigger_map.items():
                 if trigger in transcript:
                     return index
-            # fallback to fuzzy matching
-            best_match, score, _ = process.extractOne(transcript, list(trigger_map.keys()), score_cutoff=70)
-            if best_match:
+
+            # Fallback: fuzzy match against trigger keys
+            match = process.extractOne(transcript, list(trigger_map.keys()), score_cutoff=70)
+            
+            if match:
+                best_match, score, _ = match
                 return trigger_map[best_match]
+
+            # No match found
             return None
+
 
 
         print("Loading Vosk model...")
