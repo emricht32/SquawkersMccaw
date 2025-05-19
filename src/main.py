@@ -196,12 +196,13 @@ if __name__ == "__main__":
             ble_handler.send_playback_status(status="playing", index=current_index)
             return
         if index is not None:
-            song = songs.get(index)
-            name = song["name"]
-            print(f"🎬 Playing song #{index}: {name}")
+            song = songs[index] if 0 <= index < len(songs) else None
+
             # Trigger your play_audio_with_speech_indicator() logic here
             # song = songs[5] happy bday
             if song:
+                name = song.get("name")
+                print(f"🎬 Playing song #{index}: {name}")
                 current_index = index
                 ble_handler.send_playback_status(status="playing", index=current_index)
                 play_audio_with_speech_indicator(song, birds, completion=song_completion)
