@@ -1,9 +1,9 @@
-# web_interface.py
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+import os
 
 def create_web_interface(songs, on_song_selected):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="static", static_url_path="")
     CORS(app)
 
     @app.route("/api/songs", methods=["GET"])
@@ -21,5 +21,10 @@ def create_web_interface(songs, on_song_selected):
             on_song_selected(index)
             return jsonify({"status": "ok"})
         return jsonify({"status": "error", "message": "Invalid index"}), 400
+
+    # Serve index.html for root
+    @app.route("/")
+    def serve_index():
+        return send_from_directory(app.static_folder, "index.html")
 
     return app
