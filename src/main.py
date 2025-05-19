@@ -184,12 +184,14 @@ if __name__ == "__main__":
     print("sounddevice.query_devices()=",sounddevice.query_devices())
 
     def song_completion(song):
+        global current_index
         current_index = None
         if ble_handler:
             ble_handler.send_playback_status("finished")
 
     # Example callback when app selects a song
     def on_song_selected(index):
+        global current_index
         if current_index is not None: 
             ble_handler.send_playback_status(status="playing", index=current_index)
             return
