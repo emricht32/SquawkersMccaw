@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select a Song</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black flex justify-center items-start p-4">
+  <div class="w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-4">Select a Song</h1>
+    <ul id="song-list" class="bg-white shadow-md rounded p-2 space-y-1">
+      <!-- Songs populated here -->
+    </ul>
+  </div>
+
+  <script>
+    async function fetchSongs() {
+      const res = await fetch("/api/songs");
+      const songs = await res.json();
+      const list = document.getElementById("song-list");
+      list.innerHTML = '';
+      songs.forEach(song => {
+        const li = document.createElement("li");
+        li.className = "p-2 flex justify-between items-center hover:bg-gray-100 cursor-pointer";
+        li.innerHTML = `
+          <span>${song.index + 1}) ${song.name}</span>
+        `;
+        li.onclick = async () => {
+          li.innerHTML += `<span class="ml-2 animate-spin">&#x21BB;</span>`;
+          await fetch("/api/select", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ index: song.index })
+          });
+          // Optionally update UI
+        };
+        list.appendChild(li);
+      });
+    }
+
+    fetchSongs();
+  </script>
+</body>
+</html>

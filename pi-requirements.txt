@@ -9,3 +9,5 @@ evdev==1.9.2
 pyaudio==0.2.14
 rapidfuzz==3.13.0
 bluezero==0.9.1
+flask-cors==6.0.0
+flask==2.2.2

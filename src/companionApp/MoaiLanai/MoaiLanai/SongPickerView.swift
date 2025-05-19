@@ -18,18 +18,20 @@ struct SongPickerView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(Array(viewModel.songDisplayNames.enumerated()), id: \.offset) { index, name in
+                ForEach(Array(viewModel.songs.enumerated()), id: \.offset) { index, song in
                     HStack {
-                        Text("\(index + 1))  \(name)")
+                        Text("\(index + 1))  \(song.name)")
                         Spacer()
-                        if viewModel.selectedIndex == index {
+                        if song.state == .playing {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.green)
+                        } else if song.state == .reqesting {
+                            ProgressView()
                         }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        viewModel.sendSelectedSong(name)
+                        viewModel.sendSelected(song)
                     }
                 }
             }
@@ -51,11 +53,8 @@ struct SongPickerView: View {
                     .accessibilityLabel("Sort Songs")
                 }
             }
-//            .refreshable {
-//                viewModel.songDisplayNames.removeAll()
-//            }
             .overlay {
-                if !viewModel.isConnected {
+                if !viewModel.isConnected && viewModel.songs.isEmpty {
                     ProgressView("Connecting to BirdPi...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color(.systemBackground).opacity(0.85))
@@ -68,15 +67,15 @@ struct SongPickerView: View {
 #Preview {
     SongPickerView(
         viewModel: .init(
-            songNames: [
-                "In The Tiki Room",
-                "The Seasons Upon Us",
-                "Wellerman",
-                "Mele-Kalikimaka",
-                "Lets Get It Started",
-                "Happy Birthday",
-                "Jack Sparrow",
-                "Beverly Hills"
+            songs: [
+                Song(name: "In The Tiki Room", index: 0),
+                Song(name: "The Seasons Upon Us",index: 1),
+                Song(name: "Wellerman",index: 2),
+                Song(name: "Mele-Kalikimaka",index: 3),
+                Song(name: "Lets Get It Started",index: 4),
+                Song(name: "Happy Birthday",index: 5),
+                Song(name: "Jack Sparrow",index: 6),
+                Song(name: "Beverly Hills",index: 7)
             ]
         )
     )

@@ -5,9 +5,7 @@ import os
 import pear
 import evdev
 import sounddevice
-from vosk import Model, KaldiRecognizer
-# import pyaudio
-from rapidfuzz import process
+from bird import Bird
 
 
 try:
@@ -17,15 +15,12 @@ except ImportError:
     print("GPIO not available")
     GPIO_AVAILABLE = False
 
-from bird import Bird
-
 LAST_MOTION, PIR = None, None
 playback_lock = threading.Lock()
 
 def manage_leds(birds, audio_duration):
     print("manage_leds")
     print("audio_duration=", audio_duration)
-    CLEAR = 16
     sleep_time = 0.3
     start_time = time.time()
     curr_time = time.time() - start_time
@@ -44,17 +39,17 @@ def manage_leds(birds, audio_duration):
         print("STOPPING Bird:", bird.name)
         bird.stop_moving()
 
-def play_audio_with_speech_indicator(song, birds):
+def play_audio_with_speech_indicator(song, birds, completion=None):
     if playback_lock.acquire(blocking=False):
         try:
-            _play_audio_with_speech_indicator(song, birds)
+            _play_audio_with_speech_indicator(song, birds, completion=completion)
         finally:
             playback_lock.release()
     else:
         print("⚠️ Playback already in progress, ignoring new voice command.")
 
 
-def _play_audio_with_speech_indicator(song, birds):
+def _play_audio_with_speech_indicator(song, birds, completion):
     def good_filepath(path):
         return str(path).endswith(".wav") and not str(path).startswith(".")
 
@@ -104,6 +99,7 @@ def _play_audio_with_speech_indicator(song, birds):
     master_stream = pear.create_running_output_stream(master_card_touple[0])  
     print("master_stream=",master_stream)
 
+    # uncomment thread list if having bird audio
     threads = [] #[threading.Thread(target=pear.play_wav_on_index, args=[data[0], stream])
                # for data, stream in zip(files, streams)]
 
@@ -154,139 +150,21 @@ def _play_audio_with_speech_indicator(song, birds):
             print("STOPPING Bird:", bird.name)
             bird.stop_moving()
 
-# def voice_listener(songs, birds):
-#     try:
-#         print("🔊 Starting voice listener thread")
-        
-#         # Build trigger map first
-#         trigger_map = {}
-#         for song in songs:
-#             for phrase in song.get("triggers", []):
-#                 trigger_map[phrase.lower()] = song
+        if completion is not None:
+            completion(song)
 
-#         def match_song(transcript):
-#             transcript = transcript.lower()
-#             for trigger, song in trigger_map.items():
-#                 if trigger in transcript:
-#                     return song
-
-#             # fallback to fuzzy matching
-#             best_match, score, _ = process.extractOne(transcript, list(trigger_map.keys()), score_cutoff=70)
-#             if best_match:
-#                 return trigger_map[best_match]
-
-#             return None
-
-
-#         print("Loading Vosk model...")
-#         model = Model("models/vosk-model-small-en-us-0.15")
-#         print("Model loaded")
-
-#         recognizer = KaldiRecognizer(model, 16000)
-#         print("Recognizer created")
-
-#         print("Creating PyAudio object...")
-#         p = pyaudio.PyAudio()
-#         print("Opening stream...")
-#         stream = p.open(
-#             format=pyaudio.paInt16,        # 16-bit signed int
-#             channels=1,                    # Mono channel
-#             rate=16000,                    # Sample rate (Hz)
-#             input=True,                    # Input stream
-#             frames_per_buffer=8000         # Buffer size
-#         )
-
-#         print("Starting stream...")
-#         stream.start_stream()
-#         print("Stream started ✅")
-
-
-#         while True:
-#             try:
-#                 data = stream.read(4000, exception_on_overflow=False)
-#             except Exception as e:
-#                 print("⚠️ Error reading audio stream:", e)
-#                 continue
-
-#             if recognizer.AcceptWaveform(data):
-#                 result = recognizer.Result()
-#                 print("Recognized:", result)
-#                 # TODO: match and trigger birds
-#                 song = match_song(result)
-#                 if song:
-#                     play_audio_with_speech_indicator(song, birds)
-#             else:
-#                 print("Partial:", recognizer.PartialResult())
-
-#     except Exception as e:
-#         print("❌ Exception in voice_listener thread:", e)
-#         import traceback
-#         traceback.print_exc()
-
-
-# IR remote mapping
-# remoteMap = {
-#     69: 0, 70: 1, 71: 2, 68: 3, 64: 4, 67: 5,
-#     7: 6, 21: 7, 9: 8, 25: 9, 22: 10, 13: 11,
-#     24: 12, 82: 13, 8: 14, 90: 15, 28: 16,
-# }
-
-# def get_ir_device():
-#     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-#     for device in devices:
-#         if device.name == "gpio_ir_recv":
-#             print("Using device", device.path)
-#             print("Device pins", device.capabilities(verbose=True))
-#             return device
-#     print("No device found!")
-#     return None
-
-# dev = get_ir_device()
-
-
-# def remote_listener(songs, birds):
-
-#     while True:
-#         time.sleep(1)
-#         song = None
-#         event = None
-#         try:
-#             event = dev.read_one()
-#             print("Received commands =", event)
-#             if event and event.code == 4 and event.type == 4:
-#                 index = remoteMap.get(event.value)
-#                 if index is not None:
-#                     song = songs[index]
-#             # song = songs[5] happy bday
-#             if song:
-#                 play_audio_with_speech_indicator(song, birds)
-#                 for event in dev.read():
-#                     print("Clearing event:", event)
-#         except IndexError:
-#             continue
-#         except BlockingIOError:
-#             continue
-#         except KeyError:
-#             if event:
-#                 print("KeyError: Received commands =", event.value)
-#         except KeyboardInterrupt:
-#             continue
-#         except sounddevice.PortAudioError:
-#             print("PortAudioError")
-#             continue
-    # for song in songs:
-    #     if song["name"] == "Wellerman":
-    #         play_audio_with_speech_indicator(song, birds)
-    # for bird in birds:
-    #     bird.stop_moving()
-    # if POWER_LIGHT:
-    #     print("POWER_LIGHT off")
-    #     POWER_LIGHT.off()
-    # dev.close()
 
 from ble_song_selector import BLESongSelector
 from voice_input import voice_listener
 from remote_input import remote_listener
+from web_interface import create_web_interface
+
+    # Start Flask server
+def start_web_server(songs):
+    app = create_web_interface(songs, on_song_selected)
+    app.run(host="0.0.0.0", port=8080)
+
+
 
 if __name__ == "__main__":
     current_index = None
@@ -304,24 +182,37 @@ if __name__ == "__main__":
         raise ValueError("Missing config")
     print("sounddevice.query_devices()=",sounddevice.query_devices())
 
+    def song_completion(song):
+        current_index = None
+        if ble_handler:
+            ble_handler.send_playback_status("finished")
+
     # Example callback when app selects a song
     def on_song_selected(index):
+        if current_index is not None: 
+            ble_handler.send_playback_status(status="playing", index=current_index)
+            return
         if index is not None:
-            song = songs[index]
+            song = songs.get(index)
             name = song["name"]
             print(f"🎬 Playing song #{index}: {name}")
             # Trigger your play_audio_with_speech_indicator() logic here
             # song = songs[5] happy bday
             if song:
                 current_index = index
-                play_audio_with_speech_indicator(song, birds)
+                ble_handler.send_playback_status(status="playing", index=current_index)
+                play_audio_with_speech_indicator(song, birds, completion=song_completion)
 
-            ble_handler.send_playback_status(status="playing", index=current_index)
-
-    
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
+
+    # Start Flask server in a thread
+    web_thread = threading.Thread(target=start_web_server, args=(songs), daemon=True)
+    web_thread.start()
+    print("🌐 Web interface started at http://<raspberry-pi-ip>:8080")
+    
+
 
     try:
 

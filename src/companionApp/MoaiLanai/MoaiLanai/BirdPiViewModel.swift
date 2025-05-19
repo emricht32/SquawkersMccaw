@@ -32,14 +32,33 @@ enum SortState {
     }
 }
 
+struct SongStateUpdate: Codable {
+    let status: String
+    let index: Int
+}
+
+struct Song: Equatable, Codable {
+    static func == (lhs: Song, rhs: Song) -> Bool {
+        lhs.name == rhs.name && lhs.index == rhs.index
+    }
+    
+    enum State: Codable {
+        case notPlaying
+        case reqesting
+        case playing
+    }
+    let name: String
+    let index: Int
+    var state: State = .notPlaying
+}
 
 class BirdPiViewModel: NSObject, ObservableObject {
     var songsDict = [String: Int]()
-    @Published var songDisplayNames: [String]
+//    @Published var songDisplayNames: [String]
     @Published var isConnected: Bool = false
-    @Published var selectedIndex: Int? = nil
     @Published var errorMessage: String? = nil
     @Published var sortState: SortState = .unsorted
+    @Published var songs: [Song] = []
 
     private var centralManager: CBCentralManager!
     private var birdPiPeripheral: CBPeripheral?
@@ -47,54 +66,51 @@ class BirdPiViewModel: NSObject, ObservableObject {
 
     private var displayNamesChar: CBCharacteristic?
     private var indexSelectChar: CBCharacteristic?
+    private var notifySongChar: CBCharacteristic?
 
     private let serviceUUID = CBUUID(string: "12345678-0000-0000-0000-abcdefabcdef")
     private let displayNamesUUID = CBUUID(string: "abcd1111-2222-3333-4444-555566667777")
     private let indexSelectUUID = CBUUID(string: "abcd8888-9999-aaaa-bbbb-ccccdddddddd")
+    private let notifySongUUID = CBUUID(string: "abcdaaaa-bbbb-cccc-dddd-eeeeffffffff")
 
     private let connectionTimeout: TimeInterval = 10.0
     private var pingTimer: Timer?
 
-    init(songNames: [String] = []) {
-        self.songDisplayNames = songNames
+    init(songs: [Song] = []) {
+        self.songs = songs
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: .main)
         startConnectionTimeout()
-//        startPings()
     }
     
-    func sortSongsByName(order: SortOrder? = nil) {
+    func sortSongs(order: SortOrder? = nil) {
         guard let order else {
-            songDisplayNames = songsDict.keys.sorted {
-                songsDict[$0]! < songsDict[$1]!
-            }
+            songs = songs.sorted { $0.index < $1.index }
             return
         }
-        if order == .forward {
-            songDisplayNames = songsDict.keys.sorted(by: <)
-        }
-        else {
-            songDisplayNames = songsDict.keys.sorted(by: >)
-        }
+        songs = songs.sorted(by: order == .forward ? { $0.index < $1.index } : { $0.index > $1.index })
     }
 
-    func sendSelectedSong(_ song: String) {
+    func sendSelected(_ song: Song) {
+        var song = song
         guard let peripheral = birdPiPeripheral,
               let writeChar = indexSelectChar else {
             print("❌ BLE not connected or characteristic not ready")
             errorMessage = "Not connected"
             return
         }
-        let index = songsDict[song] ?? -1
+        let index = song.index
         let data = "\(index)".data(using: .utf8)!
         peripheral.writeValue(data, for: writeChar, type: .withoutResponse)
-        selectedIndex = index
         print("📤 Sent index: \(index)")
+        song.state = .reqesting
+        guard let idx = songs.firstIndex(of: song) else { return }
+        songs[idx] = song
     }
     
     func toggleSortState() {
         sortState.toggle()
-        sortSongsByName(order: sortState.sortOrder)
+        sortSongs(order: sortState.sortOrder)
     }
 
     private func startConnectionTimeout() {
@@ -116,9 +132,17 @@ class BirdPiViewModel: NSObject, ObservableObject {
         birdPiPeripheral = nil
         displayNamesChar = nil
         indexSelectChar = nil
-//        songDisplayNames = []
         centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
         startConnectionTimeout()
+    }
+    
+    func updateSongs(with update: SongStateUpdate){
+        for var song in songs {
+            song.state = .notPlaying
+            if song.index == update.index {
+                song.state = update.status == "finished" ? .notPlaying : .playing
+            }
+        }
     }
 }
 
@@ -153,14 +177,14 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("⚠️ Disconnected from BirdPi")
-//        isConnected = false
+        isConnected = false
         restartScan()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let services = peripheral.services else { return }
         for service in services {
-            peripheral.discoverCharacteristics([displayNamesUUID, indexSelectUUID], for: service)
+            peripheral.discoverCharacteristics([displayNamesUUID, indexSelectUUID, notifySongUUID], for: service)
         }
     }
 
@@ -174,6 +198,9 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
                  peripheral.setNotifyValue(true, for: characteristic)
             } else if characteristic.uuid == indexSelectUUID {
                 indexSelectChar = characteristic
+            } else if characteristic.uuid == notifySongUUID {
+                notifySongChar = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
             }
         }
     }
@@ -184,25 +211,21 @@ extension BirdPiViewModel: CBCentralManagerDelegate, CBPeripheralDelegate {
            let jsonString = String(data: data, encoding: .utf8),
            let decoded = try? JSONDecoder().decode([String].self, from: Data(jsonString.utf8)) {
             print("🎶 Song list received: \(decoded)")
-
-//            songsDict.removeAll()
-            for (index, song) in decoded.enumerated() {
+            
+            for (index, name) in decoded.enumerated() {
+                let song = Song(name: name, index: index)
                 print("\(index): \(song)")
-                songsDict[song] = index
+                if songs.contains(song) { continue }
+                songs.append(song)
             }
-            sortSongsByName(order: sortState.sortOrder)
+            sortSongs(order: sortState.sortOrder)
         }
-    }
-    
-    func startPings() {
-        pingTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
-            guard let self = self,
-                  let peripheral = self.birdPiPeripheral,
-                  let displayChar = self.displayNamesChar else {
-                self?.pingTimer?.invalidate();
-                return
-            }
-            peripheral.readValue(for: displayChar)
+        else if characteristic.uuid == notifySongUUID,
+//            {"status": "playing", "index": 2}
+            let data = characteristic.value,
+            let jsonString = String(data: data, encoding: .utf8),
+            let update = try? JSONDecoder().decode(SongStateUpdate.self, from: Data(jsonString.utf8)) {
+            updateSongs(with: update)
         }
     }
 }
