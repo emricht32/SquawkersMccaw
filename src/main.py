@@ -209,7 +209,7 @@ if __name__ == "__main__":
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
 
     # Start Flask server in a thread
-    web_thread = threading.Thread(target=start_web_server, args=(songs), daemon=True)
+    web_thread = threading.Thread(target=start_web_server, args=(list(songs)), daemon=True)
     web_thread.start()
     print("🌐 Web interface started at http://<raspberry-pi-ip>:8080")
     
