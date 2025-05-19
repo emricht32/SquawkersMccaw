@@ -27,7 +27,7 @@
           <span>${song.index + 1}) ${song.name}</span>
         `;
         li.onclick = async () => {
-          li.innerHTML += `<span class="ml-2 animate-spin">&#x21BB;</span>`;
+        //   li.innerHTML += `<span class="ml-2 animate-spin">&#x21BB;</span>`;
           await fetch("/api/select", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
