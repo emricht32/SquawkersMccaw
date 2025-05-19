@@ -161,6 +161,7 @@ from web_interface import create_web_interface
 
     # Start Flask server
 def start_web_server(songs):
+    print("Start Flask server")
     app = create_web_interface(songs, on_song_selected)
     app.run(host="0.0.0.0", port=8080)
 
