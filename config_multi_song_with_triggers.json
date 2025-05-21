@@ -89,7 +89,7 @@
     {
       "audio_dir": "music/the_seasons_upon_us",
       "name": "the_seasons_upon_us",
-      "display_name": "The Season's upon us",
+      "display_name": "The Season's Upon Us",
       "individuals": [
         {
           "name": "Pierre",
@@ -429,6 +429,77 @@
         "weezer song",
         "play weezer"
       ]
-    }
+    },
+    {
+      "audio_dir": "music/rockstar",
+      "name": "rockstar",
+      "display_name": "Rockstar",
+      "individuals": [
+        {
+          "name": "Jose",
+          "singing": [
+            [9.8, 20.6],
+            [21.9, 31.05],
+            [32.65, 39.6],
+            [73.0, 76.2],
+            [97.0, 99.5],
+            [99.5, 110.5],
+            [145.0, 148.0],
+            [150.4, 151.7]
+          ],
+          "dancing": []
+        },
+        {
+          "name": "Michael",
+          "singing": [
+            [22.45, 31.0],
+            [31.0, 32.5],
+            [73.9, 76.2],
+            [77.65, 78.8],
+            [89.0, 99.5],
+            [105.0, 107.5],
+            [111.7, 113.3],
+            [142.0, 145.0],
+            [146.5, 148.1]
+          ],
+          "dancing": []
+        },
+        {
+          "name": "Pierre",
+          "singing": [
+            [39.7, 41.05],
+            [70.0, 73.0],
+            [110.5, 113.5],
+            [148.0, 150.5]
+          ],
+          "dancing": []
+        },
+        {
+          "name": "Fritz",
+          "singing": [
+            [20.6, 21.8],
+            [32.65, 39.6],
+            [91.5, 94.5],
+            [102.0, 105.0],
+            [146.5, 148.1]
+          ],
+          "dancing": []
+        }
+      ],
+      "all_singing": [
+        [41.0, 70.35],
+        [74.55, 76.2],
+        [113.0, 142.25],
+        [151.75, 153.75]
+      ],
+      "all_dancing": [],
+      "triggers": [
+        "play rockstar",
+        "rockstar song",
+        "sing rockstar",
+        "start rockstar",
+        "play the rockstar song"
+      ]
+    }    
   ]
 }
