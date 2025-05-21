@@ -106,6 +106,8 @@ def _play_audio_with_speech_indicator(song, birds, completion):
     # Create the master thread (assuming master_stream and master_file are defined)
     if master_stream is not None and master_file is not None:
         print("master_stream is not None and master_file is not None")
+        print("master_stream: ", master_stream)
+        print("master_file: ", master_file)
         master_thread = threading.Thread(
             target=pear.play_wav_on_index,
             args=[master_file[0], master_stream]
@@ -117,6 +119,7 @@ def _play_audio_with_speech_indicator(song, birds, completion):
     try:
         try:
             print("# Start all playback threads")
+            print("threads: ", threads)
             for thread in threads:
                 thread.start()
 
