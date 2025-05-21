@@ -91,5 +91,6 @@ def create_running_output_stream(index):
         device=index,
         dtype=DATA_TYPE
     )
+    output.start()
     print("output: ", output)
     return output
