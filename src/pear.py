@@ -73,8 +73,8 @@ def play_wav_on_index(audio_data, stream_object):
     """
     try:
         stream_object.write(audio_data)
-    except sounddevice.PortAudioError:
-        print("PortAudioError")
+    except sounddevice.PortAudioError as e:
+        print("PortAudioError: ",e)
 
 
 def create_running_output_stream(index):
@@ -85,10 +85,10 @@ def create_running_output_stream(index):
     :return: a started sounddevice.OutputStream object ready to be written to
     """
 
-    # output = sounddevice.OutputStream(
-    #     device=index,
-    #     dtype=DATA_TYPE
-    # )
-    with sounddevice.OutputStream(device=index, dtype='float32') as output:
-        output.start()
-        return output
+    output = sounddevice.OutputStream(
+        device=index,
+        dtype=DATA_TYPE
+    )
+    # with sounddevice.OutputStream(device=index, dtype='float32') as output:
+    #     output.start()
+    return output
