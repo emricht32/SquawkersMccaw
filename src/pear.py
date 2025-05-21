@@ -74,9 +74,10 @@ def play_wav_on_index(audio_data, stream_object):
     try:
         stream_object.write(audio_data)
     except sounddevice.PortAudioError as e:
-        print("PortAudioError: ",e)
         print("audio_data:", audio_data)
         print("stream_object:", stream_object)
+        print("PortAudioError: ",e)
+
 
 
 def create_running_output_stream(index):

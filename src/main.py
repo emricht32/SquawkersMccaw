@@ -124,7 +124,10 @@ def _play_audio_with_speech_indicator(song, birds, completion):
                 thread.start()
 
             print("# Calculate the longest playback duration")
-            seconds = max(len(data[0]) / data[1] for data in files)
+            if master_file is not None:
+                seconds = len(master_file[0]) / master_file[1] 
+            else:
+                seconds = max(len(data[0]) / data[1] for data in files)
 
             print("# Manage LEDs during audio playback")
             manage_leds(birds, seconds)
