@@ -6,12 +6,18 @@
   <title>Select a Song</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-black flex justify-center items-start p-4">
+<body class="bg-gray-100 text-black flex flex-col items-center p-4 space-y-4">
+
   <div class="w-full max-w-md">
     <h1 class="text-3xl font-bold mb-4">Select a Song</h1>
     <ul id="song-list" class="bg-white shadow-md rounded p-2 space-y-1">
       <!-- Songs populated here -->
     </ul>
+  </div>
+
+  <div class="text-center">
+    <h2 class="text-xl font-semibold mb-2">Scan to Open on Your Phone</h2>
+    <img src="birds_qr.png" alt="Scan this QR code" class="w-48 h-48 border rounded mx-auto" />
   </div>
 
   <script>
@@ -27,13 +33,11 @@
           <span>${song.index + 1}) ${song.name}</span>
         `;
         li.onclick = async () => {
-        //   li.innerHTML += `<span class="ml-2 animate-spin">&#x21BB;</span>`;
           await fetch("/api/select", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ index: song.index })
           });
-          // Optionally update UI
         };
         list.appendChild(li);
       });

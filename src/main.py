@@ -164,6 +164,27 @@ from ble_song_selector import BLESongSelector
 from voice_input import voice_listener
 from remote_input import remote_listener
 from web_interface import create_web_interface
+import qrcode
+import socket
+import os
+
+def generate_qr_code(output_path="static/birds_qr.png", port=8080):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("10.255.255.255", 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+
+    url = f"http://{ip}:{port}/"
+    print(f"🌐 Generating QR for: {url}")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    qr = qrcode.make(url)
+    qr.save(output_path)
+    print(f"✅ Saved QR to {output_path}")
+
 
     # Start Flask server
 def start_web_server(songs):
@@ -181,7 +202,8 @@ if __name__ == "__main__":
     if POWER_LIGHT:
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
-
+    generate_qr_code()
+    
     if os.path.exists('config_multi_song_with_triggers.json'):
         with open('config_multi_song_with_triggers.json', 'r') as f:
             config_dict = json.load(f)

@@ -492,7 +492,7 @@
         [113.0, 142.25],
         [151.75, 153.75]
       ],
-      "all_dancing": [[79,89]],
+      "all_dancing": [[78.5,89]],
       "triggers": [
         "play rockstar",
         "rockstar song",
