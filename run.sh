@@ -44,7 +44,10 @@ if $INSTALL_FLAG; then
   sudo apt update
   sudo apt install -y libportaudio2 portaudio19-dev python3-pyaudio libcairo2-dev \
       libgirepository1.0-dev gir1.2-glib-2.0 python3-gi python3-cairo pkg-config python3-dbus \
-      cmake build-essential dbus python3-venv
+      cmake build-essential dbus python3-venv hostapd dnsmasq
+
+  sudo systemctl disable hostapd
+  sudo systemctl disable dnsmasq
 
   MODEL_DIR="models/vosk-model-small-en-us-0.15"
   ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"
