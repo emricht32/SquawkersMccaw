@@ -192,7 +192,8 @@ def start_web_server(songs):
     app = create_web_interface(songs, on_song_selected)
     app.run(host="0.0.0.0", port=8080)
 
-
+import signal
+import sys
 
 if __name__ == "__main__":
     current_index = None
@@ -210,6 +211,14 @@ if __name__ == "__main__":
     else:
         raise ValueError("Missing config")
     print("sounddevice.query_devices()=",sounddevice.query_devices())
+
+    def cleanup_and_exit(signum=None, frame=None):
+        global POWER_LIGHT
+        print("Turning off light and cleaning up...")
+        if POWER_LIGHT:
+            POWER_LIGHT.off()
+            POWER_LIGHT.close()
+            sys.exit(0)
 
     def song_completion(song):
         global current_index
@@ -234,6 +243,10 @@ if __name__ == "__main__":
                 current_index = index
                 ble_handler.send_playback_status(status="playing", index=current_index)
                 play_audio_with_speech_indicator(song, birds, completion=song_completion)
+
+    # Register signal handlers
+    signal.signal(signal.SIGINT, cleanup_and_exit)   # Ctrl+C
+    signal.signal(signal.SIGTERM, cleanup_and_exit)  # kill
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
@@ -264,8 +277,9 @@ if __name__ == "__main__":
     finally:
         for bird in birds:
             bird.stop_moving()
-        if POWER_LIGHT:
-            print("POWER_LIGHT off")
-            POWER_LIGHT.off()
+        # if POWER_LIGHT:
+        #     print("POWER_LIGHT off")
+        #     POWER_LIGHT.off()
         if ble_handler:
             ble_handler.stop()
+        cleanup_and_exit()
