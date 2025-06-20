@@ -195,11 +195,19 @@ def start_web_server(songs):
 import signal
 import sys
 
+POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
+def cleanup_and_exit(signum=None, frame=None):
+    global POWER_LIGHT
+    print("Turning off light and cleaning up...")
+    if POWER_LIGHT:
+        POWER_LIGHT.off()
+        POWER_LIGHT.close()
+        sys.exit(0)
+
 if __name__ == "__main__":
     current_index = None
 
     print("Starting main")
-    POWER_LIGHT = LED(5) if GPIO_AVAILABLE else None
     if POWER_LIGHT:
         print("POWER_LIGHT on")
         POWER_LIGHT.on()
@@ -211,14 +219,6 @@ if __name__ == "__main__":
     else:
         raise ValueError("Missing config")
     print("sounddevice.query_devices()=",sounddevice.query_devices())
-
-    def cleanup_and_exit(signum=None, frame=None):
-        global POWER_LIGHT
-        print("Turning off light and cleaning up...")
-        if POWER_LIGHT:
-            POWER_LIGHT.off()
-            POWER_LIGHT.close()
-            sys.exit(0)
 
     def song_completion(song):
         global current_index
