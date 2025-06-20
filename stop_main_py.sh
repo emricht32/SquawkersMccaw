@@ -9,5 +9,5 @@ if [ -z "$PID" ]; then
   echo "No running process found for $TARGET"
 else
   echo "Killing $TARGET (PID $PID)"
-  kill "$PID"
+  kill -2 "$PID"
 fi

@@ -1,4 +1,5 @@
 {
+  "power": 5,
   "birds": [
     {
       "name": "Fritz",
