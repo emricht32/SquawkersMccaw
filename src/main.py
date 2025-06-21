@@ -204,6 +204,10 @@ def cleanup_and_exit(signum=None, frame=None):
         POWER_LIGHT.close()
         sys.exit(0)
 
+    # Register signal handlers
+signal.signal(signal.SIGINT, cleanup_and_exit)   # Ctrl+C
+signal.signal(signal.SIGTERM, cleanup_and_exit)  # kill
+
 if __name__ == "__main__":
     current_index = None
 
@@ -243,10 +247,6 @@ if __name__ == "__main__":
                 current_index = index
                 ble_handler.send_playback_status(status="playing", index=current_index)
                 play_audio_with_speech_indicator(song, birds, completion=song_completion)
-
-    # Register signal handlers
-    signal.signal(signal.SIGINT, cleanup_and_exit)   # Ctrl+C
-    signal.signal(signal.SIGTERM, cleanup_and_exit)  # kill
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     songs = config_dict["songs"]
