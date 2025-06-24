@@ -9,4 +9,5 @@ pyaudio==0.2.14
 bluezero==0.9.1
 flask-cors==6.0.0
 flask==2.2.2
+Werkzeug<2.2
 qrcode[pil]==8.2
