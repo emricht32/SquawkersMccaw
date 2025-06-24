@@ -14,11 +14,6 @@ sudo chmod +x /usr/local/bin/birdpi-wifi-or-ap.sh
 sudo cp setup/birdpi-wifi.service /etc/systemd/system/
 sudo chmod 644 /etc/systemd/system/birdpi-wifi.service
 
-### 2. Install needed packages
-echo "-> Installing dependencies..."
-sudo apt-get update
-sudo apt-get install -y hostapd dnsmasq lighttpd python3-gpiozero
-
 ### 3. Disable default daemons
 sudo systemctl disable hostapd
 sudo systemctl disable dnsmasq
