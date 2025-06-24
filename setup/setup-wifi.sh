@@ -30,13 +30,13 @@ EOF
 echo "-> Configuring hostapd..."
 cat <<EOF | sudo tee /etc/hostapd/hostapd.conf > /dev/null
 interface=wlan0
-ssid=BirdPi-\$(hostname)
+ssid=BirdPi-$(hostname)
 hw_mode=g
 channel=7
 wmm_enabled=0
 auth_algs=1
 wpa=2
-wpa_passphrase=moailanai
+wpa_passphrase=squawkers
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 EOF
