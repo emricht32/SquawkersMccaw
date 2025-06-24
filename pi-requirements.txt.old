@@ -3,7 +3,6 @@ gpiozero==1.6.2
 sounddevice==0.4.6
 soundfile==0.12.1
 numpy==1.26.2
-rapidfuzz==3.13.0
 vosk==0.3.45
 evdev==1.9.2
 pyaudio==0.2.14
