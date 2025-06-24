@@ -34,7 +34,7 @@ This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animat
 
 ```bash
 sudo apt update && sudo apt upgrade
-sudo apt install git-lfs python3-pip libportaudio2 libsndfile1 screen git
+sudo apt install git-lfs python3-pip libportaudio2 libsndfile1 screen git ffmpeg
 ```
 
 Clone the repo and install dependencies:

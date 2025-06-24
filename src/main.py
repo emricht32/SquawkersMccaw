@@ -161,8 +161,8 @@ def _play_audio_with_speech_indicator(song, birds, completion):
 
 
 from ble_song_selector import BLESongSelector
-from voice_input import voice_listener
-from remote_input import remote_listener
+# from voice_input import voice_listener
+# from remote_input import remote_listener
 from web_interface import create_web_interface
 import qrcode
 import socket
