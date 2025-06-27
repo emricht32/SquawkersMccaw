@@ -54,7 +54,7 @@ def get_device_number_if_usb_soundcard(index_info):
     """
 
     index, info = index_info
-
+    print("get_device_number_if_usb_soundcard info=",info)
     if "Plugable USB Audio Device" in info["name"]:
         return index, False
     if "USB Audio Device" in info["name"]:
