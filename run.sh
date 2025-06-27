@@ -61,7 +61,7 @@ sudo apt install -y \
   libportaudio2 \
   libtiff-dev \
   libwebp-dev \
-  libxcb-util1-dev \
+  libxcb-util-dev \
   libxcb1-dev \
   pkg-config \
   portaudio19-dev \
@@ -72,7 +72,6 @@ sudo apt install -y \
   python3-pyaudio \
   python3-venv \
   zlib1g-dev
-
 
   sudo systemctl disable hostapd
   sudo systemctl disable dnsmasq
