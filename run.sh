@@ -41,10 +41,38 @@ done
 if $INSTALL_FLAG; then
   echo "⚙️ Running installation steps..."
 
-  sudo apt update
-  sudo apt install -y libportaudio2 portaudio19-dev python3-pyaudio libcairo2-dev \
-      libgirepository1.0-dev gir1.2-glib-2.0 python3-gi python3-cairo pkg-config python3-dbus \
-      cmake build-essential dbus python3-venv hostapd dnsmasq libopenblas-dev
+sudo apt update
+
+sudo apt install -y \
+  build-essential \
+  cmake \
+  dbus \
+  dnsmasq \
+  gir1.2-glib-2.0 \
+  hostapd \
+  libcairo2-dev \
+  libfreetype6-dev \
+  libgirepository1.0-dev \
+  libimagequant-dev \
+  libjpeg-dev \
+  liblcms2-dev \
+  libopenblas-dev \
+  libopenjpeg-dev \
+  libportaudio2 \
+  libtiff-dev \
+  libwebp-dev \
+  libxcb-util1-dev \
+  libxcb1-dev \
+  pkg-config \
+  portaudio19-dev \
+  python3-cairo \
+  python3-dbus \
+  python3-dev \
+  python3-gi \
+  python3-pyaudio \
+  python3-venv \
+  zlib1g-dev
+
 
   sudo systemctl disable hostapd
   sudo systemctl disable dnsmasq
