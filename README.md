@@ -61,7 +61,7 @@ See the `docs/` and `/hardware` folder for images and wiring diagrams. Birds are
 Run locally from the Pi:
 
 ```bash
-./run.sh
+./run_main.sh
 ```
 
 This will:
