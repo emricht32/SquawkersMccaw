@@ -8,7 +8,7 @@ import os
 import json
 from pathlib import Path
 from common.bird import Bird, manage_leds
-from register import register_bird
+from register import discover_and_register
 try:
     from gpiozero import LED
     GPIO_AVAILABLE = True
@@ -115,7 +115,7 @@ def blink(count: int):
 
 if __name__ == "__main__":
     try:
-        register_bird(requested_name=BIRD_NAME,completion=didRegister)
+        discover_and_register(requested_name=BIRD_NAME,completion=didRegister)
         app.run(host="0.0.0.0", port=5001)
     except:
         exit(0)
