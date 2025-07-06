@@ -43,11 +43,11 @@ def create_web_interface(songs, on_song_selected):
 
         time_offset = main_time - zero_time  # How far ahead the main Pi is
 
-        registry.register(bird_id, remote_ip, bird_name)  # Store bird info
+        bird_name = registry.register(bird_id, remote_ip, bird_name)  # Store bird info
 
         return jsonify({
             "status": "ok",
-            "name": bird_id,
+            "name": bird_name,
             "time_offset": time_offset
         })
 
