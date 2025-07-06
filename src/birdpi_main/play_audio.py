@@ -1,5 +1,5 @@
-import src.common.pear as pear
-from src.common.bird import manage_leds
+import common.pear as pear
+from common.bird import manage_leds
 import threading
 import sounddevice
 import os
