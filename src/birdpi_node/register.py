@@ -6,7 +6,7 @@ MAIN_PI_HOST = "http://birdpi.local:8080"
 NAME_FILE = "/tmp/bird_name"
 OFFSET_FILE = "/tmp/time_offset"
 
-def register_bird(requested_name=None):
+def register_bird(requested_name=None,completion=None):
     bird_id = socket.gethostname()
     local_time = time.time()
 
@@ -38,6 +38,9 @@ def register_bird(requested_name=None):
             print("Register request failed:", r.status_code)
     except requests.RequestException:
         print("Failed to register")
+    finally:
+        if completion is not None:
+            completion(assigned_name)
 
 if __name__ == "__main__":
     # You can optionally pass the desired name as a command-line arg

@@ -9,6 +9,12 @@ import json
 from pathlib import Path
 from common.bird import Bird, manage_leds
 from register import register_bird
+try:
+    from gpiozero import LED
+    GPIO_AVAILABLE = True
+except ImportError:
+    print("GPIO not available")
+    GPIO_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -33,7 +39,8 @@ def load_config():
 
 # Load config
 config = load_config()
-
+if GPIO_AVAILABLE:
+    STATUS_LIGHT = LED(config["on_light"])
 # Determine bird name (priority: saved name > config > hostname)
 if Path(BIRD_NAME_FILE).exists():
     with open(BIRD_NAME_FILE) as f:
@@ -88,6 +95,28 @@ def status():
         "status":"success"
     }), 200
 
+def didRegister(name: str):
+    global BIRD_NAME, bird_instance 
+    if name is not BIRD_NAME:
+        BIRD_NAME = name
+        bird_instance.name = name
+        blink(5)
+    STATUS_LIGHT.on()
+
+def blink(count: int):
+    for _ in range(count):
+        STATUS_LIGHT.on()
+        time.sleep(1)
+        STATUS_LIGHT.off()
+        time.sleep(1)
+
 if __name__ == "__main__":
-    register_bird(requested_name="Jose")
-    app.run(host="0.0.0.0", port=5001)
+    try:
+        register_bird(requested_name=BIRD_NAME,completion=didRegister)
+        app.run(host="0.0.0.0", port=5001)
+    except:
+        exit(0)
+    finally:
+        if STATUS_LIGHT is not None:
+            STATUS_LIGHT.off()
+
