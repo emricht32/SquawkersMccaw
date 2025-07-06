@@ -16,6 +16,7 @@ if $INSTALL_FLAG; then
 sudo apt update
 
 sudo apt install -y \
+  avahi-daemon \
   build-essential \
   cmake \
   dbus \
@@ -47,6 +48,11 @@ sudo apt install -y \
 
   sudo systemctl disable hostapd
   sudo systemctl disable dnsmasq
+
+  sudo systemctl enable avahi-daemon
+  sudo systemctl start avahi-daemon
+  sudo hostnamectl set-hostname birdpi-main
+
 
   # MODEL_DIR="models/vosk-model-small-en-us-0.15"
   # ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"

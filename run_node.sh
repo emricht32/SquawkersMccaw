@@ -31,6 +31,8 @@ sudo apt install -y \
   python3-venv \
   zlib1g-dev
 
+sudo systemctl stop avahi-daemon
+
 source ~/birdpi-venv/bin/activate
 
 if ! pip3 install -r pi-requirements.txt; then
