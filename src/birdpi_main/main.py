@@ -29,6 +29,7 @@ def generate_qr_code(output_path="static/birds_qr.png", port=8080):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("10.255.255.255", 1))
+        print("s.getsockname()=", s.getsockname())
         ip = s.getsockname()[0]
     except Exception:
         ip = "127.0.0.1"
