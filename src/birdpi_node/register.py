@@ -2,7 +2,7 @@ import requests
 import socket
 import time
 
-MAIN_PI_HOST = "http://birdpi.local:5000"
+MAIN_PI_HOST = "http://birdpi.local:8080"
 NAME_FILE = "/tmp/bird_name"
 OFFSET_FILE = "/tmp/time_offset"
 
