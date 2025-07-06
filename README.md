@@ -34,7 +34,7 @@ This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animat
 
 ```bash
 sudo apt update && sudo apt upgrade
-sudo apt install -y git-lfs python3-pip libportaudio2 libsndfile1 screen git ffmpeg
+sudo apt install -y git-lfs python3-pip libportaudio2 libsndfile1 screen git ffmpeg libcairo2-dev pkg-config python3-dev libgirepository1.0-dev gir1.2-glib-2.0
 ```
 
 Clone the repo and install dependencies:
@@ -42,9 +42,10 @@ Clone the repo and install dependencies:
 ```bash
 git clone https://github.com/emricht32/SquawkersMccaw.git
 cd SquawkersMccaw
-python3 -m venv birdpi-venv
-source birdpi-venv/bin/activate
-pip install -r pi-requirements.txt
+./run.sh --install
+# python3 -m venv birdpi-venv
+# source birdpi-venv/bin/activate
+# pip install -r pi-requirements.txt
 ```
 
 ---

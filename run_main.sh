@@ -9,34 +9,6 @@ for arg in "$@"; do
   fi
 done
 
-# Default music folder
-MUSIC_FOLDER="./music"
-SOURCE_FOLDER="./music"
-
-# Check for external music/config source
-if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
-    SOURCE_FOLDER="/media/BIRDS/music"
-    cp /media/BIRDS/config_multi_song.json .
-fi
-
-# Convert MP3s to WAVs
-mp3_files=$(find "$SOURCE_FOLDER" -name '*.mp3' -print0 | tr '\0' '\n')
-for f in $mp3_files; do
-    relative_path="${f#$SOURCE_FOLDER/}"
-    dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
-    mkdir -p "$dest_dir"
-    wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
-    if ! [ -f "$wav_file" ]; then
-        echo "Creating WAV file for $f"
-        if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
-            echo "Error converting $f to WAV" >&2
-            exit 1
-        fi
-    else
-        echo "WAV file already exists for $f"
-    fi
-done
-
 # Run install steps only if flag is passed
 if $INSTALL_FLAG; then
   echo "⚙️ Running installation steps..."
@@ -133,11 +105,42 @@ else
   source ~/birdpi-venv/bin/activate
 fi
 
+# Default music folder
+MUSIC_FOLDER="./music"
+SOURCE_FOLDER="./music"
+
+# Check for external music/config source
+# TODO: currently not used
+# if [ -d "/media/BIRDS/music" ] && [ -f "/media/BIRDS/config_multi_song.json" ]; then
+#     SOURCE_FOLDER="/media/BIRDS/music"
+#     cp /media/BIRDS/config_multi_song.json .
+# fi
+
+# Convert MP3s to WAVs
+mp3_files=$(find "$SOURCE_FOLDER" -name '*.mp3' -print0 | tr '\0' '\n')
+for f in $mp3_files; do
+    relative_path="${f#$SOURCE_FOLDER/}"
+    dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
+    mkdir -p "$dest_dir"
+    wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
+    if ! [ -f "$wav_file" ]; then
+        echo "Creating WAV file for $f"
+        if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
+            echo "Error converting $f to WAV" >&2
+            exit 1
+        fi
+    else
+        echo "WAV file already exists for $f"
+    fi
+done
+
+
 echo "waiting for usb sound devices to initialize"
 python3 src/wait_devices_init.py
 echo "usb sound devices initialized"
 
-if ! python3 src/main.py; then
+PYTHONPATH=src
+if ! python3 src/birdpi_main/main.py; then
     echo "Error running the Python script" >&2
     exit 1
 fi

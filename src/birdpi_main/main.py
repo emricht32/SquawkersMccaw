@@ -1,7 +1,7 @@
 import threading
 import json
 import os
-from src.common.bird import Bird
+from common.bird import Bird
 from send_song_start import send_song_start
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator
