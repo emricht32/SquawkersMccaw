@@ -50,15 +50,18 @@ def start_web_server(songs):
     app = create_web_interface(songs, on_song_selected)
     app.run(host="0.0.0.0", port=8080)
 
-def get_mdns_hostname():
-    hostname = socket.gethostname()           # e.g., "birdpi"
-    fqdn = socket.getfqdn()                   # often resolves to "birdpi.local"
-    
-    # Normalize in case it’s not fully qualified
-    if not fqdn.endswith(".local"):
-        fqdn = f"{hostname}.local"
-    
-    return fqdn
+def get_lan_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+def get_mdns_name():
+    return f"{socket.gethostname()}.local"
 
 import signal
 import sys
@@ -128,14 +131,11 @@ if __name__ == "__main__":
     # Start Flask server in a thread
     web_thread = threading.Thread(target=start_web_server, args=(songs,), daemon=True)
     web_thread.start()
-    
-    ip = socket.gethostbyname(socket.gethostname())
-    mdns = get_mdns_hostname()
-    print(f"🌐 Web interface started at:")
-    print(f"   → http://{mdns}:8080")
-    print(f"   → http://{ip}:8080")
 
-    
+    print("🌐 Web interface started at:")
+    print(f"   → http://{get_mdns_name()}:8080")
+    print(f"   → http://{get_lan_ip()}:8080")
+
     try:
 
         # threading.Thread(target=voice_listener, args=(songs, on_song_selected), daemon=False).start()
