@@ -21,12 +21,16 @@ class Bird:
 
     def prepare_song(self, song_dict):
         print("prepare_song")
-        individual= [individual for individual in song_dict["individuals"] if individual["name"] == self.name][0]
+        if song_dict.get("individuals") is not None:
+            individual = [individual for individual in song_dict["individuals"] if individual["name"] == self.name][0]
+        else:
+            # just passing singing and dancing for bird nodes
+            individual = song_dict 
         print("individual=",individual)
-        speech_intervals = individual["singing"]
-        dancing_intervals = individual["dancing"]
-        speech_intervals += song_dict["all_singing"]
-        dancing_intervals += song_dict["all_dancing"]
+        speech_intervals = individual.get("singing", [])
+        dancing_intervals = individual.get("dancing", [])
+        speech_intervals += song_dict.get("all_singing", [])
+        dancing_intervals += song_dict.get("all_dancing", [])
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
 
@@ -87,3 +91,24 @@ def oscillate_logs(event, duration, name):
         time.sleep(duration/2)
         print(f"{name} LED OFF")
         time.sleep(duration/2)
+
+def manage_leds(birds, audio_duration):
+    print("manage_leds")
+    print("audio_duration=", audio_duration)
+    sleep_time = 0.3
+    start_time = time.time()
+    curr_time = time.time() - start_time
+    while (curr_time < audio_duration):
+        curr_time = time.time() - start_time
+        print("curr_time=", curr_time)
+        for bird in birds:
+            if bird.is_speaking(curr_time):
+                bird.start_moving(sleep_time)
+            else:
+                bird.stop_moving()
+                if bird.is_dancing(curr_time):
+                    bird.start_dancing()
+        time.sleep(sleep_time)
+    for bird in birds:
+        print("STOPPING Bird:", bird.name)
+        bird.stop_moving()

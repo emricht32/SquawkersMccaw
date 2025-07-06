@@ -1,0 +1,14 @@
+<thead>
+  <tr><th>Name</th><th>ID</th><th>IP</th><th>Status</th><th>Last Seen</th></tr>
+</thead>
+<tbody>
+  {% for name, data in birds.items() %}
+    <tr>
+      <td>{{ name }}</td>
+      <td>{{ data.id }}</td>
+      <td>{{ data.ip }}</td>
+      <td class="{{ data.status | lower }}">{{ data.status }}</td>
+      <td>{{ data.last_seen | round(1) }}</td>
+    </tr>
+  {% endfor %}
+</tbody>
