@@ -8,6 +8,7 @@ import os
 import json
 from pathlib import Path
 from common.bird import Bird, manage_leds
+import register
 
 app = Flask(__name__)
 
@@ -82,4 +83,5 @@ def perform():
     }), 200
 
 if __name__ == "__main__":
+    register("Jose")
     app.run(host="0.0.0.0", port=5001)
