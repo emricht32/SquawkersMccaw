@@ -82,6 +82,12 @@ def perform():
         "bird": BIRD_NAME
     }), 200
 
+@app.route("/status", methods=["GET"])
+def status():
+    return jsonify({
+        "status":"success"
+    }), 200
+
 if __name__ == "__main__":
     register_bird(requested_name="Jose")
     app.run(host="0.0.0.0", port=5001)
