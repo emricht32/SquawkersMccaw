@@ -17,10 +17,10 @@ LAST_MOTION, PIR = None, None
 
 CONFIG_FILE = 'config_multi_song_with_triggers.json'
 
-from src.birdpi_main.ble_song_selector import BLESongSelector
+from ble_song_selector import BLESongSelector
 # from voice_input import voice_listener
 # from remote_input import remote_listener
-from src.birdpi_main.web_interface import create_web_interface
+from web_interface import create_web_interface
 import qrcode
 import socket
 import os
