@@ -97,6 +97,9 @@ def status():
 
 def didRegister(name: str):
     global BIRD_NAME, bird_instance 
+    if name is None:
+        blink(10)
+        exit(1)
     if name is not BIRD_NAME:
         BIRD_NAME = name
         bird_instance.name = name
