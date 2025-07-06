@@ -7,7 +7,7 @@ import socket
 import os
 import json
 from pathlib import Path
-from src.common.bird import Bird, manage_leds
+from common.bird import Bird, manage_leds
 
 app = Flask(__name__)
 
