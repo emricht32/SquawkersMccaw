@@ -107,7 +107,7 @@ def didRegister(name: str):
     STATUS_LIGHT.on()
 
 def blink(count: int):
-    for _ in range(count):
+    for _ in range(0, count):
         STATUS_LIGHT.on()
         time.sleep(1)
         STATUS_LIGHT.off()
