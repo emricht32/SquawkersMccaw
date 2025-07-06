@@ -139,8 +139,8 @@ echo "waiting for usb sound devices to initialize"
 python3 src/wait_devices_init.py
 echo "usb sound devices initialized"
 
-PYTHONPATH=src
-if ! python3 src/birdpi_main/main.py; then
+
+if ! PYTHONPATH=src python3 src/birdpi_main/main.py; then
     echo "Error running the Python script" >&2
     exit 1
 fi
