@@ -51,7 +51,7 @@ sudo apt install -y \
 
   sudo systemctl enable avahi-daemon
   sudo systemctl start avahi-daemon
-  sudo hostnamectl set-hostname birdpi-main
+  sudo hostnamectl set-hostname birdpi
 
 
   # MODEL_DIR="models/vosk-model-small-en-us-0.15"
