@@ -117,8 +117,9 @@ if __name__ == "__main__":
     try:
         discover_and_register(requested_name=BIRD_NAME,completion=didRegister)
         app.run(host="0.0.0.0", port=5001)
-    except:
-        exit(0)
+    except Exception as e:
+        print(f"🔥 Uncaught exception: {e}")
+        raise
     finally:
         if STATUS_LIGHT is not None:
             STATUS_LIGHT.off()
