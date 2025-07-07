@@ -16,6 +16,7 @@ def try_register(host, bird_id, local_time, requested_name):
         payload["requested_name"] = requested_name
 
     try:
+        print("here host: ", host)
         r = requests.post(f"{host}/register", json=payload, timeout=2)
         print("r.json()=", r.json())
         if r.ok:
