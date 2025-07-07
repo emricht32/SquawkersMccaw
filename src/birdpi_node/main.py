@@ -115,12 +115,18 @@ def blink(count: int):
 
 if __name__ == "__main__":
     try:
-        discover_and_register(requested_name=BIRD_NAME,completion=didRegister)
-        app.run(host="0.0.0.0", port=5001)
+        # Start Flask app in a background thread
+        flask_thread = threading.Thread(target=lambda: app.run(host="0.0.0.0", port=5001), daemon=True)
+        flask_thread.start()
+
+        # Now safe to call discover_and_register
+        discover_and_register(requested_name=BIRD_NAME, completion=didRegister)
+
+        # Optional: keep main thread alive (Flask already runs in background)
+        flask_thread.join()
     except Exception as e:
         print(f"🔥 Uncaught exception: {e}")
         raise
     finally:
         if STATUS_LIGHT is not None:
             STATUS_LIGHT.off()
-
