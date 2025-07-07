@@ -56,12 +56,12 @@ class BirdRegistry:
             remove_names = []
             for name, data in self.birds.items():
                 try:
-                    r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
+                    r = requests.get(f"http://{data['ip']}:5001/status", timeout=1, verify=False)
                     self._handleResponse(r,name,data)
                 except Exception as e:
                     time.sleep(0.5)
                     try:
-                        r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
+                        r = requests.get(f"http://{data['ip']}:5001/status", timeout=1, verify=False)
                         self._handleResponse(r,name,data)
                     except Exception:
                         remove_names.append(name)
