@@ -47,14 +47,17 @@ class BirdRegistry:
                 try:
                     r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
                     if r.ok:
+                        if data["status"] == "Offline":
+                            print(f"{name} back online.")
                         data["status"] = "Ready"
                         data["last_seen"] = time.time()
                     else:
                         if data["status"] == "Ready":
                             print(f"{name} no longer online.  Disconnecting.")
                         data["status"] = "Offline"
-                except Exception:
-                    print(f"{name} Exception.  Disconnecting.")
+                except Exception as e:
+                    print(f"{name} Exception: {e}.  Disconnecting.")
+
                     data["status"] = "Offline"
             time.sleep(5)
 
