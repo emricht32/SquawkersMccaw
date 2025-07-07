@@ -50,8 +50,11 @@ class BirdRegistry:
                         data["status"] = "Ready"
                         data["last_seen"] = time.time()
                     else:
+                        if data["status"] == "Ready":
+                            print(f"{name} no longer online.  Disconnecting.")
                         data["status"] = "Offline"
                 except Exception:
+                    print(f"{name} Exception.  Disconnecting.")
                     data["status"] = "Offline"
             time.sleep(5)
 
