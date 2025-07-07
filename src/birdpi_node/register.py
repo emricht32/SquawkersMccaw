@@ -17,6 +17,7 @@ def try_register(host, bird_id, local_time, requested_name):
 
     try:
         r = requests.post(f"{host}/register", json=payload, timeout=2)
+        print("r.json()=", r.json())
         if r.ok:
             response = r.json()
             offset = response.get("time_offset")
@@ -58,7 +59,7 @@ def discover_and_register(requested_name=None, completion=None):
 
     print(f"🔍 Attempting to register with {MAIN_PI_HOST}...")
     assigned_name = try_register(MAIN_PI_HOST, bird_id, local_time, requested_name)
-
+    print("assigned_name1= ", assigned_name)
     if assigned_name:
         if completion:
             completion(assigned_name)
@@ -94,6 +95,7 @@ def discover_and_register(requested_name=None, completion=None):
         host = f"http://{ip}:8080"
         print(f"🔁 Trying {host}...")
         assigned_name = try_register(host, bird_id, local_time, requested_name)
+        print("assigned_name3= ", assigned_name)
         if assigned_name:
             break
 
