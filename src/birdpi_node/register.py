@@ -41,6 +41,13 @@ def try_register(host, bird_id, local_time, requested_name):
 
     return None
 
+def get_main_pi_host():
+    try:
+        with open(MAIN_IP_FILE, "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+
 def discover_and_register(requested_name=None, completion=None):
     bird_id = socket.gethostname()
     local_time = time.time()
@@ -53,7 +60,18 @@ def discover_and_register(requested_name=None, completion=None):
             completion(assigned_name)
         return
 
-    print("❌ Failed to register with birdpi.local. Scanning local network...")
+    print("❌ Failed to register with birdpi.local. Scanning saved host")
+
+    main_host = get_main_pi_host()
+    if main_host:
+        print("✅ Found main Pi at", main_host)
+        assigned_name = try_register(main_host, bird_id, local_time, requested_name)
+        if assigned_name:
+            if completion:
+                completion(assigned_name)
+            return
+    else:
+        print("⚠️ No main Pi recorded yet.")
 
     # Get local subnet prefix
     try:
