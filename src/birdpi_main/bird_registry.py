@@ -53,6 +53,7 @@ class BirdRegistry:
 
     def update_status(self):
         while True:
+            remove_names = []
             for name, data in self.birds.items():
                 try:
                     r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
@@ -63,10 +64,11 @@ class BirdRegistry:
                         r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
                         self._handleResponse(r,name,data)
                     except Exception:
-                        self.birds[name]["status"] = "Offline"
+                        remove_names.append(name)
                     print(f"{name} Exception: {e}.  Disconnecting.")
 
-                    data["status"] = "Offline"
+            for name in remove_names:
+                self.birds.pop(name, None)        
             time.sleep(5)
 
     def get_birds(self):
