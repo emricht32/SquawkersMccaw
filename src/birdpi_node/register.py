@@ -66,6 +66,7 @@ def discover_and_register(requested_name=None, completion=None):
     if main_host:
         print("✅ Found main Pi at", main_host)
         assigned_name = try_register(main_host, bird_id, local_time, requested_name)
+        print("main_host assigned name: ", assigned_name)
         if assigned_name:
             if completion:
                 completion(assigned_name)
