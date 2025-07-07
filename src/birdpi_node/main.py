@@ -89,11 +89,11 @@ def perform():
         "bird": BIRD_NAME
     }), 200
 
-@app.route("/status", methods=["GET"])
+@app.route("/status")
 def status():
-    return jsonify({
-        "status":"success"
-    }), 200
+    print("✅ /status hit")
+    return {"status": "ok"}
+
 
 def didRegister(name: str):
     global BIRD_NAME, bird_instance 
