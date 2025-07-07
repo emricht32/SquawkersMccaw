@@ -16,16 +16,24 @@ class BirdRegistry:
     def assign_name(self, requested_name, ip):
         used_names = set(self.birds.keys())
 
-        # If requested name is valid and not taken
+        # ✅ If the requested name is valid and not taken
         if requested_name and requested_name in RESERVED_NAMES and requested_name not in used_names:
             return requested_name
 
-        # Auto-assign next unused name
+        # ✅ If a bird with that name is already registered, but the IP matches (e.g. reconnect/reboot)
+        for name in RESERVED_NAMES:
+            bird = self.birds.get(name)
+            if bird and bird["ip"] == ip:
+                # Reuse the existing name for this IP
+                return name
+
+        # 🔄 Auto-assign next unused name
         for name in RESERVED_NAMES:
             if name not in used_names:
                 return name
 
         return None  # All names taken
+
 
     def register(self, bird_id, ip, name):
         assigned_name = self.assign_name(name, ip)
