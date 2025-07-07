@@ -40,7 +40,7 @@ class BirdRegistry:
         if not assigned_name:
             return None  # Reject if no names left
     
-        time.sleep(2)
+        # time.sleep(0.5)
 
         self.birds[assigned_name] = {
             "ip": ip,
