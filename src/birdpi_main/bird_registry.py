@@ -31,11 +31,13 @@ class BirdRegistry:
         assigned_name = self.assign_name(name, ip)
         if not assigned_name:
             return None  # Reject if no names left
+    
+        time.sleep(2)
 
         self.birds[assigned_name] = {
             "ip": ip,
             "id": bird_id,
-            "status": "Ready",
+            "status": "Pending",
             "last_seen": time.time(),
         }
         self.name_map[ip] = assigned_name
@@ -46,16 +48,14 @@ class BirdRegistry:
             for name, data in self.birds.items():
                 try:
                     r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
-                    if r.ok:
-                        if data["status"] == "Offline":
-                            print(f"{name} back online.")
-                        data["status"] = "Ready"
-                        data["last_seen"] = time.time()
-                    else:
-                        if data["status"] == "Ready":
-                            print(f"{name} no longer online.  Disconnecting.")
-                        data["status"] = "Offline"
+                    self._handleResponse(r,name,data)
                 except Exception as e:
+                    time.sleep(0.5)
+                    try:
+                        r = requests.get(f"http://{data['ip']}:5001/status", timeout=1)
+                        self._handleResponse(r,name,data)
+                    except Exception:
+                        self.birds[name]["status"] = "Offline"
                     print(f"{name} Exception: {e}.  Disconnecting.")
 
                     data["status"] = "Offline"
@@ -66,7 +66,17 @@ class BirdRegistry:
     
     def get_bird_names(self):
         return self.birds.keys
-
+     
+    def _handleResponse(self, r, name, data):
+        if r.ok:
+            if data["status"] == "Offline":
+                print(f"{name} back online.")
+            data["status"] = "Ready"
+            data["last_seen"] = time.time()
+        else:
+            if data["status"] == "Ready":
+                print(f"{name} no longer online.  Disconnecting.")
+            data["status"] = "Offline"
 
 registry = BirdRegistry()
 
