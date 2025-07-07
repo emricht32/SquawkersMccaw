@@ -36,7 +36,11 @@ def try_register(host, bird_id, local_time, requested_name):
 
             print(f"✅ Registered with {host} as {assigned_name}")
             return assigned_name
-    except requests.RequestException:
+    except requests.RequestException as e:
+        print("requests.RequestException: ", e)
+        pass
+    except Exception as e:
+        print("Exception: ", e)
         pass
 
     return None
