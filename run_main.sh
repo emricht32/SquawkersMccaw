@@ -14,7 +14,6 @@ if $INSTALL_FLAG; then
   echo "⚙️ Running installation steps..."
 
 sudo apt update
-
 sudo apt install -y \
   avahi-daemon \
   build-essential \
@@ -36,6 +35,7 @@ sudo apt install -y \
   libwebp-dev \
   libxcb-util-dev \
   libxcb1-dev \
+  lighttpd \
   pkg-config \
   portaudio19-dev \
   python3-cairo \
