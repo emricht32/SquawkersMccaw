@@ -33,4 +33,10 @@ else
     echo "ℹ️ nmcli not found; NetworkManager not in use"
 fi
 
+sudo rm -f /etc/NetworkManager/system-connections/*
+sudo rm -f /etc/wpa_supplicant/wpa_supplicant.conf
+sudo rm -rf /var/lib/connman/*
+sudo systemctl restart NetworkManager
+sudo reboot
+
 echo "🚨 All WiFi credentials cleared. Please reboot if testing onboarding. 🚨"
