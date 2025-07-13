@@ -13,7 +13,9 @@ sudo apt-get install -y lighttpd dnsmasq hostapd network-manager
 
 # 2. Enable CGI in lighttpd
 echo "-- Enabling CGI module for lighttpd..."
-sudo lighttpd-enable-mod cgi
+if ! sudo lighttpd-enable-mod cgi; then
+    echo "lighttpd-enable-mod cgi failed, possibly already enabled. Continuing."
+fi
 
 # FIX: Reload lighttpd to actually enable the CGI module!
 sudo service lighttpd force-reload
