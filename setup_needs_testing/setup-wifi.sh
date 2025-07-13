@@ -1,105 +1,57 @@
 #!/bin/bash
-
 set -e
 
-LOG_TAG="BirdPi Setup"
+echo "== BirdPi WiFi Onboarding Setup =="
 
-echo "== BirdPi WiFi + AP Setup =="
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+SRC="$REPO_DIR/setup_needs_testing"
 
-### 1. Copy service and boot script
-echo "-> Copying system files..."
-sudo cp setup/birdpi-wifi-or-ap.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/birdpi-wifi-or-ap.sh
+# 1. Install required packages
+echo "-- Installing required packages..."
+sudo apt-get update
+sudo apt-get install -y lighttpd dnsmasq hostapd network-manager
 
-sudo cp setup/birdpi-wifi.service /etc/systemd/system/
-sudo chmod 644 /etc/systemd/system/birdpi-wifi.service
+# 2. Enable CGI in lighttpd
+echo "-- Enabling CGI module for lighttpd..."
+sudo lighttpd-enable-mod cgi
 
-### 3. Disable default daemons
-sudo systemctl disable hostapd
-sudo systemctl disable dnsmasq
+# 3. Copy all static files (except hostapd.conf) to the same location as in SRC
+echo "-- Copying config, HTML, CGI, and service files..."
+cd "$SRC"
 
-### 4. Configure dnsmasq
-echo "-> Configuring dnsmasq..."
-cat <<EOF | sudo tee /etc/dnsmasq.conf > /dev/null
-interface=wlan0
-dhcp-range=192.168.4.10,192.168.4.50,12h
-address=/#/192.168.4.1
-EOF
+find . \( -name hostapd.conf \) -prune -o -type f -print | while read FILE; do
+    DEST="/${FILE#./}"    # strip the leading dot for absolute path
+    DEST_DIR=$(dirname "$DEST")
+    sudo mkdir -p "$DEST_DIR"
+    sudo cp "$FILE" "$DEST"
+done
 
-### 5. Configure hostapd
-echo "-> Configuring hostapd..."
-cat <<EOF | sudo tee /etc/hostapd/hostapd.conf > /dev/null
-interface=wlan0
-ssid=BirdPi-$(hostname)
-hw_mode=g
-channel=7
-wmm_enabled=0
-auth_algs=1
-wpa=2
-wpa_passphrase=squawkers
-wpa_key_mgmt=WPA-PSK
-rsn_pairwise=CCMP
-EOF
+# 4. Generate/persist BirdPi AP ID (random 4 alphanumeric chars)
+echo "-- Ensuring BirdPi AP has a persistent unique ID..."
+if [ ! -f /etc/birdpi_ap_id ]; then
+  tr -dc 'A-Za-z0-9' </dev/urandom | head -c 4 | sudo tee /etc/birdpi_ap_id > /dev/null
+fi
+BIRDPI_AP_ID=$(cat /etc/birdpi_ap_id)
+
+# 5. Copy hostapd.conf template with correct AP ID
+echo "-- Setting up hostapd config with unique SSID..."
+sudo sed "s/XXXX/$BIRDPI_AP_ID/" "$SRC/etc/hostapd/hostapd.conf" | sudo tee /etc/hostapd/hostapd.conf > /dev/null
 
 sudo sed -i 's|#DAEMON_CONF=""|DAEMON_CONF="/etc/hostapd/hostapd.conf"|' /etc/default/hostapd
 
-### 6. Create AP fallback service
-echo "-> Creating birdpi-ap.service..."
-cat <<EOF | sudo tee /etc/systemd/system/birdpi-ap.service > /dev/null
-[Unit]
-Description=BirdPi AP fallback
-After=network.target
+# 6. Ensure scripts are executable
+echo "-- Making scripts executable..."
+sudo chmod +x /usr/lib/cgi-bin/submit.sh || true
+sudo chmod +x /usr/local/bin/birdpi-wifi-or-ap.sh || true
 
-[Service]
-ExecStartPre=/sbin/ifconfig wlan0 192.168.4.1 netmask 255.255.255.0
-ExecStart=/usr/sbin/hostapd /etc/hostapd/hostapd.conf
-ExecStartPost=/usr/sbin/dnsmasq -C /etc/dnsmasq.conf
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-### 7. Optional: GPIO LED status (GPIO17)
-echo "-> Setting up status LED script (GPIO17)..."
-cat <<EOF | sudo tee /usr/local/bin/birdpi-led-status.py > /dev/null
-from gpiozero import LED
-from time import sleep
-import subprocess
-
-led = LED(17)
-
-def is_wifi_connected():
-    try:
-        ip = subprocess.check_output(["hostname", "-I"]).decode().strip()
-        return len(ip) > 0
-    except:
-        return False
-
-while True:
-    if is_wifi_connected():
-        led.on()
-    else:
-        led.blink(on_time=0.5, off_time=0.5)
-    sleep(5)
-EOF
-
-sudo tee /etc/systemd/system/birdpi-led.service > /dev/null <<EOF
-[Unit]
-Description=BirdPi LED Wi-Fi Indicator
-After=network.target
-
-[Service]
-ExecStart=/usr/bin/python3 /usr/local/bin/birdpi-led-status.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-### 8. Enable all services
-sudo systemctl daemon-reexec
+# 7. Enable and restart services
+echo "-- Enabling and restarting required services..."
+sudo systemctl daemon-reload
+sudo systemctl enable lighttpd
+sudo systemctl restart lighttpd
+sudo systemctl enable birdpi-ap.service
 sudo systemctl enable birdpi-wifi.service
-sudo systemctl enable birdpi-led.service
 
-echo "== Setup Complete! Reboot to test =="
+echo "== Setup complete! =="
+echo "Reboot your Pi and connect to the 'BirdPi-XXXX' WiFi if no network is configured."
+echo "The captive portal will be available at http://192.168.4.1"
