@@ -168,3 +168,6 @@ cython_debug/
 *.moved-aside
 DerivedData/
 xcuserdata/
+
+!setup_needs_testing/usr/lib/
+!setup_needs_testing/var/

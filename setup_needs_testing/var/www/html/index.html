@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BirdPi WiFi Setup</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: 40px auto; background: #f7f7f7; padding: 30px; border-radius: 12px; }
+    h1 { color: #2186eb; }
+    label { display: block; margin: 15px 0 5px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+    input[type="submit"] { margin-top: 20px; padding: 10px 25px; background: #2186eb; color: #fff; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+    input[type="submit"]:hover { background: #1258a8; }
+    .hint { font-size: 12px; color: #888; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>BirdPi WiFi Setup</h1>
+  <form method="POST" action="/cgi-bin/submit.sh">
+    <label for="ssid">WiFi SSID</label>
+    <input type="text" name="ssid" id="ssid" required autofocus>
+
+    <label for="password">WiFi Password</label>
+    <input type="password" name="password" id="password" required>
+
+    <input type="submit" value="Connect">
+    <div class="hint">Enter your WiFi network details. BirdPi will reboot and attempt to join your WiFi.</div>
+  </form>
+</body>
+</html>
