@@ -4,7 +4,7 @@ set -e
 echo "== BirdPi WiFi Onboarding Setup =="
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-SRC="$REPO_DIR/setup_needs_testing"
+SRC="$REPO_DIR/"
 
 # 1. Install required packages
 echo "-- Installing required packages..."
@@ -13,7 +13,12 @@ sudo apt-get install -y lighttpd dnsmasq hostapd network-manager
 
 # 2. Enable CGI in lighttpd
 echo "-- Enabling CGI module for lighttpd..."
-sudo lighttpd-enable-mod cgi
+if ! sudo lighttpd-enable-mod cgi; then
+    echo "lighttpd-enable-mod cgi failed, possibly already enabled. Continuing."
+fi
+
+# FIX: Reload lighttpd to actually enable the CGI module!
+sudo service lighttpd force-reload
 
 # 3. Copy all static files (except hostapd.conf) to the same location as in SRC
 echo "-- Copying config, HTML, CGI, and service files..."
@@ -53,5 +58,5 @@ sudo systemctl enable birdpi-ap.service
 sudo systemctl enable birdpi-wifi.service
 
 echo "== Setup complete! =="
-echo "Reboot your Pi and connect to the 'BirdPi-XXXX' WiFi if no network is configured."
+echo "Reboot your Pi and connect to the 'BirdPi-$BIRDPI_AP_ID' WiFi if no network is configured."
 echo "The captive portal will be available at http://192.168.4.1"
