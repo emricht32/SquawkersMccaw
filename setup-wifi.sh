@@ -4,7 +4,7 @@ set -e
 echo "== BirdPi WiFi Onboarding Setup =="
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-SRC="$REPO_DIR/"
+SRC="$REPO_DIR/setup_needs_testing/"
 
 # 1. Install required packages
 echo "-- Installing required packages..."
