@@ -171,3 +171,6 @@ xcuserdata/
 
 !setup_needs_testing/usr/lib/
 !setup_needs_testing/var/
+
+*.wav
+music/**/*.wav

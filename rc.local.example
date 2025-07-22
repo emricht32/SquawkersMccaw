@@ -18,22 +18,22 @@ if [ "$_IP" ]; then
 fi
 
 # Set BLE adapter to LE-only, non-bondable, connectable, discoverable
-/usr/bin/btmgmt -i hci0 power off
-/usr/bin/btmgmt -i hci0 le on
-/usr/bin/btmgmt -i hci0 bredr off
-/usr/bin/btmgmt -i hci0 bondable off
-/usr/bin/btmgmt -i hci0 connectable on
-/usr/bin/btmgmt -i hci0 power on
+# /usr/bin/btmgmt -i hci0 power off
+# /usr/bin/btmgmt -i hci0 le on
+# /usr/bin/btmgmt -i hci0 bredr off
+# /usr/bin/btmgmt -i hci0 bondable off
+# /usr/bin/btmgmt -i hci0 connectable on
+# /usr/bin/btmgmt -i hci0 power on
 
-# Use bluetoothctl to enable discoverable + advertising mode
-/usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
-power on
-agent NoInputNoOutput
-default-agent
-pairable off
-discoverable on
-advertise yes
-EOF
+# # Use bluetoothctl to enable discoverable + advertising mode
+# /usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
+# power on
+# agent NoInputNoOutput
+# default-agent
+# pairable off
+# discoverable on
+# advertise yes
+# EOF
 
 #cd ~/code/SquawkersMccaw && /bin/bash run.sh > run.log 2>&1 &
 
