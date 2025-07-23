@@ -2,14 +2,15 @@ import common.pear as pear
 from common.bird import manage_leds
 import threading
 import sounddevice
+import time
 import os
 
 playback_lock = threading.Lock()
 
-def play_audio_with_speech_indicator(song, birds, completion=None):
+def play_audio_with_speech_indicator(song, birds, startTime = 0, completion=None):
     if playback_lock.acquire(blocking=False):
         try:
-            _play_audio_with_speech_indicator(song, birds, completion=completion)
+            _play_audio_with_speech_indicator(song, birds, startTime, completion=completion)
         finally:
             playback_lock.release()
     else:
@@ -92,10 +93,15 @@ def _prepare_streams_and_threads(song, birds):
     return seconds, streams, master_stream, threads
 
 
-def _play_audio_with_speech_indicator(song, birds, completion):
+def _play_audio_with_speech_indicator(song, birds, startTime, completion):
     seconds, streams, master_stream, threads = _prepare_streams_and_threads(song, birds)
     try:
         try:
+            curr_time = time.time()
+            delay = startTime - curr_time
+            if delay < 0:
+                delay = 0
+            time.sleep(delay)
             print("# Start all playback threads")
             print("threads: ", threads)
             for thread in threads:

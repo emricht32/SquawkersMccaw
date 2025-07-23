@@ -1,7 +1,20 @@
 #!/bin/bash
 set -e
 
-sudo apt install -y \
+# Parse arguments
+INSTALL_FLAG=false
+for arg in "$@"; do
+  if [[ "$arg" == "--install" || "$arg" == "-install" ]]; then
+    INSTALL_FLAG=true
+  fi
+done
+
+# Run install steps only if flag is passed
+if $INSTALL_FLAG; then
+  echo "⚙️ Running installation steps..."
+
+
+  sudo apt install -y \
   build-essential \
   cmake \
   dbus \
@@ -30,6 +43,8 @@ sudo apt install -y \
   python3-pyaudio \
   python3-venv \
   zlib1g-dev
+
+fi
 
 sudo systemctl stop avahi-daemon
 

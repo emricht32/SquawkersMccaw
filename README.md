@@ -61,13 +61,14 @@ See the `docs/` and `/hardware` folder for images and wiring diagrams. Birds are
 Run locally from the Pi:
 
 ```bash
-./run_main.sh
+./run_main.sh (--install)
 ```
 
 This will:
+- (optional with --install flag) install dependencies 
 - Convert MP3s to 48kHz WAV if needed
-- Load config from `/media/BIRDS/` if present
-- Start the BLE server
+- Load config and music from `/Volumes/BIRDPI/` or `/boot/BIRDPI` if present
+- ~~Start the BLE server~~
 - Start the web server at `http://<pi-ip>:8080/`
 - Generate a QR code with the Pi's IP
 

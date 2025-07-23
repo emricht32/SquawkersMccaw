@@ -13,8 +13,8 @@ done
 if $INSTALL_FLAG; then
   echo "⚙️ Running installation steps..."
 
-sudo apt update
-sudo apt install -y \
+  sudo apt update
+  sudo apt install -y \
   avahi-daemon \
   build-essential \
   cmake \
@@ -53,7 +53,6 @@ sudo apt install -y \
   sudo systemctl start avahi-daemon
   sudo hostnamectl set-hostname birdpi
 
-
   # MODEL_DIR="models/vosk-model-small-en-us-0.15"
   # ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"
 
@@ -76,28 +75,28 @@ sudo apt install -y \
   # fi
 
   # Disable bonding and BR/EDR, enable LE-only mode
-  sudo /usr/bin/btmgmt -i hci0 power off
-  sleep 1
-  sudo /usr/bin/btmgmt -i hci0 le on
-  sleep 1
-  sudo /usr/bin/btmgmt -i hci0 bredr off
-  sleep 1
-  sudo /usr/bin/btmgmt -i hci0 bondable off
-  sleep 1
-  sudo /usr/bin/btmgmt -i hci0 connectable on
-  sleep 1
-  sudo /usr/bin/btmgmt -i hci0 power on
-  sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 power off
+  # sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 le on
+  # sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 bredr off
+  # sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 bondable off
+  # sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 connectable on
+  # sleep 1
+  # sudo /usr/bin/btmgmt -i hci0 power on
+  # sleep 1
 
   # Use bluetoothctl to enable discoverable + advertising mode
-  /usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
-  power on
-  agent NoInputNoOutput
-  default-agent
-  pairable off
-  discoverable on
-  advertise yes
-EOF
+#   /usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
+#   power on
+#   agent NoInputNoOutput
+#   default-agent
+#   pairable off
+#   discoverable on
+#   advertise yes
+# EOF
 
   python3 -m venv --system-site-packages ~/birdpi-venv
   source ~/birdpi-venv/bin/activate
@@ -140,11 +139,9 @@ for f in $mp3_files; do
     fi
 done
 
-
 echo "waiting for usb sound devices to initialize"
 python3 src/wait_devices_init.py
 echo "usb sound devices initialized"
-
 
 if ! PYTHONPATH=src python3 src/birdpi_main/main.py; then
     echo "Error running the Python script" >&2

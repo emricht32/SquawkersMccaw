@@ -87,7 +87,7 @@ def discover_and_register(requested_name=None, completion=None):
         local_ip = s.getsockname()[0]  # e.g., 192.168.1.34
         s.close()
     except Exception:
-        local_ip = "192.168.1.100"
+        local_ip = "192.168.50.5"
 
     subnet_prefix = ".".join(local_ip.split(".")[:3])  # e.g., 192.168.1
 
