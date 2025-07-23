@@ -63,7 +63,6 @@ Run locally from the Pi:
 ```bash
 ./run_main.sh (--install)
 ```
-
 This will:
 - (optional with --install flag) install dependencies 
 - Convert MP3s to 48kHz WAV if needed
@@ -71,6 +70,16 @@ This will:
 - ~~Start the BLE server~~
 - Start the web server at `http://<pi-ip>:8080/`
 - Generate a QR code with the Pi's IP
+
+or
+
+```bash
+./run_node.sh (--install)
+```
+This will:
+- (optional with --install flag) install dependencies 
+- Register the node`s local IP address with the main (optionally as one of four bird profiles)
+
 
 ---
 
