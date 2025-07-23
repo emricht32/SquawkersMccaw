@@ -19,11 +19,12 @@ This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animat
 
 ## Requirements
 
-- Raspberry Pi 4 Model B
+- Raspberry Pi Zero 2W (Main)
+- Raspberry Pi Zero 2W (1 per node)
 - Squawkers McCaw birds (x4)
 - USB sound cards (1 per bird + 1 master audio)
 - GPIO-controlled SSR/relays for body movement and lighting
-- Motion sensor (optional)
+- ~~Motion sensor (optional)~~
 - IR receiver (optional)
 - Python 3.x
 - Mobile phone or browser
@@ -52,7 +53,7 @@ cd SquawkersMccaw
 
 ## Hardware Setup
 
-See the `docs/` and `/hardware` folder for images and wiring diagrams. Birds are triggered using GPIO pins via solid-state relays, and audio plays through dedicated USB soundcards.
+See the `/docs` and `/hardware` folder for images and wiring diagrams. Birds are triggered using GPIO pins via solid-state relays, and audio plays through dedicated USB soundcards.
 
 ---
 
@@ -68,7 +69,7 @@ This will:
 - Convert MP3s to 48kHz WAV if needed
 - Load config and music from `/Volumes/BIRDPI/` or `/boot/BIRDPI` if present
 - ~~Start the BLE server~~
-- Start the web server at `http://<pi-ip>:8080/`
+- Start the web server at `http://birdpi.local:8080/`
 - Generate a QR code with the Pi's IP
 
 or
@@ -76,10 +77,10 @@ or
 ```bash
 ./run_node.sh (--install)
 ```
+
 This will:
 - (optional with --install flag) install dependencies 
 - Register the node`s local IP address with the main (optionally as one of four bird profiles)
-
 
 ---
 
@@ -87,7 +88,8 @@ This will:
 
 A mobile-optimized web UI is served from the Raspberry Pi. On startup, the app automatically generates a QR code that links to the Pi’s web interface.
 
-- Visit: `http://<pi-ip>:8080/`
+- Visit: `http://birdpi.local:8080/`
+- Or `192.168.50.5`
 - Or scan the displayed QR code on another device
 
 The image is saved to `static/birds_qr.png` and displayed automatically in the web UI.
@@ -102,7 +104,7 @@ Create a systemd unit to launch your `run.sh` script:
 sudo nano /etc/systemd/system/birdpi.service
 ```
 
-Paste:
+Paste (replacing all occurences of `birdpi` with your user name):
 
 ```ini
 [Unit]
@@ -110,12 +112,12 @@ Description=BirdPi App Service
 After=network.target bluetooth.target
 
 [Service]
-ExecStart=/home/pi/code/SquawkersMccaw/run.sh
+ExecStart=/home/birdpi/code/SquawkersMccaw/run_main.sh
 Restart=always
-User=pi
-WorkingDirectory=/home/pi/code/SquawkersMccaw
-StandardOutput=append:/home/pi/birdpi.log
-StandardError=append:/home/pi/birdpi.log
+User=birdpi
+WorkingDirectory=/home/birdpi/code/SquawkersMccaw
+StandardOutput=append:/home/birdpi/birdpi.log
+StandardError=append:/home/birdpi/birdpi.log
 Environment=PYTHONUNBUFFERED=1
 
 [Install]
@@ -134,7 +136,7 @@ sudo systemctl start birdpi.service
 
 ## Notes
 
-- BLE notifications are sent when songs start and finish
+- ~~BLE notifications are sent when songs start and finish~~
 - Songs must be sampled at 48kHz due to USB audio device limitations
 - Audio separation and editing can be done using Audacity and [vocalremover.org](https://vocalremover.org)
 
