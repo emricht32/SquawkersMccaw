@@ -39,7 +39,7 @@ def load_and_union_configs():
 def resolve_song_audio_dirs(songs):
     """
     For each song, finds the first location (by priority) where a folder named <song_name> exists
-    and contains at least one file starting with 0_ (any extension).
+    and contains at least one file starting with 0_ or 0- (any extension).
     Sets song['audio_dir'] to the relative path where found.
     """
     music_locations = [
@@ -53,12 +53,15 @@ def resolve_song_audio_dirs(songs):
         for base_dir in music_locations:
             candidate_dir = os.path.join(base_dir, song_name)
             if os.path.isdir(candidate_dir):
-                audio_files = glob.glob(os.path.join(candidate_dir, "0*"))
+                files_underscore = glob.glob(os.path.join(candidate_dir, "0_*"))
+                files_dash = glob.glob(os.path.join(candidate_dir, "0-*"))
+                audio_files = files_underscore + files_dash
                 if audio_files:
                     song["audio_dir"] = os.path.relpath(candidate_dir, ".")
                     found = True
                     break
         if not found:
-            print(f"⚠️  Music directory not found (or no 0_ file) for song: {song_name}")
+            print(f"⚠️  Music directory not found (or no 0_ or 0- file) for song: {song_name}")
     return [song for song in songs if "audio_dir" in song]
+
 
