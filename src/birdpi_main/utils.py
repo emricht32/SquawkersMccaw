@@ -62,7 +62,7 @@ def resolve_song_audio_dirs(songs):
                     found = True
                     break
         if not found:
-            print(f"⚠️  Music directory not found (or no 0_ or 0- file) for song: {song_name}")
+            print(f"⚠️  Music directory not found (or no 0_ or 0- file) for song: {song_name}, dir: {folder_name}")
     return [song for song in songs if "audio_dir" in song]
 
 
