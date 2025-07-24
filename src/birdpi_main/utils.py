@@ -53,7 +53,7 @@ def resolve_song_audio_dirs(songs):
         for base_dir in music_locations:
             candidate_dir = os.path.join(base_dir, song_name)
             if os.path.isdir(candidate_dir):
-                audio_files = glob.glob(os.path.join(candidate_dir, "0_*"))
+                audio_files = glob.glob(os.path.join(candidate_dir, "0*"))
                 if audio_files:
                     song["audio_dir"] = os.path.relpath(candidate_dir, ".")
                     found = True

@@ -98,7 +98,7 @@ The image is saved to `static/birds_qr.png` and displayed automatically in the w
 
 ## Auto-Start on Boot (systemd)
 
-Create a systemd unit to launch your `run.sh` script:
+Create a systemd unit to launch your `run<main|node>.sh` script:
 
 ```bash
 sudo nano /etc/systemd/system/birdpi.service
