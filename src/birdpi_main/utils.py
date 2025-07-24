@@ -43,15 +43,16 @@ def resolve_song_audio_dirs(songs):
     Sets song['audio_dir'] to the relative path where found.
     """
     music_locations = [
-        "/Volumes/BIRDPI/music",
-        "/boot/BIRDPI/music",
-        "./music"
+        "/Volumes/BIRDPI/",
+        "/boot/BIRDPI/",
+        "./"
     ]
     for song in songs:
         song_name = song["name"]
+        folder_name = song["audio_dir"]
         found = False
         for base_dir in music_locations:
-            candidate_dir = os.path.join(base_dir, song_name)
+            candidate_dir = os.path.join(base_dir, folder_name)
             if os.path.isdir(candidate_dir):
                 files_underscore = glob.glob(os.path.join(candidate_dir, "0_*"))
                 files_dash = glob.glob(os.path.join(candidate_dir, "0-*"))
