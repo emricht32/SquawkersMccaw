@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     # Example callback when app selects a song
     def on_song_selected(index):
-        global current_index
+        global current_index, registry
         if index is not None:
             song = songs[index] if 0 <= index < len(songs) else None
 
