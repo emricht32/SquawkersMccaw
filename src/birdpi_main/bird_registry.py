@@ -75,7 +75,8 @@ class BirdRegistry:
         return self.birds
     
     def get_bird_names(self):
-        return self.birds.keys
+        print("self.birds.keys=", self.birds.keys())
+        return self.birds.keys()
      
     def _handleResponse(self, r, name, data):
         if r.ok:
