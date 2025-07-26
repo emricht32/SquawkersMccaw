@@ -80,7 +80,16 @@ def perform():
     if delay < 0:
         delay = 0
 
-    threading.Timer(delay, lambda: manage_leds([bird_instance], ON_TIME)).start()
+    # Find largest number in "singing"
+    max_singing = max([num for pair in data["singing"] for num in pair]) if data["singing"] else float('-inf')
+
+    # Find largest number in "dancing"
+    max_dancing = max([num for pair in data["dancing"] for num in pair]) if data["dancing"] else float('-inf')
+
+    # Find the largest overall
+    seconds = max(max_singing, max_dancing)
+
+    threading.Timer(delay, lambda: manage_leds([bird_instance], seconds)).start()
 
     return jsonify({
         "status": "scheduled",
