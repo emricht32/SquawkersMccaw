@@ -4,9 +4,15 @@ import os
 from bird_registry import registry
 import time
 
-def create_web_interface(songs, on_song_selected):
+def create_web_interface(songs, on_song_selected, cancel_current_song):
     app = Flask(__name__, static_folder="static", static_url_path="")
     CORS(app)
+
+    @app.route("/api/birds", methods=["GET"])
+    def get_birds():
+        # Example: registry.get_birds() returns {name: {"id":..., "ip":..., "status":..., "last_seen":...}}
+        return jsonify(registry.get_birds())
+
 
     @app.route("/api/songs", methods=["GET"])
     def get_songs():
@@ -19,10 +25,17 @@ def create_web_interface(songs, on_song_selected):
     def select_song():
         data = request.json
         index = data.get("index")
+        queue = data.get("queue", False)
         if index is not None and 0 <= index < len(songs):
-            on_song_selected(index)
+            on_song_selected(index, queue=queue)  # Pass queue param to your logic
             return jsonify({"status": "ok"})
         return jsonify({"status": "error", "message": "Invalid index"}), 400
+
+    @app.route("/api/cancel", methods=["POST"])
+    def cancel():
+        # Implement this in your backend to stop playback and clear any queue as needed
+        cancel_current_song()
+        return jsonify({"status": "cancelled"})
 
     # Serve index.html for root
     @app.route("/")

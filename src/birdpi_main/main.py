@@ -1,7 +1,7 @@
 import threading
 import json
 import os
-from common.bird import Bird
+from common.bird import Bird, cancel_current_song
 from send_song_start import send_song_start
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator
@@ -48,7 +48,7 @@ def generate_qr_code(output_path="static/birds_qr.png", port=8080):
     # Start Flask server
 def start_web_server(songs):
     print("Start Flask server")
-    app = create_web_interface(songs, on_song_selected)
+    app = create_web_interface(songs, on_song_selected, cancel_current_song)
     app.run(host="0.0.0.0", port=8080)
 
 def get_lan_ip():
@@ -107,6 +107,9 @@ if __name__ == "__main__":
                 start_time = send_dict["start_time"]
                 filtered_birds = [bird for bird in birds if bird.name not in registry.get_bird_names()]
                 play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
+
+    def cancel_current_song():
+        cancel_current_song()
 
 ###################START###################
     current_index = None

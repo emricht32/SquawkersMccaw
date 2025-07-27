@@ -38,6 +38,14 @@ sudo apt update && sudo apt upgrade
 sudo apt install -y git-lfs python3-pip libportaudio2 libsndfile1 screen git ffmpeg libcairo2-dev pkg-config python3-dev libgirepository1.0-dev gir1.2-glib-2.0
 ```
 
+(Optional) If you want the Pi to broadcast its own Access Point rather then use your WiFi
+```bash
+curl "https://www.raspberryconnect.com/images/scripts/AccessPopup.tar.gz" -o AccessPopup.tar.gz
+tar -xvf ./AccessPopup.tar.gz
+cd AccessPopup
+sudo ./installconfig.sh
+```
+
 Clone the repo and install dependencies:
 
 ```bash

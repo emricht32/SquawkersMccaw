@@ -6,6 +6,8 @@ try:
 except ImportError:
     GPIO_AVAILABLE = False
 
+keep_playing = True
+
 class Bird:
     def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
         print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
@@ -93,12 +95,13 @@ def oscillate_logs(event, duration, name):
         time.sleep(duration/2)
 
 def manage_leds(birds, audio_duration):
+    global keep_playing
     print("manage_leds")
     print("audio_duration=", audio_duration)
     sleep_time = 0.3
     start_time = time.time()
     curr_time = time.time() - start_time
-    while (curr_time < audio_duration):
+    while (curr_time < audio_duration) and keep_playing:
         curr_time = time.time() - start_time
         print("curr_time=", curr_time)
         for bird in birds:
@@ -109,6 +112,11 @@ def manage_leds(birds, audio_duration):
                 if bird.is_dancing(curr_time):
                     bird.start_dancing()
         time.sleep(sleep_time)
+    keep_playing = True
     for bird in birds:
         print("STOPPING Bird:", bird.name)
         bird.stop_moving()
+
+def cancel_current_song():
+    global keep_playing
+    keep_playing = False
