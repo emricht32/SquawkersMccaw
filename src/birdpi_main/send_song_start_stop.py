@@ -65,3 +65,15 @@ def get_bird_timings(bird_name: str, song_data: dict) -> dict:
         "singing": singing,
         "dancing": dancing
     }
+
+def post_cancel_to_bird(bird, song_name):
+    bird_name = bird.get("name", "Unknown")
+    try:
+        r = requests.post(f"http://{bird['ip']}:5001/cancel", json={"song":song_name}, timeout=2)
+        if r.ok:
+            return (bird.get("name", "Unknown"), True)
+        else:
+            return (bird.get("name", "Unknown"), False)
+    except Exception as e:
+        print(f"Error sending to {bird_name}: {e}")
+        return (bird_name, False)

@@ -1,9 +1,9 @@
 import threading
 import json
 import os
-from common.bird import Bird, cancel_current_song
-import common.bird 
-from send_song_start import send_song_start
+from common import bird 
+from common.bird import Bird
+from src.birdpi_main.send_song_start_stop import send_song_start, post_cancel_to_bird
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator
 import utils
@@ -111,7 +111,13 @@ if __name__ == "__main__":
                 play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
 
     def cancel_current_song():
-        common.bird.cancel_current_song()
+        global current_index
+        if current_index is not None:
+            song = songs.get(current_index)
+            song_name = song.get("name")
+            for bird in registry.get_birds():
+                post_cancel_to_bird(bird, song_name)
+        bird.cancel_current_song()
 
 ###################START###################
     current_index = None

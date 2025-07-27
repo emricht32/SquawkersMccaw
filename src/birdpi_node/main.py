@@ -7,7 +7,7 @@ import socket
 import os
 import json
 from pathlib import Path
-from common.bird import Bird, manage_leds
+from common.bird import Bird, manage_leds, cancel_current_song
 from register import discover_and_register
 try:
     from gpiozero import LED
@@ -97,6 +97,12 @@ def perform():
         "delay": delay,
         "bird": BIRD_NAME
     }), 200
+
+@app.route("/cancel", methods=["POST"])
+def cancel_song():
+    print("❌ /cancel hit")
+    cancel_current_song()
+    return {"success": "true"}
 
 @app.route("/status")
 def status():
