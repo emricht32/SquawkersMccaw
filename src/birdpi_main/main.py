@@ -115,9 +115,9 @@ if __name__ == "__main__":
         if current_index is not None:
             song = songs[current_index]
             song_name = song.get("name")
-            for bird in registry.get_birds():
-                print("cancel_current_song.birds[].bird=",bird)
-                post_cancel_to_bird(bird, song_name)
+            for b in registry.get_birds():
+                print("cancel_current_song.birds[].bird=",b)
+                post_cancel_to_bird(b, song_name)
         bird.cancel_current_song()
 
 ###################START###################
