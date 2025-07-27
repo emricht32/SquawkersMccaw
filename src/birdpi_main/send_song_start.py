@@ -13,6 +13,8 @@ def send_song_start(song) -> dict:
     start_time = time.time() + delay
 
     def post_to_bird(bird_name, bird, song_name, song):
+        print("___SONG___= ", song)
+        print("___SONG_NAME___= ", song_name)
         song_data_for_bird = get_bird_timings(song_name, song)
         payload = {
             "singing": song_data_for_bird.get("singing", []),
