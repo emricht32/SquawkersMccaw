@@ -113,7 +113,7 @@ if __name__ == "__main__":
     def cancel_current_song():
         global current_index
         if current_index is not None:
-            song = songs.get(current_index)
+            song = songs[current_index]
             song_name = song.get("name")
             for bird in registry.get_birds():
                 post_cancel_to_bird(bird, song_name)
