@@ -72,6 +72,7 @@ class BirdRegistry:
             time.sleep(5)
 
     def get_birds(self):
+        print("get_birds.self.birds=", self.birds)
         return self.birds
     
     def get_bird_names(self):
