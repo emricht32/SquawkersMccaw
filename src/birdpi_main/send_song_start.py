@@ -12,7 +12,7 @@ def send_song_start(song) -> dict:
     delay = 3.0  # Seconds until showtime
     start_time = time.time() + delay
 
-    def post_to_bird(bird_name, bird):
+    def post_to_bird(bird_name, bird, song_name, song):
         song_data_for_bird = get_bird_timings(song_name, song)
         payload = {
             "singing": song_data_for_bird.get("singing", []),
@@ -31,7 +31,7 @@ def send_song_start(song) -> dict:
 
     success, failed = [], []
     with ThreadPoolExecutor(max_workers=len(birds)) as executor:
-        futures = [executor.submit(post_to_bird, bird_name, bird) for bird_name, bird in birds.items()]
+        futures = [executor.submit(post_to_bird, bird_name, bird, song_name, song) for bird_name, bird in birds.items()]
         for future in as_completed(futures):
             bird_name, ok = future.result()
             (success if ok else failed).append(bird_name)
@@ -46,7 +46,7 @@ def send_song_start(song) -> dict:
 def get_bird_timings(bird_name: str, song_data: dict) -> dict:
     # Find the individual entry for the bird
     individual = next((b for b in song_data["individuals"] if b["name"] == bird_name), None)
-    
+    print("get_bird_timings().individual=", individual)
     # If the bird isn't found, return only the "all" timings
     if not individual:
         return {
