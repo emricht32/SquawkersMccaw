@@ -86,7 +86,8 @@ if __name__ == "__main__":
         current_index = None
 
     # Example callback when app selects a song
-    def on_song_selected(index):
+    # TODO: Handle queue
+    def on_song_selected(index, queue=False):
         global current_index, registry
         if index is not None:
             song = songs[index] if 0 <= index < len(songs) else None
