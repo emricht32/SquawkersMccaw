@@ -2,6 +2,7 @@ import threading
 import json
 import os
 from common.bird import Bird, cancel_current_song
+import common.bird 
 from send_song_start import send_song_start
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator
@@ -110,7 +111,7 @@ if __name__ == "__main__":
                 play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
 
     def cancel_current_song():
-        cancel_current_song()
+        common.bird.cancel_current_song()
 
 ###################START###################
     current_index = None
