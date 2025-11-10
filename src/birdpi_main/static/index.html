@@ -66,11 +66,6 @@
                     onclick="selectSong(${song.index}, false);event.stopPropagation();">
               ▶️
             </button>
-            <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
-                    title="Queue"
-                    onclick="selectSong(${song.index}, true);event.stopPropagation();">
-              ➕
-            </button>
           </div>
         `;
         list.appendChild(li);
@@ -90,7 +85,9 @@
           <td class="p-2">${data.id ?? ''}</td>
           <td class="p-2">${data.ip ?? ''}</td>
           <td class="p-2 capitalize ${getStatusColor(data.status)}">${data.status ?? ''}</td>
-          <td class="p-2">${data.last_seen !== undefined ? Number(data.last_seen).toFixed(1) : ''}</td>
+          <td class="p-2">
+            ${data.last_seen !== undefined ? (Date.now() / 1000 - Number(data.last_seen)).toFixed(1) : ''}
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -106,13 +103,13 @@
     }
 
     // Song Selection / Queue
-    async function selectSong(index, queue=false) {
+    async function selectSong(index) {
       const btnText = queue ? "Queued" : "Selected";
       showQueueStatus(`${btnText} song #${index+1}...`);
       await fetch("/api/select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ index, queue })
+        body: JSON.stringify({ index })
       });
       setTimeout(hideQueueStatus, 1500);
       fetchSongs(); // Optionally refresh song list if queue updates

@@ -5,7 +5,8 @@ from common import bird
 from common.bird import Bird
 from send_song_start_stop import send_song_start, post_cancel_to_bird
 from bird_registry import registry
-from play_audio import play_audio_with_speech_indicator
+from play_audio import play_audio_with_speech_indicator, is_playing_song
+from queue import Queue
 import utils
 
 try:
@@ -49,7 +50,7 @@ def generate_qr_code(output_path="static/birds_qr.png", port=8080):
     # Start Flask server
 def start_web_server(songs):
     print("Start Flask server")
-    app = create_web_interface(songs, on_song_selected, cancel_current_song)
+    app = create_web_interface(songs, on_song_selected, cancel_current_song, get_queue)
     app.run(host="0.0.0.0", port=8080)
 
 def get_lan_ip():
@@ -85,6 +86,9 @@ if __name__ == "__main__":
     def song_completion(song):
         global current_index
         current_index = None
+        if not queue.empty():
+            on_song_selected(queue.get()) 
+
 
     # Example callback when app selects a song
     # TODO: Handle queue
@@ -92,23 +96,19 @@ if __name__ == "__main__":
         global current_index, registry
         if index is not None:
             song = songs[index] if 0 <= index < len(songs) else None
-
-            # Trigger your play_audio_with_speech_indicator() logic here
-            # song = songs[5] happy bday
             if song:
-                name = song.get("name")
-                print(f"🎬 Playing song #{index}: {name}")
-                current_index = index
-                # {
-                #     "song": song_name,
-                #     "start_time": start_time,
-                #     "triggered": success,
-                #     "failed": failed
-                # }
-                send_dict = send_song_start(song)
-                start_time = send_dict["start_time"]
-                filtered_birds = [bird for bird in birds if bird.name not in registry.get_bird_names()]
-                play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
+                if is_playing_song():
+                    add_to_queue(index)
+                else:
+                    current_index = index
+                    send_dict = send_song_start(song)
+                    start_time = send_dict["start_time"]
+                    filtered_birds = [bird for bird in birds if bird.name not in registry.get_bird_names()]
+                    play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
+    
+    def add_to_queue(song, index):
+        queue.put(index)
+
 
     def cancel_current_song():
         global current_index
@@ -120,8 +120,12 @@ if __name__ == "__main__":
                 post_cancel_to_bird(b, song_name)
         bird.cancel_current_song()
 
+    def get_queue():
+        return queue
+
 ###################START###################
     current_index = None
+    queue = Queue()
 
     generate_qr_code()
     config_dict = utils.load_and_union_configs()

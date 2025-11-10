@@ -32,11 +32,12 @@ def send_song_start(song) -> dict:
             return (bird_name, False)
 
     success, failed = [], []
-    with ThreadPoolExecutor(max_workers=len(birds)) as executor:
-        futures = [executor.submit(post_to_bird, bird_name, bird, song_name, song) for bird_name, bird in birds.items()]
-        for future in as_completed(futures):
-            bird_name, ok = future.result()
-            (success if ok else failed).append(bird_name)
+    if len(birds) > 0:
+        with ThreadPoolExecutor(max_workers=len(birds)) as executor:
+            futures = [executor.submit(post_to_bird, bird_name, bird, song_name, song) for bird_name, bird in birds.items()]
+            for future in as_completed(futures):
+                bird_name, ok = future.result()
+                (success if ok else failed).append(bird_name)
 
     return {
         "song": song_name,

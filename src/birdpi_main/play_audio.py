@@ -7,6 +7,9 @@ import os
 
 playback_lock = threading.Lock()
 
+def is_playing_song() -> bool:
+    return playback_lock.locked
+
 def play_audio_with_speech_indicator(song, birds, startTime = 0, completion=None):
     if playback_lock.acquire(blocking=False):
         try:
@@ -14,7 +17,7 @@ def play_audio_with_speech_indicator(song, birds, startTime = 0, completion=None
         finally:
             playback_lock.release()
     else:
-        print("⚠️ Playback already in progress, ignoring new voice command.")
+        print("⚠️ Playback already in progress, ignoring new command.")
 
 def _prepare_streams_and_threads(song, birds):
     def good_filepath(path):
