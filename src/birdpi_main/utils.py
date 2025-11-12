@@ -10,6 +10,12 @@ CONFIG_LOCATIONS = [
     "config_multi_song_with_triggers.json"  # Local fallback
 ]
 
+SYSTEM_CONFIG_PATHS = [
+    "config/system.json",  # repo local
+    "/boot/BIRDPI/system.json",  # boot partition (if copied there)
+    "/Volumes/BIRDPI/system.json"  # USB override
+]
+
 def load_and_union_configs():
     """Load config JSONs from all possible locations, union their bird and song lists."""
     union_config = {"birds": [], "songs": []}
@@ -64,5 +70,29 @@ def resolve_song_audio_dirs(songs):
         if not found:
             print(f"⚠️  Music directory not found (or no 0_ or 0- file) for song: {song_name}, dir: {folder_name}")
     return [song for song in songs if "audio_dir" in song]
+
+def load_system_config():
+    """Load the first found system config JSON providing LMS, bird_player_map, provisioning flags.
+    Returns a dict with defaults if none found."""
+    default_cfg = {
+        "lms": {"host": "localhost", "port": 9090},
+        "provisioning": {"force_ap": False}
+    }
+    for path in SYSTEM_CONFIG_PATHS:
+        p = Path(path)
+        if p.exists():
+            try:
+                with open(p, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                # Merge shallowly with defaults
+                merged = default_cfg.copy()
+                for key in ["lms", "provisioning"]:
+                    if key in data:
+                        merged[key] = data[key]
+                return merged
+            except Exception as e:
+                print(f"⚠️ Failed loading system config {path}: {e}")
+    return default_cfg
+
 
 

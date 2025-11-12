@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-black min-h-screen flex flex-col items-center p-4 space-y-6">
-  <div class="w-full max-w-5xl flex flex-col md:flex-row gap-8">
+  <div class="w-full max-w-6xl flex flex-col md:flex-row gap-8">
     <!-- Left: Song List -->
     <div class="flex-1">
       <h1 class="text-3xl font-bold mb-4">Select a Song</h1>
@@ -20,8 +20,8 @@
         ⏹ Cancel Current Song
       </button>
     </div>
-    <!-- Right: Birds Table & QR -->
-    <div class="flex-1 flex flex-col items-center space-y-4">
+  <!-- Right: Birds Table, QR, and WiFi Provisioning -->
+  <div class="flex-1 flex flex-col items-center space-y-4">
       <div class="w-full">
         <h2 class="text-2xl font-bold mb-2">Bird Status</h2>
         <div class="overflow-x-auto">
@@ -44,6 +44,23 @@
       <div class="text-center">
         <h3 class="text-lg font-semibold mb-1">Scan to Open on Your Phone</h3>
         <img src="birds_qr.png" alt="Scan this QR code" class="w-40 h-40 border rounded mx-auto" />
+      </div>
+      <!-- WiFi Provisioning Panel -->
+      <div class="w-full bg-white rounded shadow p-4 space-y-3">
+        <h2 class="text-xl font-bold">WiFi Provisioning</h2>
+        <div id="wifi-status" class="text-sm text-gray-700">Loading WiFi status...</div>
+        <form id="wifi-form" class="space-y-2" onsubmit="submitWifi(event)">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="ssid">SSID</label>
+            <input id="ssid" name="ssid" type="text" required class="w-full border rounded px-2 py-1" placeholder="Network Name" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="password">Password</label>
+            <input id="password" name="password" type="password" required class="w-full border rounded px-2 py-1" placeholder="WiFi Password" />
+          </div>
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Save & Apply</button>
+          <div id="wifi-feedback" class="text-sm mt-2"></div>
+        </form>
       </div>
     </div>
   </div>
@@ -133,11 +150,54 @@
       document.getElementById("queue-status").classList.add("hidden");
     }
 
+    // WiFi Provisioning
+    async function fetchWifiStatus() {
+      try {
+        const res = await fetch('/api/wifi/status');
+        if (!res.ok) throw new Error('status fetch failed');
+        const data = await res.json();
+        const el = document.getElementById('wifi-status');
+        el.innerHTML = `Configured SSID: <strong>${data.configured_ssid}</strong><br/>Connected SSID: <strong>${data.connected_ssid}</strong><br/>IP: <strong>${data.ip}</strong>`;
+      } catch (e) {
+        document.getElementById('wifi-status').innerText = 'Failed to load WiFi status';
+      }
+    }
+
+    async function submitWifi(e) {
+      e.preventDefault();
+      const ssid = document.getElementById('ssid').value.trim();
+      const password = document.getElementById('password').value;
+      const feedback = document.getElementById('wifi-feedback');
+      feedback.className = 'text-sm';
+      feedback.innerText = 'Applying...';
+      try {
+        const res = await fetch('/api/wifi/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ssid, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'ok') {
+          feedback.className = 'text-sm text-green-600';
+          feedback.innerText = 'Credentials saved. System may reconnect shortly.';
+          fetchWifiStatus();
+        } else {
+          feedback.className = 'text-sm text-red-600';
+          feedback.innerText = data.message || 'Error applying credentials';
+        }
+      } catch (err) {
+        feedback.className = 'text-sm text-red-600';
+        feedback.innerText = 'Network error applying credentials';
+      }
+    }
+
     // Periodic Refresh
     setInterval(fetchSongs, 5000);
     setInterval(fetchBirds, 2000);
+    setInterval(fetchWifiStatus, 7000);
     fetchSongs();
     fetchBirds();
+    fetchWifiStatus();
   </script>
 </body>
 </html>

@@ -1,13 +1,15 @@
 import threading
 import json
 import os
-from common import bird 
+from common import bird
 from common.bird import Bird
 from send_song_start_stop import send_song_start, post_cancel_to_bird
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator, is_playing_song
 from queue import Queue
 import utils
+from utils import load_system_config
+from lms_control import play_song_with_volume_schedule
 
 try:
     from gpiozero import MotionSensor, Button, LED
@@ -18,7 +20,7 @@ except ImportError:
 
 LAST_MOTION, PIR = None, None
 
-CONFIG_FILE = 'config_multi_song_with_triggers.json'
+# Removed unused CONFIG_FILE constant; config loading handled via utils.load_and_union_configs()
 
 # from ble_song_selector import BLESongSelector
 # from voice_input import voice_listener
@@ -92,6 +94,13 @@ if __name__ == "__main__":
 
     # Example callback when app selects a song
     # TODO: Handle queue
+    # Load centralized system config (LMS host/port, bird_player_map, provisioning flags)
+    system_cfg = load_system_config()
+    USE_LMS = True  # still feature flag; could be system_cfg.get('lms', {}).get('enabled', True)
+    # Dynamic player map (bird name -> MAC) built from registry; static map deprecated.
+    def get_dynamic_player_map():
+        return {name: info.get("mac") for name, info in registry.get_birds().items() if info.get("mac")}
+
     def on_song_selected(index, queue=False):
         global current_index, registry
         if index is not None:
@@ -103,10 +112,24 @@ if __name__ == "__main__":
                     current_index = index
                     send_dict = send_song_start(song)
                     start_time = send_dict["start_time"]
-                    filtered_birds = [bird for bird in birds if bird.name not in registry.get_bird_names()]
-                    play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
+                    active_map = get_dynamic_player_map()
+                    if USE_LMS and "lms_track" in song and active_map:
+                        print("Using LMS playback path (map size=", len(active_map), ")")
+                        play_song_with_volume_schedule(
+                            song,
+                            start_time,
+                            active_map,
+                            speaking_volume=80,
+                            background_volume=15,
+                            muted_volume=0,
+                            use_background=True,
+                        )
+                    else:
+                        print("Falling back to local audio playback.")
+                        filtered_birds = [bird for bird in birds if bird.name not in registry.get_bird_names()]
+                        play_audio_with_speech_indicator(song, filtered_birds, start_time, completion=song_completion)
     
-    def add_to_queue(song, index):
+    def add_to_queue(index):
         queue.put(index)
 
 
@@ -121,7 +144,7 @@ if __name__ == "__main__":
         bird.cancel_current_song()
 
     def get_queue():
-        return queue
+        return list(queue.queue)
 
 ###################START###################
     current_index = None

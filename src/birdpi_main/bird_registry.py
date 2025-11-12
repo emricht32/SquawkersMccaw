@@ -2,16 +2,12 @@ import time
 import threading
 import requests
 
-import time
-import threading
-import requests
-
 RESERVED_NAMES = ["Jose", "Michael", "Pierre", "Fritz"]
 
 class BirdRegistry:
     def __init__(self):
-        self.birds = {}         # name: { ip, id, status, last_seen, songs }
-        self.name_map = {}      # ip: name
+        self.birds = {}         # name: { ip, id, mac, status, last_seen }
+    # self.name_map deprecated; direct lookup via birds dict
 
     def assign_name(self, requested_name, ip):
         used_names = set(self.birds.keys())
@@ -35,20 +31,18 @@ class BirdRegistry:
         return None  # All names taken
 
 
-    def register(self, bird_id, ip, name):
+    def register(self, bird_id, ip, name, mac=None):
         assigned_name = self.assign_name(name, ip)
         if not assigned_name:
             return None  # Reject if no names left
-    
-        # time.sleep(0.5)
-
         self.birds[assigned_name] = {
             "ip": ip,
             "id": bird_id,
+            "mac": mac,
             "status": "Pending",
             "last_seen": time.time(),
         }
-        self.name_map[ip] = assigned_name
+    # name_map removed; if needed implement reverse lookup via comprehension
         return assigned_name
 
     def update_status(self):
@@ -92,5 +86,5 @@ class BirdRegistry:
 
 registry = BirdRegistry()
 
-# Start background thread to keep statuses updated
+# Background thread keeps statuses updated
 threading.Thread(target=registry.update_status, daemon=True).start()

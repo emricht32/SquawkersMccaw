@@ -1,0 +1,9 @@
+{
+  "lms": {
+    "host": "localhost",
+    "port": 9090
+  },
+  "provisioning": {
+    "force_ap": false
+  }
+}
