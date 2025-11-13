@@ -19,7 +19,8 @@ Each song can include an `lms_track` entry pointing to a file or URL accessible 
 	],
 	"all_singing": [],
 	"all_dancing": []
-}
+	- (BLE support removed; notifications previously sent on song start/finish)
+	- (Voice input via Vosk removed; speech-triggered song selection deprecated to simplify dependencies)
 ```
 
 Dynamic Player Mapping (Headless): Bird nodes now self-register with their MAC addresses via the `/register` endpoint. The master builds a dynamic map (bird name → MAC) automatically—no manual `bird_player_map` section required. If a static map is omitted (recommended), the system uses the dynamic map for volume scheduling.
@@ -185,7 +186,7 @@ Schedule on boot (cron @reboot or systemd service). This lets the master track n
 
 ## Overview
 
-This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animatronic birds, a Raspberry Pi, and custom software/hardware. It features BLE, remote control, and a mobile-friendly web interface — allowing users to trigger music and animations wirelessly.
+This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animatronic birds, a Raspberry Pi, and custom software/hardware. It features a mobile-friendly web interface — allowing users to trigger music and animations wirelessly.
 
 ## Table of Contents
 
@@ -253,7 +254,7 @@ This will:
 - (optional with --install flag) install dependencies 
 - Convert MP3s to 48kHz WAV if needed
 - Load config and music from `/Volumes/BIRDPI/` or `/boot/BIRDPI` if present
-- ~~Start the BLE server~~
+- (BLE support removed; bluezero dependency and BLE song selector have been deprecated)
 - Start the web server at `http://birdpi.local:8080/`
 - Generate a QR code with the Pi's IP
 
@@ -321,7 +322,7 @@ sudo systemctl start birdpi.service
 
 ## Notes
 
-- ~~BLE notifications are sent when songs start and finish~~
+<!-- BLE functionality removed; notifications previously sent on song start/finish -->
 - Songs must be sampled at 48kHz due to USB audio device limitations
 - Audio separation and editing can be done using Audacity and [vocalremover.org](https://vocalremover.org)
 

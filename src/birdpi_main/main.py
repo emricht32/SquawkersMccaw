@@ -23,7 +23,7 @@ LAST_MOTION, PIR = None, None
 # Removed unused CONFIG_FILE constant; config loading handled via utils.load_and_union_configs()
 
 # from ble_song_selector import BLESongSelector
-# from voice_input import voice_listener
+# Voice input (vosk) removed; dependency pruned.
 # from remote_input import remote_listener
 from web_interface import create_web_interface
 import qrcode
