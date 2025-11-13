@@ -72,11 +72,22 @@ def resolve_song_audio_dirs(songs):
     return [song for song in songs if "audio_dir" in song]
 
 def load_system_config():
-    """Load the first found system config JSON providing LMS, bird_player_map, provisioning flags.
-    Returns a dict with defaults if none found."""
+    """Load the first found system config JSON providing LMS and optional static bird/master metadata.
+    Provisioning support has been removed; config may include:
+    {
+      "lms": {"host": "<ip>", "port": 9090},
+      "birds": { "fritz": {"player": "birdpi-fritz"}, ... },
+      "master": { "player": "birdpi-master" },
+      "startup_validation_delay": 30
+    }
+    Returns defaults if none found."""
     default_cfg = {
         "lms": {"host": "localhost", "port": 9090},
-        "provisioning": {"force_ap": False}
+        "birds": {},
+        "master": {},
+        # Optional delays
+        "startup_validation_delay": 30,
+        "periodic_validation_interval": 300
     }
     for path in SYSTEM_CONFIG_PATHS:
         p = Path(path)
@@ -84,9 +95,8 @@ def load_system_config():
             try:
                 with open(p, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                # Merge shallowly with defaults
                 merged = default_cfg.copy()
-                for key in ["lms", "provisioning"]:
+                for key in ["lms", "birds", "master", "startup_validation_delay", "periodic_validation_interval"]:
                     if key in data:
                         merged[key] = data[key]
                 return merged

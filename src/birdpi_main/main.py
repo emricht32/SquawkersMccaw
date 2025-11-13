@@ -94,9 +94,11 @@ if __name__ == "__main__":
 
     # Example callback when app selects a song
     # TODO: Handle queue
-    # Load centralized system config (LMS host/port, bird_player_map, provisioning flags)
+    # Load centralized system config (LMS host/port, optional static birds/master metadata)
     system_cfg = load_system_config()
     USE_LMS = True  # still feature flag; could be system_cfg.get('lms', {}).get('enabled', True)
+    validation_delay = system_cfg.get("startup_validation_delay", 30)
+    periodic_interval = system_cfg.get("periodic_validation_interval", 300)
     # Dynamic player map (bird name -> MAC) built from registry; static map deprecated.
     def get_dynamic_player_map():
         return {name: info.get("mac") for name, info in registry.get_birds().items() if info.get("mac")}
@@ -165,6 +167,40 @@ if __name__ == "__main__":
 
     birds = [Bird(bird["name"], bird["beak"], bird["body"], bird["light"]) for bird in config_dict["birds"]]
     display_names = [song.get("display_name", song.get("name", "Unknown")) for song in songs]
+
+    # Startup validation: ensure expected birds register within a grace window.
+    def schedule_startup_validation(expected_names, delay_seconds=30):
+        def _validate():
+            current = set(registry.get_birds().keys())
+            missing = [n for n in expected_names if n not in current]
+            if missing:
+                print(f"[startup-validation] Missing birds after {delay_seconds}s: {', '.join(missing)}")
+            else:
+                print(f"[startup-validation] All expected birds registered ({len(expected_names)}) within {delay_seconds}s.")
+        threading.Timer(delay_seconds, _validate).start()
+
+    def schedule_periodic_validation(expected_names, interval_seconds=300):
+        previous_missing = set()
+        def _periodic():
+            current = set(registry.get_birds().keys())
+            missing = {n for n in expected_names if n not in current}
+            recovered = previous_missing - missing
+            newly_missing = missing - previous_missing
+            if newly_missing:
+                print(f"[periodic-validation] Newly missing: {', '.join(sorted(newly_missing))}")
+            if recovered:
+                print(f"[periodic-validation] Recovered: {', '.join(sorted(recovered))}")
+            if not missing and not newly_missing and not recovered:
+                print(f"[periodic-validation] All expected birds present ({len(expected_names)})")
+            # update and reschedule
+            previous_missing.clear()
+            previous_missing.update(missing)
+            threading.Timer(interval_seconds, _periodic).start()
+        threading.Timer(interval_seconds, _periodic).start()
+
+    expected_bird_names = [b.name for b in birds]
+    schedule_startup_validation(expected_bird_names, delay_seconds=validation_delay)
+    schedule_periodic_validation(expected_bird_names, interval_seconds=periodic_interval)
 
     try:
         # Start Flask server in a thread

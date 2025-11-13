@@ -2,17 +2,10 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 from bird_registry import registry
+from src import __version__  # version constant for health reporting
 import time
-from provisioning import (
-    load_credentials,
-    save_credentials,
-    has_credentials,
-    get_wifi_status,
-    apply_credentials,
-    is_provisioning_active,
-    deactivate_provisioning,
-    stop_ap_services,
-)
+# Provisioning removed: piCorePlayer handles WiFi configuration.
+# Previous provisioning imports deleted; health endpoint simplified.
 import time
 
 def create_web_interface(songs, on_song_selected, cancel_current_song, get_queue):
@@ -32,49 +25,18 @@ def create_web_interface(songs, on_song_selected, cancel_current_song, get_queue
             for i, song in enumerate(songs)
         ])
 
-    @app.route("/api/wifi/status", methods=["GET"])
-    def wifi_status():
-        return jsonify(get_wifi_status())
-
-    @app.route("/api/wifi/config", methods=["POST"])
-    def wifi_config():
-        data = request.get_json(force=True)
-        ssid = data.get("ssid")
-        password = data.get("password")
-        if not ssid or not password:
-            return jsonify({"status":"error","message":"Missing ssid or password"}), 400
-        creds = save_credentials(ssid, password)
-        applied = apply_credentials(creds)
-        # After successful save, deactivate provisioning & attempt AP shutdown
-        if applied:
-            deactivate_provisioning()
-            stop_ap_services()
-        return jsonify({"status":"ok","applied":applied, "provisioning_active": is_provisioning_active()})
-
-    @app.route("/api/wifi/credentials", methods=["GET"])
-    def wifi_credentials_for_node():
-        # Provide credentials to nodes lacking them only if still provisioning
-        if not is_provisioning_active():
-            return jsonify({"status":"disabled"}), 403
-        creds = load_credentials()
-        if not creds:
-            return jsonify({"status":"unavailable"}), 404
-        return jsonify({"status":"ok","ssid":creds["ssid"],"password":creds["password"]})
-
-    @app.route("/api/provisioning/state", methods=["GET"])
-    def provisioning_state():
-        return jsonify({"provisioning_active": is_provisioning_active()})
+    # WiFi provisioning endpoints removed.
 
     @app.route("/api/health", methods=["GET"])
     def health():
         birds = registry.get_birds()
-        creds_present = has_credentials()
+        bird_names = list(birds.keys())
         return jsonify({
             "status": "ok",
-            "provisioning_active": is_provisioning_active(),
-            "credentials_present": creds_present,
             "bird_count": len(birds),
-            "time": time.time()
+            "registered": bird_names,
+            "time": time.time(),
+            "version": __version__
         })
 
     @app.route("/api/volume_dry_run", methods=["POST"])
