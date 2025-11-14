@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Follow semantic versioning: MAJOR.MINOR.PATCH.
 
+## 0.10.1 - 2025-11-14
+### Changed
+- Renamed role terminology from 'master' to 'main' across scripts, config, and docs.
+- Added backward compatibility for legacy 'master' key ('main' now preferred).
+
+### Internal
+- Log file names updated (master.log -> main.log).
+
 ## 0.10.0 - 2025-11-13
 ### Added
 - TinyCore / piCorePlayer deployment documentation (persistent layout, bootlocal usage).

@@ -72,19 +72,20 @@ def resolve_song_audio_dirs(songs):
     return [song for song in songs if "audio_dir" in song]
 
 def load_system_config():
-    """Load the first found system config JSON providing LMS and optional static bird/master metadata.
+    """Load the first found system config JSON providing LMS and optional static bird/main metadata.
     Provisioning support has been removed; config may include:
     {
       "lms": {"host": "<ip>", "port": 9090},
       "birds": { "fritz": {"player": "birdpi-fritz"}, ... },
-      "master": { "player": "birdpi-master" },
+      "main": { "player": "birdpi-main" },
+      (legacy) "master": { "player": "birdpi-main" },
       "startup_validation_delay": 30
     }
-    Returns defaults if none found."""
+    Returns defaults if none found. Supports legacy 'master' key by aliasing to 'main'."""
     default_cfg = {
         "lms": {"host": "localhost", "port": 9090},
         "birds": {},
-        "master": {},
+        "main": {},
         # Optional delays
         "startup_validation_delay": 30,
         "periodic_validation_interval": 300
@@ -96,9 +97,12 @@ def load_system_config():
                 with open(p, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 merged = default_cfg.copy()
-                for key in ["lms", "birds", "master", "startup_validation_delay", "periodic_validation_interval"]:
+                for key in ["lms", "birds", "main", "startup_validation_delay", "periodic_validation_interval"]:
                     if key in data:
                         merged[key] = data[key]
+                # Legacy support: master -> main if main not provided
+                if "main" not in data and "master" in data:
+                    merged["main"] = data["master"]
                 return merged
             except Exception as e:
                 print(f"⚠️ Failed loading system config {path}: {e}")

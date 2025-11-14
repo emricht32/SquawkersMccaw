@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# TinyCore / piCorePlayer optimized launcher for BirdPi master.
+# TinyCore / piCorePlayer optimized launcher for BirdPi main.
 # Minimizes RAM usage by installing Python packages to persistent storage.
 
 INSTALL_FLAG=false
@@ -12,14 +12,14 @@ for arg in "$@"; do
 done
 
 HOSTNAME="$(hostname)"
-MASTER_HOST="birdpi-master"
-if [ "$HOSTNAME" != "$MASTER_HOST" ]; then
-  echo "[run_main] Warning: Hostname '$HOSTNAME' != expected '$MASTER_HOST'. Proceeding anyway." >&2
+MAIN_HOST="birdpi-main"
+if [ "$HOSTNAME" != "$MAIN_HOST" ]; then
+  echo "[run_main] Warning: Hostname '$HOSTNAME' != expected '$MAIN_HOST'. Proceeding anyway." >&2
 fi
 
 PERSIST_ROOT=/mnt/mmcblk0p2/birdpi
 PY_DIR="$PERSIST_ROOT/python-packages"
-VENV_DIR="$PERSIST_ROOT/venv"
+VENV_DIR="$PERSIST_ROOT/birdpi-venv"
 TMP_DIR=/mnt/mmcblk0p2/tmp
 PIP_CACHE_DIR=/mnt/mmcblk0p2/pip-cache
 LOG_DIR=/mnt/mmcblk0p2/log
@@ -36,11 +36,11 @@ echo "[run_main] Using persistent dirs under $PERSIST_ROOT"
 if $INSTALL_FLAG; then
   echo "⚙️ Running installation steps (TinyCore) ..."
   # Ensure python present (python3.11/3.12 extensions) & optional tools loaded externally.
-  # Create / refresh virtual environment if venv module exists; fallback to --target layout otherwise.
+  # Create / refresh virtual environment using virtualenv; fallback to --target layout otherwise.
   if [ ! -d "$VENV_DIR" ] || $FORCE_REINSTALL; then
-    if python3 -c 'import venv' 2>/dev/null; then
+    if command -v virtualenv >/dev/null 2>&1; then
       echo "[run_main] Creating virtualenv at $VENV_DIR"; \
-        python3 -m venv "$VENV_DIR" || echo "[run_main] venv failed; falling back to --target installs"
+        virtualenv "$VENV_DIR" || echo "[run_main] virtualenv failed; falling back to --target installs"
     fi
   fi
   if [ -d "$VENV_DIR" ]; then
@@ -88,7 +88,7 @@ done
 
 echo "[run_main] Waiting for USB sound devices ..."
 python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
-echo "[run_main] Starting BirdPi master"
+echo "[run_main] Starting BirdPi main"
 
-python3 src/birdpi_main/main.py >> "$LOG_DIR/master.log" 2>&1 || {
-  echo "❌ BirdPi master exited with error" >&2; exit 1; }
+python3 src/birdpi_main/main.py >> "$LOG_DIR/main.log" 2>&1 || {
+  echo "❌ BirdPi main exited with error" >&2; exit 1; }

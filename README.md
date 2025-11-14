@@ -13,8 +13,8 @@ Animatronic multi-Pi “Tiki Room” system built around:
 This branch is optimized for running entirely on piCorePlayer (TinyCore Linux). Root FS is a RAM tmpfs; all persistent data lives on the mounted SD card partition at `/mnt/mmcblk0p2`.
 
 ### Roles & Hostnames
-Use static hostnames so the master can coordinate without provisioning:
-- Master: `birdpi-master`
+Use static hostnames so the main controller can coordinate without provisioning:
+- Main: `birdpi-main`
 - Nodes: `birdpi-fritz`, `birdpi-pierre`, `birdpi-michael` (Jose is driven by master audio channel)
 
 Each Pi runs a Squeezelite player registered to LMS. The master adjusts per-bird volumes to create a “mic” presence effect.
@@ -32,7 +32,7 @@ Runtime scripts place caches and installed packages under:
 
 ### Installation
 On first boot (or after clearing), run with the `--install` flag to pull Python dependencies to persistent storage.
-Master example (from repo root on `birdpi-master`):
+Main example (from repo root on `birdpi-main`):
 ```
 ./run_main.sh --install
 ```
@@ -51,10 +51,10 @@ Run TinyCore’s backup to persist:
 ```
 pcp bu
 ```
-On next reboot, `bootlocal.sh` waits briefly for network/LMS and launches `run_main.sh` if hostname == `birdpi-master` else `run_node.sh`.
+On next reboot, `bootlocal.sh` waits briefly for network/LMS and launches `run_main.sh` if hostname == `birdpi-main` else `run_node.sh`.
 
 ### Configuration
-System config lives in `config/system.json` and now uses a static `birds` mapping plus `master` player definition. Validation timings:
+System config lives in `config/system.json` and now uses a static `birds` mapping plus `main` player definition. Validation timings:
 - `startup_validation_delay`: seconds after launch to perform initial bird presence check.
 - `periodic_validation_interval`: interval for recurring checks.
 
@@ -75,7 +75,7 @@ If you need to refresh or force a clean install:
 ```
 
 ### Logs
-Master orchestrator: `/mnt/mmcblk0p2/birdpi/log/master.log`
+Main orchestrator: `/mnt/mmcblk0p2/birdpi/log/main.log`
 Nodes: `/mnt/mmcblk0p2/birdpi/log/node-<name>.log`
 Boot events: `/mnt/mmcblk0p2/birdpi/log/boot.log`
 

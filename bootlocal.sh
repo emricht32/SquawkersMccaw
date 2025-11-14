@@ -15,10 +15,10 @@ echo "[bootlocal] Booting $HOSTNAME at $(date)" >> "$LOG_DIR/boot.log"
 sleep 8
 
 # Ensure python path layout (run_* scripts will create if absent during --install)
-if [ "$HOSTNAME" = "birdpi-master" ]; then
-  echo "[bootlocal] Launching master script" >> "$LOG_DIR/boot.log"
-  # Master handles song control & validation
-  /mnt/mmcblk0p2/SquawkersMccaw/run_main.sh >> "$LOG_DIR/master.stdout.log" 2>&1 &
+if [ "$HOSTNAME" = "birdpi-main" ]; then
+  echo "[bootlocal] Launching main script" >> "$LOG_DIR/boot.log"
+  # Main handles song control & validation
+  /mnt/mmcblk0p2/SquawkersMccaw/run_main.sh >> "$LOG_DIR/main.stdout.log" 2>&1 &
 else
   echo "[bootlocal] Launching node script" >> "$LOG_DIR/boot.log"
   /mnt/mmcblk0p2/SquawkersMccaw/run_node.sh >> "$LOG_DIR/node.stdout.log" 2>&1 &

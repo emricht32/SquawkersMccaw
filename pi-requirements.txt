@@ -1,3 +1,4 @@
+virtualenv
 pydub==0.25.1
 gpiozero==1.6.2
 sounddevice==0.4.6

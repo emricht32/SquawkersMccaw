@@ -15,7 +15,7 @@ echo "[run_node] Hostname=$HOSTNAME (node=$NODE_NAME)"
 
 PERSIST_ROOT=/mnt/mmcblk0p2/birdpi
 PY_DIR="$PERSIST_ROOT/python-packages"
-VENV_DIR="$PERSIST_ROOT/venv"
+VENV_DIR="$PERSIST_ROOT/birdpi-venv"
 TMP_DIR=/mnt/mmcblk0p2/tmp
 PIP_CACHE_DIR=/mnt/mmcblk0p2/pip-cache
 LOG_DIR=/mnt/mmcblk0p2/log
@@ -28,8 +28,8 @@ export PYTHONUNBUFFERED=1
 if $INSTALL_FLAG; then
   echo "⚙️ Installing node dependencies ..."
   if [ ! -d "$VENV_DIR" ] || $FORCE_REINSTALL; then
-    if python3 -c 'import venv' 2>/dev/null; then
-      python3 -m venv "$VENV_DIR" || echo "[run_node] venv failed, using --target"
+    if command -v virtualenv >/dev/null 2>&1; then
+      virtualenv "$VENV_DIR" || echo "[run_node] virtualenv failed, using --target"
     fi
   fi
   if [ -d "$VENV_DIR" ]; then

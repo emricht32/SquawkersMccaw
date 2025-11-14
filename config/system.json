@@ -7,9 +7,9 @@
     "fritz":   { "player": "birdpi-fritz" },
     "pierre":  { "player": "birdpi-pierre" },
     "michael": { "player": "birdpi-michael" },
-    "jose":    { "player": "birdpi-master", "alias": true }
+  "jose":    { "player": "birdpi-main", "alias": true }
   },
-  "master": { "player": "birdpi-master" },
+  "main": { "player": "birdpi-main" },
   "startup_validation_delay": 30,
   "periodic_validation_interval": 300
 }
