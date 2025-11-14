@@ -1,58 +1,54 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# Parse arguments
+# TinyCore / piCorePlayer optimized launcher for BirdPi node.
 INSTALL_FLAG=false
+FORCE_REINSTALL=false
 for arg in "$@"; do
-  if [[ "$arg" == "--install" || "$arg" == "-install" ]]; then
-    INSTALL_FLAG=true
-  fi
+  [ "$arg" = "--install" ] && INSTALL_FLAG=true
+  [ "$arg" = "--force-reinstall" ] && FORCE_REINSTALL=true
 done
 
-# Run install steps only if flag is passed
+HOSTNAME="$(hostname)"
+NODE_NAME="${HOSTNAME#birdpi-}"  # fritz|pierre|michael|master
+echo "[run_node] Hostname=$HOSTNAME (node=$NODE_NAME)"
+
+PERSIST_ROOT=/mnt/mmcblk0p2/birdpi
+PY_DIR="$PERSIST_ROOT/python-packages"
+VENV_DIR="$PERSIST_ROOT/venv"
+TMP_DIR=/mnt/mmcblk0p2/tmp
+PIP_CACHE_DIR=/mnt/mmcblk0p2/pip-cache
+LOG_DIR=/mnt/mmcblk0p2/log
+mkdir -p "$PY_DIR" "$TMP_DIR" "$PIP_CACHE_DIR" "$LOG_DIR"
+
+export TMPDIR="$TMP_DIR"
+export PIP_CACHE_DIR="$PIP_CACHE_DIR"
+export PYTHONUNBUFFERED=1
+
 if $INSTALL_FLAG; then
-  echo "⚙️ Running installation steps..."
-
-
-  sudo apt install -y \
-  build-essential \
-  cmake \
-  dbus \
-  dnsmasq \
-  gir1.2-glib-2.0 \
-  hostapd \
-  libcairo2-dev \
-  libfreetype6-dev \
-  libgirepository1.0-dev \
-  libimagequant-dev \
-  libjpeg-dev \
-  liblcms2-dev \
-  libopenblas-dev \
-  libopenjpeg-dev \
-  libportaudio2 \
-  libtiff-dev \
-  libwebp-dev \
-  libxcb-util-dev \
-  libxcb1-dev \
-  pkg-config \
-  portaudio19-dev \
-  python3-cairo \
-  python3-dbus \
-  python3-dev \
-  python3-gi \
-  python3-pyaudio \
-  python3-venv \
-  zlib1g-dev
-
+  echo "⚙️ Installing node dependencies ..."
+  if [ ! -d "$VENV_DIR" ] || $FORCE_REINSTALL; then
+    if python3 -c 'import venv' 2>/dev/null; then
+      python3 -m venv "$VENV_DIR" || echo "[run_node] venv failed, using --target"
+    fi
+  fi
+  if [ -d "$VENV_DIR" ]; then
+    . "$VENV_DIR/bin/activate"
+    python3 -m pip install --no-cache-dir -r pi-requirements.txt
+  else
+    python3 -m pip install --no-cache-dir --target "$PY_DIR" -r pi-requirements.txt
+  fi
+else
+  echo "🚫 --install not supplied; skipping dependency install."
+  [ -d "$VENV_DIR" ] && . "$VENV_DIR/bin/activate"
 fi
 
-sudo systemctl stop avahi-daemon
-
-source ~/birdpi-venv/bin/activate
-
-if ! pip3 install -r pi-requirements.txt; then
-    echo "Error installing Python dependencies" >&2
-    exit 1
+if [ -d "$PY_DIR" ]; then
+  export PYTHONPATH="$PY_DIR:src:$PYTHONPATH"
+else
+  export PYTHONPATH="src:$PYTHONPATH"
 fi
 
-PYTHONPATH=src python3 src/birdpi_node/main.py
+echo "[run_node] Starting registration agent"
+python3 src/birdpi_node/main.py >> "$LOG_DIR/node-${NODE_NAME}.log" 2>&1 || {
+  echo "❌ Node script exited with error" >&2; exit 1; }

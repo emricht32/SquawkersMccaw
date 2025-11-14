@@ -1,113 +1,66 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# Parse arguments
+# TinyCore / piCorePlayer optimized launcher for BirdPi master.
+# Minimizes RAM usage by installing Python packages to persistent storage.
+
 INSTALL_FLAG=false
+FORCE_REINSTALL=false
 for arg in "$@"; do
-  if [[ "$arg" == "--install" || "$arg" == "-install" ]]; then
-    INSTALL_FLAG=true
-  fi
+  [ "$arg" = "--install" ] && INSTALL_FLAG=true
+  [ "$arg" = "--force-reinstall" ] && FORCE_REINSTALL=true
 done
 
-# Run install steps only if flag is passed
+HOSTNAME="$(hostname)"
+MASTER_HOST="birdpi-master"
+if [ "$HOSTNAME" != "$MASTER_HOST" ]; then
+  echo "[run_main] Warning: Hostname '$HOSTNAME' != expected '$MASTER_HOST'. Proceeding anyway." >&2
+fi
+
+PERSIST_ROOT=/mnt/mmcblk0p2/birdpi
+PY_DIR="$PERSIST_ROOT/python-packages"
+VENV_DIR="$PERSIST_ROOT/venv"
+TMP_DIR=/mnt/mmcblk0p2/tmp
+PIP_CACHE_DIR=/mnt/mmcblk0p2/pip-cache
+LOG_DIR=/mnt/mmcblk0p2/log
+mkdir -p "$PY_DIR" "$TMP_DIR" "$PIP_CACHE_DIR" "$LOG_DIR"
+
+export TMPDIR="$TMP_DIR"
+export PIP_CACHE_DIR="$PIP_CACHE_DIR"
+export PYTHONUNBUFFERED=1
+
+echo "[run_main] Hostname=$HOSTNAME"
+echo "[run_main] Using persistent dirs under $PERSIST_ROOT"
+
+# Installation (TinyCore extensions should already be loaded via onboot.lst).
 if $INSTALL_FLAG; then
-  echo "⚙️ Running installation steps..."
-
-  sudo apt update
-  sudo apt install -y \
-  avahi-daemon \
-  build-essential \
-  cmake \
-  dbus \
-  dnsmasq \
-  gir1.2-glib-2.0 \
-  hostapd \
-  libcairo2-dev \
-  libfreetype6-dev \
-  libgirepository1.0-dev \
-  libimagequant-dev \
-  libjpeg-dev \
-  liblcms2-dev \
-  libopenblas-dev \
-  libopenjpeg-dev \
-  libportaudio2 \
-  libtiff-dev \
-  libwebp-dev \
-  libxcb-util-dev \
-  libxcb1-dev \
-  lighttpd \
-  pkg-config \
-  portaudio19-dev \
-  python3-cairo \
-  python3-dbus \
-  python3-dev \
-  python3-gi \
-  python3-pyaudio \
-  python3-venv \
-  zlib1g-dev
-
-  sudo systemctl disable hostapd
-  sudo systemctl disable dnsmasq
-
-  sudo systemctl enable avahi-daemon
-  sudo systemctl start avahi-daemon
-  sudo hostnamectl set-hostname birdpi
-
-  # MODEL_DIR="models/vosk-model-small-en-us-0.15"
-  # ZIP_FILE="models/vosk-model-small-en-us-0.15.zip"
-
-  # if [ ! -d "$MODEL_DIR" ]; then
-  #   echo "🔍 Model not found. Downloading and extracting..."
-  #   mkdir -p models
-  #   cd models || exit 1
-
-  #   if [ ! -f "$(basename "$ZIP_FILE")" ]; then
-  #     wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-  #   fi
-
-  #   unzip -q vosk-model-small-en-us-0.15.zip
-  #   echo "✅ Model downloaded and extracted."
-  #   rm vosk-model-small-en-us-0.15.zip
-  #   echo "✅ Removed zip file"
-  #   cd ..
-  # else
-  #   echo "✅ Model already exists. Skipping download."
-  # fi
-
-  # Disable bonding and BR/EDR, enable LE-only mode
-  # sudo /usr/bin/btmgmt -i hci0 power off
-  # sleep 1
-  # sudo /usr/bin/btmgmt -i hci0 le on
-  # sleep 1
-  # sudo /usr/bin/btmgmt -i hci0 bredr off
-  # sleep 1
-  # sudo /usr/bin/btmgmt -i hci0 bondable off
-  # sleep 1
-  # sudo /usr/bin/btmgmt -i hci0 connectable on
-  # sleep 1
-  # sudo /usr/bin/btmgmt -i hci0 power on
-  # sleep 1
-
-  # Use bluetoothctl to enable discoverable + advertising mode
-#   /usr/bin/timeout 5 /usr/bin/bluetoothctl <<EOF
-#   power on
-#   agent NoInputNoOutput
-#   default-agent
-#   pairable off
-#   discoverable on
-#   advertise yes
-# EOF
-
-  python3 -m venv --system-site-packages ~/birdpi-venv
-  source ~/birdpi-venv/bin/activate
-
-  if ! pip3 install -r pi-requirements.txt; then
-      echo "Error installing Python dependencies" >&2
-      exit 1
+  echo "⚙️ Running installation steps (TinyCore) ..."
+  # Ensure python present (python3.11/3.12 extensions) & optional tools loaded externally.
+  # Create / refresh virtual environment if venv module exists; fallback to --target layout otherwise.
+  if [ ! -d "$VENV_DIR" ] || $FORCE_REINSTALL; then
+    if python3 -c 'import venv' 2>/dev/null; then
+      echo "[run_main] Creating virtualenv at $VENV_DIR"; \
+        python3 -m venv "$VENV_DIR" || echo "[run_main] venv failed; falling back to --target installs"
+    fi
+  fi
+  if [ -d "$VENV_DIR" ]; then
+    . "$VENV_DIR/bin/activate"
+    python3 -m pip install --no-cache-dir -r pi-requirements.txt
+  else
+    python3 -m pip install --no-cache-dir --target "$PY_DIR" -r pi-requirements.txt
   fi
 else
-  echo "🚫 Skipping install steps. Run with --install if needed."
-  source ~/birdpi-venv/bin/activate
+  echo "🚫 --install not supplied; skipping dependency install.";
+  if [ -d "$VENV_DIR" ]; then
+    . "$VENV_DIR/bin/activate"
+  fi
+fi
+
+# Add target dir to PYTHONPATH if not using venv
+if [ -d "$PY_DIR" ]; then
+  export PYTHONPATH="$PY_DIR:src:$PYTHONPATH"
+else
+  export PYTHONPATH="src:$PYTHONPATH"
 fi
 
 # Default music folder
@@ -121,29 +74,21 @@ SOURCE_FOLDER="./music"
 #     cp /media/BIRDS/config_multi_song.json .
 # fi
 
-# Convert MP3s to WAVs
-mp3_files=$(find "$SOURCE_FOLDER" -name '*.mp3' -print0 | tr '\0' '\n')
-for f in $mp3_files; do
-    relative_path="${f#$SOURCE_FOLDER/}"
-    dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
-    mkdir -p "$dest_dir"
-    wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
-    if ! [ -f "$wav_file" ]; then
-        echo "Creating WAV file for $f"
-        if ! ffmpeg -i "$f" -ar 48000 "$wav_file"; then
-            echo "Error converting $f to WAV" >&2
-            exit 1
-        fi
-    else
-        echo "WAV file already exists for $f"
-    fi
+# Convert MP3s to WAVs (only if missing) – keep RAM footprint small.
+find "$SOURCE_FOLDER" -type f -name '*.mp3' | while read -r f; do
+  relative_path="${f#$SOURCE_FOLDER/}"
+  dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
+  mkdir -p "$dest_dir"
+  wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
+  if [ ! -f "$wav_file" ]; then
+    echo "[audio] Converting $f -> $wav_file"
+    ffmpeg -i "$f" -ar 48000 "$wav_file" >/dev/null 2>&1 || { echo "[audio] Conversion failed for $f" >&2; exit 1; }
+  fi
 done
 
-echo "waiting for usb sound devices to initialize"
-python3 src/wait_devices_init.py
-echo "usb sound devices initialized"
+echo "[run_main] Waiting for USB sound devices ..."
+python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
+echo "[run_main] Starting BirdPi master"
 
-if ! PYTHONPATH=src python3 src/birdpi_main/main.py; then
-    echo "Error running the Python script" >&2
-    exit 1
-fi
+python3 src/birdpi_main/main.py >> "$LOG_DIR/master.log" 2>&1 || {
+  echo "❌ BirdPi master exited with error" >&2; exit 1; }

@@ -1,347 +1,86 @@
-# SquawkersMccaw
+# Squawkers McCaw Tiki Room / BirdPi
 
-## Multi-Room Audio & Bird Synchronization
+Animatronic multi-Pi “Tiki Room” system built around:
 
-This project coordinates animatronic bird movements with synchronized audio playback across multiple Raspberry Pis. Audio synchronization uses Logitech Media Server (LMS) with Squeezelite (provided by piCorePlayer). Each bird Pi runs piCorePlayer and has a dedicated speaker. A single master audio track plays on all speakers; per-bird speaking moments are created by dynamically adjusting each player's volume (mute/unmute or background vs speaking level).
+- **Logitech Media Server (LMS)** for synchronized multi-room audio  
+- **Squeezelite** players running on each Raspberry Pi  
+- **Squawkers McCaw animatronic birds**  
+- A **Main Pi** orchestrating songs, timing, animations, and per-bird mic-style volume control  
+- **Node Pis** responding to commands and providing individual audio + movement  
 
-### LMS Integration Fields
+## TinyCore / piCorePlayer Deployment
 
-Each song can include an `lms_track` entry pointing to a file or URL accessible by LMS:
+This branch is optimized for running entirely on piCorePlayer (TinyCore Linux). Root FS is a RAM tmpfs; all persistent data lives on the mounted SD card partition at `/mnt/mmcblk0p2`.
 
-```json
-{
-	"name": "tiki_intro",
-	"display_name": "Tiki Room Intro",
-	"lms_track": "/music/TikiRoom/intro.mp3",
-	"individuals": [
-		{ "name": "Fritz", "singing": [[0.0, 4.2], [10.0, 12.5]] },
-		{ "name": "Pierre", "singing": [[4.3, 9.9]] }
-	],
-	"all_singing": [],
-	"all_dancing": []
-	- (BLE support removed; notifications previously sent on song start/finish)
-	- (Voice input via Vosk removed; speech-triggered song selection deprecated to simplify dependencies)
+### Roles & Hostnames
+Use static hostnames so the master can coordinate without provisioning:
+- Master: `birdpi-master`
+- Nodes: `birdpi-fritz`, `birdpi-pierre`, `birdpi-michael` (Jose is driven by master audio channel)
+
+Each Pi runs a Squeezelite player registered to LMS. The master adjusts per-bird volumes to create a “mic” presence effect.
+
+### Persistent Layout
+Runtime scripts place caches and installed packages under:
+```
+ /mnt/mmcblk0p2/birdpi/
+	 ├── venv/              (optional virtualenv)
+	 ├── python-packages/   (--target installs if venv unavailable)
+	 ├── pip-cache/         (pip download cache)
+	 ├── tmp/               (TMPDIR for builds)
+	 ├── log/               (master.log, node-*.log, boot.log)
 ```
 
-Dynamic Player Mapping (Headless): Bird nodes now self-register with their MAC addresses via the `/register` endpoint. The master builds a dynamic map (bird name → MAC) automatically—no manual `bird_player_map` section required. If a static map is omitted (recommended), the system uses the dynamic map for volume scheduling.
-
-## Network & Hostnames (piCorePlayer)
-
-All Pis (master + birds) run piCorePlayer (pCP) which handles WiFi setup in its web UI—no custom provisioning layer required. Assign hostnames and Squeezelite player names that match bird identifiers:
-
-| Bird | Hostname / Player |
-|------|--------------------|
-| Fritz | `birdpi-fritz` |
-| Pierre | `birdpi-pierre` |
-| Michael | `birdpi-michael` |
-| Jose (shares master) | `birdpi-master` |
-| Master | `birdpi-master` |
-
-After changing settings in pCP, persist them with the backup button (`pcp bu`).
-
-Configuration file `config/system.json` now contains a static mapping:
-
-```json
-{
-	"lms": { "host": "<lms-ip>", "port": 9090 },
-	"birds": {
-		"fritz":   { "player": "birdpi-fritz" },
-		"pierre":  { "player": "birdpi-pierre" },
-		"michael": { "player": "birdpi-michael" },
-		"jose":    { "player": "birdpi-master", "alias": true }
-	},
-	"master": { "player": "birdpi-master" }
-}
+### Installation
+On first boot (or after clearing), run with the `--install` flag to pull Python dependencies to persistent storage.
+Master example (from repo root on `birdpi-master`):
 ```
-
-The previous WiFi provisioning endpoints and credential storage (`provisioning.py`) have been removed.
-Startup validation now checks that each expected bird registers within the configured delay (`startup_validation_delay`, default 30s). After that a periodic validation (`periodic_validation_interval`, default 300s) logs newly missing or recovered birds. Adjust these in `config/system.json`.
-
-## Developer Notes
-
-Relevant modules:
-* `lms_control.py` – LMS telnet control + volume scheduling.
-* ~~`provisioning.py` – WiFi credential storage & placeholder application.~~ (Removed; piCorePlayer handles WiFi.)
-* `web_interface.py` – REST endpoints for birds, songs, provisioning.
-
-## Registration Flow
-
-On boot each bird Pi's Squeezelite player appears in LMS. A lightweight registration POST (`/register`) from a node agent (or the master-only process for Jose) associates MAC/IP with the bird name. Dynamic mapping lets volume scheduling target the correct players without manual MAC entry.
-
-## Next Improvements
-* Add startup validation for expected birds (warn if missing after N seconds).
-* Centralize movement and audio calibration per bird into config.
-* Add test harness to simulate song and volume changes.
-
-## Fresh Multi-Bird Deployment (piCorePlayer OS)
-
-The following checklist gets a master plus multiple bird nodes running from scratch using piCorePlayer (pCP) images.
-
-### 1. Prepare LMS (Logitech Media Server)
-Install LMS on a stable device (can be the master Pi if resources allow):
-* Raspberry Pi OS: `sudo apt install logitechmediaserver` (or use official deb)
-* Docker: run an LMS container exposing port 9090 (CLI) and 9000 (web UI)
-* Confirm reachable at `http://<lms-host>:9000` and CLI on port 9090.
-
-### 2. Flash piCorePlayer Images
-For each bird and the master:
-1. Download latest piCorePlayer image.
-2. Flash to SD card.
-3. Boot. Use the pCP web UI (http://pcp.local or discovered IP) to:
-	 * Set unique hostname (e.g. `bird-fritz`, `bird-pierre`, `bird-michael`, `bird-jose`, `bird-master`).
-	 * Enable SSH.
-	 * Enable WiFi (initially can use Ethernet for master if available).
-
-### 3. Install Required Extensions on Master
-Master needs Python + Git + AP tooling:
-* Via pCP web UI Extensions page OR SSH:
-	```bash
-	tce-load -wi python3 git hostapd dnsmasq
-	```
-Persist with pCP backup after install (UI button or `pcp bu`).
-
-### 4. Clone This Repository on Master
-```bash
-git clone https://github.com/emricht32/SquawkersMccaw.git
-cd SquawkersMccaw
-# (Optional) create a virtual environment if python3-venv available
-python3 -m venv .venv && source .venv/bin/activate || true
-pip install -r requirements.txt || true
+./run_main.sh --install
 ```
-
-### 5. Configure System Settings
-Edit `config/system.json` (or create `/boot/BIRDPI/system.json`) with the mapping shown earlier. Ensure Squeezelite player names match.
-
-### 6. Start Backend
-From repo root:
-```bash
-python3 -m src.birdpi_main.main
+Node example (on e.g. `birdpi-fritz`):
 ```
-
-driver=nl80211
-### 7. (Removed) Manual AP Provisioning
-Legacy AP setup instructions removed; rely on piCorePlayer web UI for WiFi configuration.
-
-### 8. Bird Nodes Setup
-On each bird Pi (nodes):
-1. In pCP web UI, configure Squeezelite with a unique name matching bird name (e.g., Fritz). This name will appear in LMS aiding player identification.
-2. Ensure audio DAC recognized (USB / HAT). Test playback from LMS.
-3. Nodes register automatically via `/register` when their local agent starts (or omit agent if not needed; LMS player name may suffice).
-
-### 9. Verify LMS & Volume Scheduling
-* In LMS UI, group (synchronize) bird players if needed (single master track on all speakers).
-* Bird names and MACs appear dynamically after registration; confirm via `/register` responses or `/api/birds`.
-* Trigger a song from web UI. Check `/api/volume_dry_run` first:
-	```bash
-	curl -X POST -H 'Content-Type: application/json' -d '{"song":"tiki_intro"}' http://<master-ip>:8080/api/volume_dry_run
-	```
-* Observe volumes change on players (LMS settings or logs) during speaking intervals.
-
-### 10. Health Checks
-```bash
-curl http://<master-ip>:8080/api/health
+./run_node.sh --install
 ```
-Returns bird count and registration list.
+Subsequent boots can omit the flag for faster start.
 
-### 11. Persistence on piCorePlayer
-After changes (repo clone, config edits), run pCP backup so they survive reboot:
-```bash
+### Automatic Startup (bootlocal)
+Copy or move the repository to the persistent partition (example path: `/mnt/mmcblk0p2/SquawkersMccaw`). Then install the provided `bootlocal.sh` into TinyCore’s persistent boot script location:
+```
+sudo cp /mnt/mmcblk0p2/SquawkersMccaw/bootlocal.sh /opt/bootlocal.sh
+```
+Run TinyCore’s backup to persist:
+```
 pcp bu
 ```
+On next reboot, `bootlocal.sh` waits briefly for network/LMS and launches `run_main.sh` if hostname == `birdpi-master` else `run_node.sh`.
 
-### 12. Optional Hardening
-* Replace HTTP with HTTPS (Caddy/nginx reverse proxy + self-signed cert).
-* Add auth token for song control endpoints if exposed publicly.
-* Restrict systemd unit to non-root user with limited permissions.
+### Configuration
+System config lives in `config/system.json` and now uses a static `birds` mapping plus `master` player definition. Validation timings:
+- `startup_validation_delay`: seconds after launch to perform initial bird presence check.
+- `periodic_validation_interval`: interval for recurring checks.
 
-## Node Registration Agent (Future Suggestion)
-Implement a small Python script on each bird node:
-```python
-import requests, time, socket
-def register(master_ip, name=None):
-		payload={"id": socket.gethostname(), "time": time.time(), "name": name}
-		r=requests.post(f"http://{master_ip}:8080/register", json=payload, timeout=2)
-		print(r.json())
+### Health Endpoint
+`/api/health` returns: status, version, uptime time, bird count and list of registered birds. See `tests/test_health.py` for assertions.
+
+### Removed / Deprecated Features
+Provisioning (WiFi credential exchange), BLE song selector, and voice input (Vosk) have been removed to slim dependencies and footprint. README sections and code relating to these features were deleted.
+
+### Space & Memory Notes
+TinyCore’s RAM is limited; avoid compiling large wheels in tmpfs. The scripts set `TMPDIR` and `PIP_CACHE_DIR` to persistent storage to mitigate “No space left on device” errors.
+
+### Updating Dependencies
+If you need to refresh or force a clean install:
 ```
-Schedule on boot (cron @reboot or systemd service). This lets the master track nodes without manual intervention.
-
-## Summary of Endpoints
-| Endpoint | Purpose |
-|----------|---------|
-| `/api/songs` | List selectable songs |
-| `/api/select` | Start song (schedule audio + movement) |
-| `/api/cancel` | Cancel current song |
-| `/register` | Node registration (id, time, optional name, mac) |
-| `/api/birds` | Current bird registry with MACs |
-| ~~`/api/wifi/status`~~ | (Removed) |
-| ~~`/api/wifi/config`~~ | (Removed) |
-| ~~`/api/wifi/credentials`~~ | (Removed) |
-| ~~`/api/provisioning/state`~~ | (Removed) |
-| `/api/health` | System health summary |
-| `version` field now included in `/api/health` | Reports application semantic version |
-| `/api/volume_dry_run` | Simulated per-bird volume events |
-
-
-# Squawkers McCaw Tiki Room
-
-## Overview
-
-This project recreates Disney's Enchanted Tiki Room using Squawkers McCaw animatronic birds, a Raspberry Pi, and custom software/hardware. It features a mobile-friendly web interface — allowing users to trigger music and animations wirelessly.
-
-## Table of Contents
-
-1. [Requirements](#requirements)
-2. [Installation](#installation)
-3. [Hardware Setup](#hardware-setup)
-4. [Usage](#usage)
-5. [Web UI + QR Access](#web-ui--qr-access)
-6. [Auto-Start on Boot (systemd)](#auto-start-on-boot-systemd)
-7. [Contributing](#contributing)
-8. [License](#license)
-
----
-
-## Requirements
-
-- Raspberry Pi Zero 2W (Main)
-- Raspberry Pi Zero 2W (1 per node)
-- Squawkers McCaw birds (x4)
-- USB sound cards (1 per bird + 1 master audio)
-- GPIO-controlled SSR/relays for body movement and lighting
-- ~~Motion sensor (optional)~~
-- IR receiver (optional)
-- Python 3.x
-- Mobile phone or browser
-
----
-
-## Installation
-
-```bash
-sudo apt update && sudo apt upgrade
-sudo apt install -y git-lfs python3-pip libportaudio2 libsndfile1 screen git ffmpeg libcairo2-dev pkg-config python3-dev libgirepository1.0-dev gir1.2-glib-2.0
+./run_main.sh --force-reinstall --install
+./run_node.sh --force-reinstall --install
 ```
 
-(Optional) If you want the Pi to broadcast its own Access Point rather then use your WiFi
-```bash
-curl "https://www.raspberryconnect.com/images/scripts/AccessPopup.tar.gz" -o AccessPopup.tar.gz
-tar -xvf ./AccessPopup.tar.gz
-cd AccessPopup
-sudo ./installconfig.sh
-```
+### Logs
+Master orchestrator: `/mnt/mmcblk0p2/birdpi/log/master.log`
+Nodes: `/mnt/mmcblk0p2/birdpi/log/node-<name>.log`
+Boot events: `/mnt/mmcblk0p2/birdpi/log/boot.log`
 
-Clone the repo and install dependencies:
-
-```bash
-git clone https://github.com/emricht32/SquawkersMccaw.git
-cd SquawkersMccaw
-./run.sh --install
-# python3 -m venv birdpi-venv
-# source birdpi-venv/bin/activate
-# pip install -r pi-requirements.txt
-```
+### Next Steps / Optional Slimming
+Consider removing `pyaudio` or `evdev` from `pi-requirements.txt` if not required for current hardware to further reduce install size.
 
 ---
-
-## Usage
-
-Run locally from the Pi:
-
-```bash
-./run_main.sh (--install)
-```
-This will:
-- (optional with --install flag) install dependencies 
-- Convert MP3s to 48kHz WAV if needed
-- Load config and music from `/Volumes/BIRDPI/` or `/boot/BIRDPI` if present
-- (BLE support removed; bluezero dependency and BLE song selector have been deprecated)
-- Start the web server at `http://birdpi.local:8080/`
-- Generate a QR code with the Pi's IP
-
-or
-
-```bash
-./run_node.sh (--install)
-```
-
-This will:
-- (optional with --install flag) install dependencies 
-- Register the node`s local IP address with the main (optionally as one of four bird profiles)
-
----
-
-## Web UI + QR Access
-
-A mobile-optimized web UI is served from the Raspberry Pi. On startup, the app automatically generates a QR code that links to the Pi’s web interface.
-
-- Visit: `http://birdpi.local:8080/`
-- Or `192.168.50.5`
-- Or scan the displayed QR code on another device
-
-The image is saved to `static/birds_qr.png` and displayed automatically in the web UI.
-
----
-
-## Auto-Start on Boot (systemd)
-
-Create a systemd unit to launch your `run<main|node>.sh` script:
-
-```bash
-sudo nano /etc/systemd/system/birdpi.service
-```
-
-Paste (replacing all occurences of `birdpi` with your user name):
-
-```ini
-[Unit]
-Description=BirdPi App Service
-After=network.target bluetooth.target
-
-[Service]
-ExecStart=/home/birdpi/code/SquawkersMccaw/run_main.sh
-Restart=always
-User=birdpi
-WorkingDirectory=/home/birdpi/code/SquawkersMccaw
-StandardOutput=append:/home/birdpi/birdpi.log
-StandardError=append:/home/birdpi/birdpi.log
-Environment=PYTHONUNBUFFERED=1
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable the service:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable birdpi.service
-sudo systemctl start birdpi.service
-```
-
----
-
-## Notes
-
-<!-- BLE functionality removed; notifications previously sent on song start/finish -->
-- Songs must be sampled at 48kHz due to USB audio device limitations
-- Audio separation and editing can be done using Audacity and [vocalremover.org](https://vocalremover.org)
-
----
-
-## Contributing
-
-Pull requests are welcome. Open an issue first to discuss improvements or ideas.
-
----
-
-## License & Safety
-
-> ⚠️ This project involves power control and exposed electronics. Exercise caution and only proceed if you're confident with hardware setups.
-
-MIT License. See `LICENSE` for details.
-
----
-
-## Acknowledgements
-
-Thanks to J-Man for the original Squawker Talker board inspiration. Special thanks to Disney’s Enchanted Tiki Room for lifelong inspiration.
+For historical provisioning documentation and deprecated modules, consult previous tags or branches (pre 0.9.x).
