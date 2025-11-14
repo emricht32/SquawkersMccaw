@@ -6,9 +6,10 @@
 set -e
 
 HOSTNAME="$(hostname)"
-ROOT=/mnt/mmcblk0p2/birdpi
+ROOT=/mnt/mmcblk0p2/tc
 LOG_DIR="$ROOT/log"
 mkdir -p "$LOG_DIR"
+# sudo chown -R tc:staff "$ROOT" 2>/dev/null || true
 echo "[bootlocal] Booting $HOSTNAME at $(date)" >> "$LOG_DIR/boot.log"
 
 # Allow network + squeezelite + LMS discovery time.

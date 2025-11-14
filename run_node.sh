@@ -13,13 +13,14 @@ HOSTNAME="$(hostname)"
 NODE_NAME="${HOSTNAME#birdpi-}"  # fritz|pierre|michael|master
 echo "[run_node] Hostname=$HOSTNAME (node=$NODE_NAME)"
 
-PERSIST_ROOT=/mnt/mmcblk0p2/birdpi
+PERSIST_ROOT=/mnt/mmcblk0p2/tc
 PY_DIR="$PERSIST_ROOT/python-packages"
 VENV_DIR="$PERSIST_ROOT/birdpi-venv"
-TMP_DIR=/mnt/mmcblk0p2/tmp
-PIP_CACHE_DIR=/mnt/mmcblk0p2/pip-cache
-LOG_DIR=/mnt/mmcblk0p2/log
+TMP_DIR=/mnt/mmcblk0p2/tc/tmp
+PIP_CACHE_DIR=/mnt/mmcblk0p2/tc/pip-cache
+LOG_DIR=/mnt/mmcblk0p2/tc/log
 mkdir -p "$PY_DIR" "$TMP_DIR" "$PIP_CACHE_DIR" "$LOG_DIR"
+# sudo chown -R tc:staff "$PERSIST_ROOT" "$TMP_DIR" "$PIP_CACHE_DIR" "$LOG_DIR" 2>/dev/null || true
 
 export TMPDIR="$TMP_DIR"
 export PIP_CACHE_DIR="$PIP_CACHE_DIR"
