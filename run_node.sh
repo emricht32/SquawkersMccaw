@@ -51,5 +51,5 @@ else
 fi
 
 echo "[run_node] Starting registration agent"
-python3 src/birdpi_node/main.py >> "$LOG_DIR/node-${NODE_NAME}.log" 2>&1 || {
-  echo "❌ Node script exited with error" >&2; exit 1; }
+python3 src/birdpi_node/main.py #>> "$LOG_DIR/node-${NODE_NAME}.log" 2>&1 || {
+  #echo "❌ Node script exited with error" >&2; exit 1; }
