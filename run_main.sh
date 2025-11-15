@@ -76,16 +76,16 @@ SOURCE_FOLDER="./music"
 # fi
 
 # Convert MP3s to WAVs (only if missing) – keep RAM footprint small.
-find "$SOURCE_FOLDER" -type f -name '*.mp3' | while read -r f; do
-  relative_path="${f#$SOURCE_FOLDER/}"
-  dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
-  mkdir -p "$dest_dir"
-  wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
-  if [ ! -f "$wav_file" ]; then
-    echo "[audio] Converting $f -> $wav_file"
-    ffmpeg -i "$f" -ar 48000 "$wav_file" >/dev/null 2>&1 || { echo "[audio] Conversion failed for $f" >&2; exit 1; }
-  fi
-done
+# find "$SOURCE_FOLDER" -type f -name '*.mp3' | while read -r f; do
+#   relative_path="${f#$SOURCE_FOLDER/}"
+#   dest_dir="$MUSIC_FOLDER/$(dirname "$relative_path")"
+#   mkdir -p "$dest_dir"
+#   wav_file="$dest_dir/$(basename "${f%.mp3}.wav")"
+#   if [ ! -f "$wav_file" ]; then
+#     echo "[audio] Converting $f -> $wav_file"
+#     ffmpeg -i "$f" -ar 48000 "$wav_file" >/dev/null 2>&1 || { echo "[audio] Conversion failed for $f" >&2; exit 1; }
+#   fi
+# done
 
 echo "[run_main] Waiting for USB sound devices ..."
 python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
