@@ -1,8 +1,8 @@
 import threading
 import json
 import os
-from common import bird
-from common.bird import Bird
+from src.common import bird
+from src.common.bird import Bird
 from send_song_start_stop import send_song_start, post_cancel_to_bird
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator, is_playing_song

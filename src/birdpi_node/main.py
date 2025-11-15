@@ -7,7 +7,7 @@ import socket
 import os
 import json
 from pathlib import Path
-from common.bird import Bird, manage_leds, cancel_current_song
+from src.common.bird import Bird, manage_leds, cancel_current_song
 from register import discover_and_register
 try:
     from gpiozero import LED

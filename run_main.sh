@@ -93,5 +93,7 @@ echo "[run_main] Starting BirdPi main"
 # Activate venv
 . /mnt/mmcblk0p2/tc/birdpi-venv/bin/activate
 
+export PYTHONPATH=/mnt/mmcblk0p2/tc/SquawkersMccaw
+
 python3 src/birdpi_main/main.py >> "$LOG_DIR/main.log" 2>&1 || {
   echo "❌ BirdPi main exited with error" >&2; exit 1; }

@@ -28,11 +28,11 @@ WorkingDirectory=/home/pi/SquawkersMccaw
 # ExecStart=/usr/bin/python3 src/birdpi_node/registration_agent.py
 
 # Option 2: Explicit master IP and bird name
-ExecStart=/usr/bin/python3 src/birdpi_node/registration_agent.py --master-ip 192.168.1.100 --name Fritz
+ExecStart=/usr/bin/python3 src/birdpi_node/registration_agent.py --master-ip 192.168.1.100 --name Jose
 
 # --- Venv ---
 # If you are using a virtual environment, use this ExecStart line instead:
-# ExecStart=/home/pi/SquawkersMccaw/.venv/bin/python3 src/birdpi_node/registration_agent.py --master-ip 192.168.1.100 --name Fritz
+# ExecStart=/home/pi/SquawkersMccaw/.venv/bin/python3 src/birdpi_node/registration_agent.py --master-ip 192.168.1.100 --name Jose
 
 Restart=on-failure
 RestartSec=10
