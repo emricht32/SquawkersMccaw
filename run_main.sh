@@ -87,8 +87,8 @@ SOURCE_FOLDER="./music"
 #   fi
 # done
 
-echo "[run_main] Waiting for USB sound devices ..."
-python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
+# echo "[run_main] Waiting for USB sound devices ..."
+# python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
 echo "[run_main] Starting BirdPi main"
 
 python3 src/birdpi_main/main.py >> "$LOG_DIR/main.log" 2>&1 || {
