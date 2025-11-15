@@ -90,6 +90,8 @@ SOURCE_FOLDER="./music"
 # echo "[run_main] Waiting for USB sound devices ..."
 # python3 src/wait_devices_init.py || echo "[run_main] Device init script failed, continuing"
 echo "[run_main] Starting BirdPi main"
+# Activate venv
+. /mnt/mmcblk0p2/tc/birdpi-venv/bin/activate
 
 python3 src/birdpi_main/main.py >> "$LOG_DIR/main.log" 2>&1 || {
   echo "❌ BirdPi main exited with error" >&2; exit 1; }
