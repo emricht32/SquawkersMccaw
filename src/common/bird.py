@@ -199,8 +199,10 @@ def _derive_bird_name(hostname: str) -> str:
 def main():
     import argparse
     import socket
+    import os
     parser = argparse.ArgumentParser(description="Bird LED controller")
-    parser.add_argument("--config", help="Path to bird node config", default="../../config_single_bird.json")
+    default_config = os.path.join(os.path.dirname(__file__), "../../config_single_bird.json")
+    parser.add_argument("--config", help="Path to bird node config", default=default_config)
     parser.add_argument("--song", help="Song name (optional)")
     args = parser.parse_args()
 
