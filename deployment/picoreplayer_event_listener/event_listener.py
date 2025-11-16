@@ -69,12 +69,12 @@ def parseName(arg) -> str:
     Returns the title of the first song in the playlist_loop.
     If not found, returns an empty string.
     """
-    
+    arg1 = arg
     try:
         if isinstance(arg, list) and len(arg) > 0:
-            arg = arg[0]
-        log(f"parseName.d={str(arg)}")
-        playlist = arg.get("playlist_loop", [])
+            arg1 = arg[0]
+        log(f"parseName.d={str(arg1)}")
+        playlist = arg1.get("playlist_loop", [])
         log(f"playlist={str(playlist)}")
         if playlist and isinstance(playlist, list):
             first = playlist[0]
