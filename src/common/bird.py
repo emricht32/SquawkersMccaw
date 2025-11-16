@@ -207,6 +207,7 @@ def main():
     import os
     parser = argparse.ArgumentParser(description="Bird LED controller")
     default_config = os.path.join(os.path.dirname(__file__), "../../config_single_bird.json")
+    songs_path = os.path.join(os.path.dirname(__file__), "../../config_multi_song_with_triggers.json")
     parser.add_argument("--config", help="Path to bird node config", default=default_config)
     parser.add_argument("--song", help="Song name (optional)")
     parser.add_argument(
@@ -218,18 +219,18 @@ def main():
         type=float, default=0.0
     )
     args = parser.parse_args()
+    
 
-    config = load_config(args.config)
-    if config is None:
+    pins_config = load_config(args.config)
+    songs_config = load_config(songs_path)
+    if pins_config is None:
         print("Warning: No config loaded; GPIO pins may be undefined.")
 
     song_name = args.song
-    utils_mod = _safe_load_utils()
     selected_song_dict = None
-    if song_name and utils_mod:
+    if song_name:
         try:
-            song_config = utils_mod.load_and_union_configs()
-            songs = utils_mod.resolve_song_audio_dirs(song_config.get("songs", []))
+            songs = songs_config.get("songs", [])
             matches = [s for s in songs if s.get("name", "").lower() == song_name.lower()]
             if matches:
                 selected_song_dict = matches[0]
@@ -244,9 +245,9 @@ def main():
     bird_name = _derive_bird_name(hostname)
 
     # GPIO pin mappings
-    beak_pin = config.get("beak") if config else None
-    body_pin = config.get("body") if config else None
-    spotlight_pin = config.get("light") if config else None
+    beak_pin = pins_config.get("beak") if pins_config else None
+    body_pin = pins_config.get("body") if pins_config else None
+    spotlight_pin = pins_config.get("light") if pins_config else None
 
     bird_instance = Bird(
         name=bird_name,
