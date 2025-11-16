@@ -71,8 +71,10 @@ def parseName(d: dict) -> str:
     """
     try:
         playlist = d.get("playlist_loop", [])
+        log(f"playlist={str(playlist)}")
         if playlist and isinstance(playlist, list):
             first = playlist[0]
+            log(f"first={str(first)}")
             return first.get("title", "")
     except Exception:
         pass
