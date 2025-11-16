@@ -14,7 +14,7 @@ from typing import List
 # -------------------------------------------------------------------
 
 # Location of bird.py
-BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "../../../src/common/bird.py")
+BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "../../src/common/bird.py")
 
 # Log file location (SD card, NOT RAM)
 LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
