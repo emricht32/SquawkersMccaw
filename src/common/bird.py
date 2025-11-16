@@ -199,7 +199,7 @@ def _derive_bird_name(hostname: str) -> str:
         name = name[len("birdpi-") :]
     if name.endswith(".local"):
         name = name[: -len(".local")]
-    return name
+    return name.capitalize() if name != "main" else "Jose"
 
 def main():
     import argparse
