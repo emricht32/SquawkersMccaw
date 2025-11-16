@@ -1,6 +1,19 @@
+"""bird.py
+
+Controls LED behavior for a single Bird instance based on song interval data.
+Can be invoked directly via CLI, intended for integration with piCorePlayer event listener.
+
+Enhancements added:
+ - Fixed incorrect use of .lowercase() -> .lower()
+ - Defensive handling of missing config, song name, or intervals
+ - Correct hostname parsing without misuse of strip()
+ - Safer LED oscillation (no negative sleep times)
+ - Standalone fallback if utils module unavailable
+"""
+
 import time
 import threading
-try:
+try:  # GPIO optional environment
     from gpiozero import LED
     GPIO_AVAILABLE = True
 except ImportError:
@@ -12,27 +25,43 @@ class Bird:
     def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
         print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
         self.name = name
-        self.speech_intervals = []
-        self.dancing_intervals = []
-        self.beak_led = LED(beak_led_pin) if GPIO_AVAILABLE else None
-        self.body_led = LED(body_led_pin) if GPIO_AVAILABLE else None
-        self.spotlight_led = LED(spotlight_led_pin) if GPIO_AVAILABLE else None
+        self.speech_intervals = []  # list[tuple[float,float]]
+        self.dancing_intervals = []  # list[tuple[float,float]]
+        self.beak_led = LED(beak_led_pin) if (GPIO_AVAILABLE and beak_led_pin is not None) else None
+        self.body_led = LED(body_led_pin) if (GPIO_AVAILABLE and body_led_pin is not None) else None
+        self.spotlight_led = LED(spotlight_led_pin) if (GPIO_AVAILABLE and spotlight_led_pin is not None) else None
         if self.spotlight_led is not None:
             self.spotlight_led.on()
         self.event = threading.Event()
 
     def prepare_song(self, song_dict):
+        """Load intervals from song dictionary.
+        song_dict must contain either top-level 'singing'/'dancing' or 'individuals'.
+        """
+        if not song_dict:
+            print("No song data provided; bird will remain idle.")
+            self.speech_intervals = []
+            self.dancing_intervals = []
+            return
         print("prepare_song")
-        if song_dict.get("individuals") is not None:
-            individual = [individual for individual in song_dict["individuals"] if individual["name"] == self.name][0]
-        else:
-            # just passing singing and dancing for bird nodes
-            individual = song_dict 
-        print("individual=",individual)
-        speech_intervals = individual.get("singing", [])
-        dancing_intervals = individual.get("dancing", [])
-        speech_intervals += song_dict.get("all_singing", [])
-        dancing_intervals += song_dict.get("all_dancing", [])
+        individual = None
+        try:
+            if song_dict.get("individuals") is not None:
+                matches = [ind for ind in song_dict["individuals"] if ind.get("name") == self.name]
+                if matches:
+                    individual = matches[0]
+            if individual is None:
+                # fallback to whole dict (already per-node or broadcast)
+                individual = song_dict
+        except Exception as e:
+            print(f"Error selecting individual data: {e}")
+            individual = song_dict
+        print("individual=", individual)
+        speech_intervals = list(individual.get("singing", []))
+        dancing_intervals = list(individual.get("dancing", []))
+        # Merge global intervals
+        speech_intervals.extend(song_dict.get("all_singing", []))
+        dancing_intervals.extend(song_dict.get("all_dancing", []))
         self.speech_intervals = speech_intervals
         self.dancing_intervals = dancing_intervals
 
@@ -79,13 +108,15 @@ class Bird:
             self.beak_led.off()
             
 def oscillate_led(event, duration, led):
+    """Blink an LED with given cycle duration (one on + one off)."""
     on_time = 0.01
-    off_time = duration - on_time
+    off_time = max(duration - on_time, 0.0)
     while event.is_set():
         led.on()
         time.sleep(on_time)
         led.off()
-        time.sleep(off_time)
+        if off_time > 0:
+            time.sleep(off_time)
 
 def oscillate_logs(event, duration, name):
     while event.is_set():
@@ -95,13 +126,20 @@ def oscillate_logs(event, duration, name):
         time.sleep(duration/2)
 
 def manage_leds(birds, audio_duration):
+    """Drive LED behavior over the approximate audio duration.
+    Stops early if cancel_current_song() called.
+    """
     global keep_playing
     print("manage_leds")
     print("audio_duration=", audio_duration)
+    if audio_duration <= 0:
+        print("No positive audio duration; skipping LED management.")
+        for bird in birds:
+            bird.stop_moving()
+        return
     sleep_time = 0.3
     start_time = time.time()
-    curr_time = time.time() - start_time
-    while (curr_time < audio_duration) and keep_playing:
+    while keep_playing and (time.time() - start_time) < audio_duration:
         curr_time = time.time() - start_time
         print("curr_time=", curr_time)
         for bird in birds:
@@ -120,3 +158,97 @@ def manage_leds(birds, audio_duration):
 def cancel_current_song():
     global keep_playing
     keep_playing = False
+
+def _safe_load_utils():
+    """Attempt to import utils from possible relative locations; return module or None."""
+    try:
+        import utils  # type: ignore
+        return utils
+    except ImportError:
+        try:
+            from common import utils  # type: ignore
+            return utils
+        except Exception:
+            print("utils module not found; limited functionality (no song config merging).")
+            return None
+
+def load_config(path):
+    if not path:
+        return None
+    if not isinstance(path, str):
+        return None
+    import os, json
+    if not os.path.exists(path):
+        print(f"Config file not found: {path}")
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading config: {e}")
+        return None
+
+def _derive_bird_name(hostname: str) -> str:
+    name = hostname
+    if name.startswith("birdpi-"):
+        name = name[len("birdpi-") :]
+    if name.endswith(".local"):
+        name = name[: -len(".local")]
+    return name
+
+def main():
+    import argparse
+    import socket
+    parser = argparse.ArgumentParser(description="Bird LED controller")
+    parser.add_argument("--config", help="Path to bird node config", default="../../config_single_bird.json")
+    parser.add_argument("--song", help="Song name (optional)")
+    args = parser.parse_args()
+
+    config = load_config(args.config)
+    if config is None:
+        print("Warning: No config loaded; GPIO pins may be undefined.")
+
+    song_name = args.song
+    utils_mod = _safe_load_utils()
+    selected_song_dict = None
+    if song_name and utils_mod:
+        try:
+            song_config = utils_mod.load_and_union_configs()
+            songs = utils_mod.resolve_song_audio_dirs(song_config.get("songs", []))
+            matches = [s for s in songs if s.get("name", "").lower() == song_name.lower()]
+            if matches:
+                selected_song_dict = matches[0]
+            else:
+                print(f"Song '{song_name}' not found; continuing without intervals.")
+        except Exception as e:
+            print(f"Error loading songs: {e}")
+    elif song_name:
+        print("utils not available; cannot resolve song intervals.")
+
+    hostname = socket.gethostname()
+    bird_name = _derive_bird_name(hostname)
+
+    # GPIO pin mappings
+    beak_pin = config.get("beak") if config else None
+    body_pin = config.get("body") if config else None
+    spotlight_pin = config.get("light") if config else None
+
+    bird_instance = Bird(
+        name=bird_name,
+        beak_led_pin=beak_pin,
+        body_led_pin=body_pin,
+        spotlight_led_pin=spotlight_pin,
+    )
+
+    bird_instance.prepare_song(selected_song_dict)
+
+    if bird_instance.speech_intervals or bird_instance.dancing_intervals:
+        max_singing = max((num for pair in bird_instance.speech_intervals for num in pair), default=0)
+        max_dancing = max((num for pair in bird_instance.dancing_intervals for num in pair), default=0)
+        seconds = max(max_singing, max_dancing)
+    else:
+        seconds = 0
+    manage_leds([bird_instance], seconds)
+
+if __name__ == "__main__":
+    main()

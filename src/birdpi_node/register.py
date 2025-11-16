@@ -2,7 +2,7 @@ import requests
 import socket
 import time
 
-MAIN_PI_HOST = "http://birdpi.local:8080"
+MAIN_PI_HOST = "http://birdpi-main.local:8080"
 NAME_FILE = "/tmp/bird_name"
 OFFSET_FILE = "/tmp/time_offset"
 MAIN_IP_FILE = "/tmp/main_ip"
@@ -66,7 +66,7 @@ def discover_and_register(requested_name=None, completion=None):
             completion(assigned_name)
         return
 
-    print("❌ Failed to register with birdpi.local. Scanning saved host")
+    print("❌ Failed to register with birdpi-main.local. Scanning saved host")
 
     main_host = get_main_pi_host()
     if main_host:
