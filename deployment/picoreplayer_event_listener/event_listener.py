@@ -69,6 +69,7 @@ def parseName(d: dict) -> str:
     Returns the title of the first song in the playlist_loop.
     If not found, returns an empty string.
     """
+    log(f"parseName.d={str(d)}")
     try:
         playlist = d.get("playlist_loop", [])
         log(f"playlist={str(playlist)}")
