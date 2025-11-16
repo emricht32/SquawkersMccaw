@@ -14,7 +14,7 @@ from typing import List
 # -------------------------------------------------------------------
 
 # Location of bird.py
-BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "bird.py")
+BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "../../../src/common/bird.py")
 
 # Log file location (SD card, NOT RAM)
 LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
@@ -64,6 +64,20 @@ def build_args_from_event(raw_args: List[str]) -> List[str]:
 
     return cli_args
 
+def parseName(d: dict) -> str:
+    """
+    Returns the title of the first song in the playlist_loop.
+    If not found, returns an empty string.
+    """
+    try:
+        playlist = d.get("playlist_loop", [])
+        if playlist and isinstance(playlist, list):
+            first = playlist[0]
+            return first.get("title", "")
+    except Exception:
+        pass
+    return ""
+
 
 # -------------------------------------------------------------------
 # Main execution
@@ -72,8 +86,8 @@ def build_args_from_event(raw_args: List[str]) -> List[str]:
 if __name__ == "__main__":
     raw_args = sys.argv[1:]
     bird_cli_args = build_args_from_event(raw_args)
-
-    cmd = ["python3", BIRD_PY_PATH] + bird_cli_args
+    name = parseName(bird_cli_args)
+    cmd = ["python3", BIRD_PY_PATH] + name
 
     # Log the incoming event
     log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
