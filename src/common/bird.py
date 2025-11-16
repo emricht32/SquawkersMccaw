@@ -9,6 +9,7 @@ Enhancements added:
  - Correct hostname parsing without misuse of strip()
  - Safer LED oscillation (no negative sleep times)
  - Standalone fallback if utils module unavailable
+ - Support for --time and --duration from player status JSON
 """
 
 import time
@@ -125,22 +126,26 @@ def oscillate_logs(event, duration, name):
         print(f"{name} LED OFF")
         time.sleep(duration/2)
 
-def manage_leds(birds, audio_duration):
+def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATURE
     """Drive LED behavior over the approximate audio duration.
     Stops early if cancel_current_song() called.
+
+    audio_duration: total track length in seconds (from LMS or interval data)
+    start_offset: current playback position within the track, in seconds.
+                  Allows LED timing to sync even if we start late.
     """
     global keep_playing
     print("manage_leds")
-    print("audio_duration=", audio_duration)
+    print("audio_duration=", audio_duration, "start_offset=", start_offset)
     if audio_duration <= 0:
         print("No positive audio duration; skipping LED management.")
         for bird in birds:
             bird.stop_moving()
         return
     sleep_time = 0.3
-    start_time = time.time()
-    while keep_playing and (time.time() - start_time) < audio_duration:
-        curr_time = time.time() - start_time
+    start_time_wall = time.time()
+    while keep_playing and (time.time() - start_time_wall + start_offset) < audio_duration:
+        curr_time = (time.time() - start_time_wall) + start_offset  # <-- track-time, not wall-time
         print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
@@ -204,6 +209,14 @@ def main():
     default_config = os.path.join(os.path.dirname(__file__), "../../config_single_bird.json")
     parser.add_argument("--config", help="Path to bird node config", default=default_config)
     parser.add_argument("--song", help="Song name (optional)")
+    parser.add_argument(
+        "--time", help="Current playback time in seconds (from LMS status)",  # <-- NEW
+        type=float, default=0.0
+    )
+    parser.add_argument(
+        "--duration", help="Total track duration in seconds (from LMS status)",  # <-- NEW
+        type=float, default=0.0
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -244,13 +257,19 @@ def main():
 
     bird_instance.prepare_song(selected_song_dict)
 
+    # Compute max interval length (fallback if --duration not given)
     if bird_instance.speech_intervals or bird_instance.dancing_intervals:
         max_singing = max((num for pair in bird_instance.speech_intervals for num in pair), default=0)
         max_dancing = max((num for pair in bird_instance.dancing_intervals for num in pair), default=0)
         seconds = max(max_singing, max_dancing)
     else:
         seconds = 0
-    manage_leds([bird_instance], seconds)
+
+    # Prefer explicit duration from LMS; fall back to interval-derived length
+    audio_duration = args.duration if args.duration > 0 else seconds  # <-- NEW
+    start_offset = args.time if args.time > 0 else 0.0               # <-- NEW
+
+    manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
 
 if __name__ == "__main__":
     main()
