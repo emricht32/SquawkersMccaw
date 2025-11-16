@@ -64,10 +64,11 @@ def build_args_from_event(raw_args: List[str]) -> List[str]:
 
     return cli_args
 
-def parseName(arr) -> str:
+def parseArgs(arr) -> str:
     """
     Expects arr to be a single-element list containing a JSON-encoded string.
-    Returns the first song's title, with spaces replaced by underscores.
+    Returns a string of CLI args:
+        --song <title_with_underscores> --time <time> --duration <duration>
     """
     if not arr or not isinstance(arr, list):
         return ""
@@ -76,15 +77,30 @@ def parseName(arr) -> str:
         raw = arr[0]
         d = json.loads(raw)
 
+        # Extract playlist info
         playlist = d.get("playlist_loop", [])
         if playlist and isinstance(playlist, list):
             title = playlist[0].get("title", "")
-            return title.replace(" ", "_")
+            title = title.replace(" ", "_")
+        else:
+            title = ""
+
+        # Extract time + duration
+        time_val = d.get("time", "")
+        duration_val = d.get("duration", "")
+
+        # Build CLI arg string
+        parts = []
+        if title:
+            parts += ["--song", title]
+        if time_val != "":
+            parts += ["--time", str(time_val)]
+        if duration_val != "":
+            parts += ["--duration", str(duration_val)]
+        return parts
 
     except Exception:
         return ""
-
-    return ""
 
 
 # -------------------------------------------------------------------
@@ -94,8 +110,8 @@ def parseName(arr) -> str:
 if __name__ == "__main__":
     raw_args = sys.argv[1:]
     bird_cli_args = build_args_from_event(raw_args)
-    name = parseName(bird_cli_args)
-    cmd = ["python3", BIRD_PY_PATH, "--song", name]
+    parsedArgs = parseArgs(bird_cli_args)
+    cmd = ["python3", BIRD_PY_PATH] + parsedArgs
 
     # Log the incoming event
     log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
