@@ -24,7 +24,7 @@ keep_playing = True
 
 class Bird:
     def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
-        print("Bird", name, beak_led_pin, body_led_pin, spotlight_led_pin)
+        print("Bird", name, " beak:", beak_led_pin, " body:", body_led_pin, " light:", spotlight_led_pin)
         self.name = name
         self.speech_intervals = []  # list[tuple[float,float]]
         self.dancing_intervals = []  # list[tuple[float,float]]
