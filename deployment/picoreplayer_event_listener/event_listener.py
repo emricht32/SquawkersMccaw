@@ -64,17 +64,16 @@ def build_args_from_event(raw_args: List[str]) -> List[str]:
 
     return cli_args
 
-def parseName(arg) -> str:
+def parseName(arr) -> str:
     """
     Returns the title of the first song in the playlist_loop.
     If not found, returns an empty string.
     """
-    arg1 = arg
     try:
-        if isinstance(arg, list) and len(arg) > 0:
-            playlist = arg[0]["playlist_loop"]
-        # log(f"parseName.d={str(arg1)}")
-        # playlist = arg1.get("playlist_loop", [])
+        raw = arr[0]
+        d = json.loads(raw)
+        playlist = d.get("playlist_loop", [])
+
         log(f"playlist={str(playlist)}")
         if playlist and isinstance(playlist, list):
             first = playlist[0]
