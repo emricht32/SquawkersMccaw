@@ -17,8 +17,11 @@ import threading
 try:  # GPIO optional environment
     from gpiozero import LED
     GPIO_AVAILABLE = True
+    print("GPIO_AVAILABLE")
 except ImportError:
     GPIO_AVAILABLE = False
+    print("GPIO_NOT_AVAILABLE")
+
 
 keep_playing = True
 
@@ -34,6 +37,8 @@ class Bird:
         if self.spotlight_led is not None:
             self.spotlight_led.on()
         self.event = threading.Event()
+        print("BirdInternal", self.name, " beak:", self.beak_led, " body:", self.body_led, " light:", self.spotlight_led)
+
 
     def prepare_song(self, song_dict):
         """Load intervals from song dictionary.
