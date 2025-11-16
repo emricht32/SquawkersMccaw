@@ -95,7 +95,7 @@ if __name__ == "__main__":
     raw_args = sys.argv[1:]
     bird_cli_args = build_args_from_event(raw_args)
     name = parseName(bird_cli_args)
-    cmd = ["python3", BIRD_PY_PATH, name]
+    cmd = ["python3", BIRD_PY_PATH, "--song", name]
 
     # Log the incoming event
     log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
