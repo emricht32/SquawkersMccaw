@@ -5,7 +5,7 @@ VENV_PATH="/mnt/mmcblk0p2/tc/birdpi-venv"
 SCRIPT="/mnt/mmcblk0p2/tc/SquawkersMccaw/deployment/picoreplayer_event_listener/event_listener.py"
 PYTHON="$VENV_PATH/bin/python"
 
-LOG="/mnt/mmcblk0p2/tc/SquawkersMccaw/event_listener.log"
+LOG="/mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log"
 
 # Ensure log file exists
 touch "$LOG"

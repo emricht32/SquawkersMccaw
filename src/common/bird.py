@@ -19,6 +19,7 @@ try:  # GPIO optional environment
     GPIO_AVAILABLE = True
     print("GPIO_AVAILABLE")
 except ImportError:
+    import sys
     GPIO_AVAILABLE = False
     print("GPIO_NOT_AVAILABLE")
     print("sys.executable =", sys.executable)
