@@ -117,7 +117,7 @@ class Bird:
             
 def oscillate_led(event, duration, led):
     """Blink an LED with given cycle duration (one on + one off)."""
-    on_time = 0.01
+    on_time = 0.05
     off_time = max(duration - on_time, 0.0)
     while event.is_set():
         led.on()
