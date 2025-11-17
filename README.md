@@ -1,86 +1,224 @@
+````markdown
 # Squawkers McCaw Tiki Room / BirdPi
 
-Animatronic multi-Pi “Tiki Room” system built around:
+Animatronic multi-Pi "Tiki Room" system powered by piCorePlayer, featuring:
 
+- **piCorePlayer** for UI, configuration, and audio playback
 - **Logitech Media Server (LMS)** for synchronized multi-room audio  
 - **Squeezelite** players running on each Raspberry Pi  
-- **Squawkers McCaw animatronic birds**  
-- A **Main Pi** orchestrating songs, timing, animations, and per-bird mic-style volume control  
-- **Node Pis** responding to commands and providing individual audio + movement  
+- **LMS Event Trigger Plugin** to synchronize bird animations with music
+- **Squawkers McCaw animatronic birds** with LED-controlled beaks, body lights, and spotlights
+- A **Main Pi** running LMS and coordinating audio
+- **Node Pis** controlling individual birds via GPIO
 
-## TinyCore / piCorePlayer Deployment
+## Architecture Overview
 
-This branch is optimized for running entirely on piCorePlayer (TinyCore Linux). Root FS is a RAM tmpfs; all persistent data lives on the mounted SD card partition at `/mnt/mmcblk0p2`.
+This system uses an event-driven architecture where:
+1. **piCorePlayer** provides the web UI and manages Squeezelite players
+2. **LMS** handles audio playback and triggers events on song changes
+3. **LMS Event Trigger Plugin** invokes `event_listener.py` on playlist events
+4. **event_listener.py** calls `bird.py` with song metadata (name, time, duration)
+5. **bird.py** controls GPIO LEDs based on song choreography intervals
+
+## Quick Start
+
+### 1. Deploy on piCorePlayer
+On your piCorePlayer device (e.g., `birdpi-main.local`):
+
+```bash
+# Clone repository to persistent storage
+cd /mnt/mmcblk0p2/tc
+git clone https://github.com/emricht32/SquawkersMccaw.git
+
+# Deploy event listener plugin
+cd SquawkersMccaw/deployment
+./setup_picoreplayer_event_listener.sh tc@birdpi-main.local:/mnt/mmcblk0p2/tc/SquawkersMccaw/deployment/picoreplayer_event_listener
+```
+
+### 2. Configure LMS Event Trigger
+Copy the event trigger configuration:
+```bash
+sudo cp deployment/picoreplayer_event_listener/lmseventtrigger.json /etc/lmseventtrigger.json
+sudo chmod 644 /etc/lmseventtrigger.json
+sudo systemctl restart squeezeboxserver
+```
+
+### 3. Test
+```bash
+cd /mnt/mmcblk0p2/tc/SquawkersMccaw/deployment/picoreplayer_event_listener
+./event_listener.py SONG_START tiki
+```
+
+Check logs:
+```bash
+tail -f /mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log
+```
+
+## TinyCore / piCorePlayer Deployment Details
+
+### Persistent Storage Layout
+All persistent data lives on the SD card partition at `/mnt/mmcblk0p2`:
+```
+/mnt/mmcblk0p2/tc/
+  ├── SquawkersMccaw/              (this repository)
+  │   ├── deployment/
+  │   │   └── picoreplayer_event_listener/
+  │   │       ├── event_listener.py
+  │   │       ├── bird.py (synced from src/common/)
+  │   │       └── lmseventtrigger.json
+  │   ├── config/
+  │   ├── music/
+  │   └── src/
+  └── birdpi-logs/                 (event listener logs)
+```
+
+### Configuration Files
+
+**Bird Hardware Config**: `config_single_bird.json` (per node)
+```json
+{
+    "on_light": 5,
+    "beak": 19,
+    "body": 16,
+    "light": 25,
+    "on_time": 0.5
+}
+```
+
+**Song Choreography**: `config_multi_song_with_triggers.json`
+Defines singing and dancing intervals for each bird in each song.
+
+**LMS Event Trigger**: `/etc/lmseventtrigger.json`
+```json
+{
+    "enabled": true,
+    "numStatusResults": 1,
+    "events": [
+        {
+            "cmd": "/mnt/mmcblk0p2/tc/SquawkersMccaw/run_event_listener.sh",
+            "event": [
+                ["playlist"],
+                ["newsong"]
+            ]
+        }
+    ]
+}
+```
+
+## Testing & Troubleshooting
+
+### Validate Configuration
+```bash
+cd deployment/picoreplayer_event_listener
+python3 validate_lms_config.py lmseventtrigger.json
+```
+
+### Run Full Test Suite
+```bash
+./test_event_trigger.sh local    # Local validation
+./test_event_trigger.sh remote   # With LMS connectivity check
+```
+
+### Deploy & Test End-to-End
+```bash
+./deploy_and_test.sh tc@birdpi-main.local
+```
+
+### Common Issues
+
+**Events Not Triggering:**
+1. Check config location: `ls -la /etc/lmseventtrigger.json`
+2. Verify script is executable: `chmod +x event_listener.py`
+3. Check logs: `tail -f /mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log`
+4. Restart LMS: `sudo systemctl restart squeezeboxserver`
+
+**reloadConfig Fails:**
+- JSON syntax error (run validator)
+- File permissions (must be readable by squeezeboxserver user)
+- Wrong file location (must be `/etc/lmseventtrigger.json`)
+
+See `deployment/picoreplayer_event_listener/README.md` for detailed troubleshooting.
+
+## Bird Setup
 
 ### Roles & Hostnames
-Use static hostnames so the main controller can coordinate without provisioning:
-- Main: `birdpi-main`
-- Nodes: `birdpi-fritz`, `birdpi-pierre`, `birdpi-michael` (Jose is driven by master audio channel)
+- Main: `birdpi-main` (runs LMS, plus runs Jose)
+- Node: `birdpi-fritz`, `birdpi-pierre`, `birdpi-michael`, etc.
 
-Each Pi runs a Squeezelite player registered to LMS. The master adjusts per-bird volumes to create a “mic” presence effect.
+Each node runs Squeezelite and controls one physical bird via GPIO.
 
-### Persistent Layout
-Runtime scripts place caches and installed packages under:
-```
- /mnt/mmcblk0p2/birdpi/
-	 ├── venv/              (optional virtualenv)
-	 ├── python-packages/   (--target installs if venv unavailable)
-	 ├── pip-cache/         (pip download cache)
-	 ├── tmp/               (TMPDIR for builds)
-	 ├── log/               (master.log, node-*.log, boot.log)
-```
+### GPIO Pin Mapping
+Default pins (BCM numbering):
+- Beak LED: GPIO 19
+- Body LED: GPIO 16  
+- Spotlight: GPIO 25
 
-### Installation
-On first boot (or after clearing), run with the `--install` flag to pull Python dependencies to persistent storage.
-Main example (from repo root on `birdpi-main`):
-```
-./run_main.sh --install
-```
-Node example (on e.g. `birdpi-fritz`):
-```
-./run_node.sh --install
-```
-Subsequent boots can omit the flag for faster start.
+Configure per-node in `config_single_bird.json`.
 
-### Automatic Startup (bootlocal)
-Copy or move the repository to the persistent partition (example path: `/mnt/mmcblk0p2/SquawkersMccaw`). Then install the provided `bootlocal.sh` into TinyCore’s persistent boot script location:
+### Song Choreography Format
+```json
+{
+  "name": "tiki",
+  "individuals": [
+    {
+      "name": "Fritz",
+      "singing": [[0, 5], [10, 15]],
+      "dancing": [[5, 10]]
+    }
+  ]
+}
 ```
-sudo cp /mnt/mmcblk0p2/SquawkersMccaw/bootlocal.sh /opt/bootlocal.sh
-```
-Run TinyCore’s backup to persist:
-```
-pcp bu
-```
-On next reboot, `bootlocal.sh` waits briefly for network/LMS and launches `run_main.sh` if hostname == `birdpi-main` else `run_node.sh`.
+- `singing`: Beak moves, body/spotlight on
+- `dancing`: Body/spotlight on only
 
-### Configuration
-System config lives in `config/system.json` and now uses a static `birds` mapping plus `main` player definition. Validation timings:
-- `startup_validation_delay`: seconds after launch to perform initial bird presence check.
-- `periodic_validation_interval`: interval for recurring checks.
+## Development
 
-### Health Endpoint
-`/api/health` returns: status, version, uptime time, bird count and list of registered birds. See `tests/test_health.py` for assertions.
-
-### Removed / Deprecated Features
-Provisioning (WiFi credential exchange), BLE song selector, and voice input (Vosk) have been removed to slim dependencies and footprint. README sections and code relating to these features were deleted.
-
-### Space & Memory Notes
-TinyCore’s RAM is limited; avoid compiling large wheels in tmpfs. The scripts set `TMPDIR` and `PIP_CACHE_DIR` to persistent storage to mitigate “No space left on device” errors.
-
-### Updating Dependencies
-If you need to refresh or force a clean install:
-```
-./run_main.sh --force-reinstall --install
-./run_node.sh --force-reinstall --install
+### Local Testing (Without GPIO)
+The system gracefully degrades without `gpiozero`:
+```bash
+cd src/common
+python3 bird.py --song tiki --config ../../config_single_bird.json
 ```
 
-### Logs
-Main orchestrator: `/mnt/mmcblk0p2/birdpi/log/main.log`
-Nodes: `/mnt/mmcblk0p2/birdpi/log/node-<name>.log`
-Boot events: `/mnt/mmcblk0p2/birdpi/log/boot.log`
+### Adding New Songs
+1. Place audio files in `music/<song_name>/`
+2. Add choreography to `config_multi_song_with_triggers.json`
+3. Add song metadata to LMS library
 
-### Next Steps / Optional Slimming
-Consider removing `pyaudio` or `evdev` from `pi-requirements.txt` if not required for current hardware to further reduce install size.
+### Updating bird.py
+After editing `src/common/bird.py`:
+```bash
+cd deployment
+./setup_picoreplayer_event_listener.sh tc@<hostname>:/mnt/mmcblk0p2/tc/SquawkersMccaw/deployment/picoreplayer_event_listener
+```
 
----
-For historical provisioning documentation and deprecated modules, consult previous tags or branches (pre 0.9.x).
+## API & Health Monitoring
+
+The system no longer includes a custom web interface. Use:
+- **piCorePlayer Web UI**: `http://birdpi-main.local` (port 80)
+- **LMS Web UI**: `http://birdpi-main.local:9000`
+- **Event logs**: `/mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log`
+
+## Deprecated Features
+
+The following components have been moved to `deprecated/` and are no longer actively maintained:
+- Custom Python web interface (`web_interface.py`)
+- Direct audio playback orchestration (`play_audio.py`)
+- Bird registry and provisioning systems
+- BLE song selector
+- Voice input/speech recognition
+- WiFi credential exchange
+
+These are replaced by piCorePlayer's native UI and the LMS Event Trigger integration.
+
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+
+Current version: **0.11.0** (piCorePlayer Event Integration)
+
+## License
+
+See [LICENSE](LICENSE) file for details.
+
+````

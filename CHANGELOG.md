@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. Follow semantic versioning: MAJOR.MINOR.PATCH.
 
+## 0.11.0 - 2025-11-16
+### Added
+- **piCorePlayer Event Listener Integration**: Added LMS Event Trigger plugin support for bird movement triggers via `deployment/picoreplayer_event_listener/`.
+  - `event_listener.py`: Receives LMS playlist events and invokes `bird.py` with song metadata.
+  - `lmseventtrigger.json`: Configuration file for LMS Event Trigger plugin.
+  - `bird.py` now accepts `--time` and `--duration` arguments for mid-song sync.
+  - Comprehensive testing suite: `validate_lms_config.py`, `test_event_trigger.sh`, `deploy_and_test.sh`.
+- Event listener logging to persistent storage: `/mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log`.
+- Setup script with remote deployment support via scp: `setup_picoreplayer_event_listener.sh`.
+
+### Changed
+- **Architecture Shift**: System now relies on piCorePlayer for UI, audio playback, and bird movement triggers instead of custom Python web interface.
+- `bird.py` refactored with improved error handling, standalone operation without `utils` module, and better hostname parsing.
+- Moved deprecated/unused files to `deprecated/` folder for cleaner project structure.
+- Updated deployment documentation with piCorePlayer-specific paths and troubleshooting.
+
+### Removed
+- Custom web UI components (now handled by piCorePlayer/LMS web interface).
+- Python-based audio playback orchestration (delegated to LMS/Squeezelite).
+- Direct bird registry and provisioning systems (simplified to event-driven model).
+
+### Fixed
+- Corrected `.lowercase()` to `.lower()` in `bird.py`.
+- Fixed hostname parsing to properly handle `birdpi-*` prefix and `.local` suffix.
+- Prevented negative LED oscillation durations.
+- Added defensive handling for missing configs and song data.
+
+### Internal
+- Enhanced testing infrastructure for LMS integration validation.
+- Added JSON validation tools for event trigger configuration.
+
 ## 0.10.1 - 2025-11-14
 ### Changed
 - Renamed role terminology from 'master' to 'main' across scripts, config, and docs.
