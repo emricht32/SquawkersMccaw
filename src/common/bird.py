@@ -21,6 +21,8 @@ try:  # GPIO optional environment
 except ImportError:
     GPIO_AVAILABLE = False
     print("GPIO_NOT_AVAILABLE")
+    print("sys.executable =", sys.executable)
+    print("sys.path =", sys.path)
 
 
 keep_playing = True
