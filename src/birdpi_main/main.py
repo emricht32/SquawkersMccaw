@@ -7,8 +7,8 @@ from send_song_start_stop import send_song_start, post_cancel_to_bird
 from bird_registry import registry
 from play_audio import play_audio_with_speech_indicator, is_playing_song
 from queue import Queue
-import utils
-from utils import load_system_config
+import src.common.utils as utils
+from src.common.utils import load_system_config
 from lms_control import play_song_with_volume_schedule
 
 try:
