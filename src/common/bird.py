@@ -172,19 +172,6 @@ def cancel_current_song():
     global keep_playing
     keep_playing = False
 
-def _safe_load_utils():
-    """Attempt to import utils from possible relative locations; return module or None."""
-    try:
-        import utils  # type: ignore
-        return utils
-    except ImportError:
-        try:
-            from common import utils  # type: ignore
-            return utils
-        except Exception:
-            print("utils module not found; limited functionality (no song config merging).")
-            return None
-
 def load_config(path):
     if not path:
         return None
@@ -228,7 +215,6 @@ def main():
     )
     args = parser.parse_args()
     
-
     pins_config = load_config(args.config)
     songs_config = load_config(songs_path)
     if pins_config is None:
@@ -278,7 +264,13 @@ def main():
     audio_duration = args.duration if args.duration > 0 else seconds  # <-- NEW
     start_offset = args.time if args.time > 0 else 0.0               # <-- NEW
 
-    manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
+    threading.Thread(
+        target=manage_leds,
+        args=([bird_instance], audio_duration),
+        kwargs={"start_offset": start_offset},
+        daemon=False
+    ).start()
+    # manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
 
 if __name__ == "__main__":
     main()
