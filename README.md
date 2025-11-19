@@ -1,5 +1,5 @@
 ````markdown
-# Squawkers McCaw Tiki Room / BirdPi
+# Squawkers McCaw Tiki Room / BirdPi (Refactor in progress)
 
 Animatronic multi-Pi "Tiki Room" system powered by piCorePlayer, featuring:
 

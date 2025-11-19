@@ -264,12 +264,14 @@ def main():
     audio_duration = args.duration if args.duration > 0 else seconds  # <-- NEW
     start_offset = args.time if args.time > 0 else 0.0               # <-- NEW
 
-    threading.Thread(
-        target=manage_leds,
-        args=([bird_instance], audio_duration),
-        kwargs={"start_offset": start_offset},
-        daemon=False
-    ).start()
+    manage_leds([bird_instance], audio_duration, start_offset=start_offset)
+
+    # threading.Thread(
+    #     target=manage_leds,
+    #     args=([bird_instance], audio_duration),
+    #     kwargs={"start_offset": start_offset},
+    #     daemon=False
+    # ).start()
     # manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
 
 if __name__ == "__main__":
