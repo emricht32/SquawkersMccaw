@@ -239,7 +239,7 @@ def _derive_bird_name(hostname: str) -> str:
     return name.capitalize() if name != "main" else "Jose"
 
 def main():
-    import argparse
+    import sys
     import socket
     import os
     # parser = argparse.ArgumentParser(description="Bird LED controller")
