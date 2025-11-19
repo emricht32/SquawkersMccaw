@@ -3,7 +3,7 @@
     "numStatusResults": 1,
     "events": [
         {
-            "cmd": "/mnt/mmcblk0p2/tc/SquawkersMccaw/run_event_listener.sh",
+            "cmd": "/mnt/mmcblk0p2/tc/SquawkersMccaw/src/bird.py",
             "event": [
                 ["playlist"],
                 ["newsong"]

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """bird.py
 
 Controls LED behavior for a single Bird instance based on song interval data.
