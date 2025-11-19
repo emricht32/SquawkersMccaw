@@ -26,7 +26,6 @@ except ImportError:
     print("sys.executable =", sys.executable)
     print("sys.path =", sys.path)
 
-
 keep_playing = True
 
 class Bird:
@@ -188,6 +187,48 @@ def load_config(path):
     except Exception as e:
         print(f"Error loading config: {e}")
         return None
+    
+import json  # you already have this imported at the top
+
+def parse_lms_status(status_json: str):
+    """
+    Parse LMS player status JSON and extract:
+    - song title (spaces -> underscores)
+    - current time (float or None)
+    - duration (float or None)
+
+    Returns (song_name_or_None, time_or_None, duration_or_None).
+    """
+    if not status_json:
+        return None, None, None
+
+    try:
+        d = json.loads(status_json)
+    except Exception as e:
+        print(f"⚠️ Failed to parse LMS status JSON: {e}")
+        return None, None, None
+
+    # Title from playlist_loop[0].title
+    title = ""
+    playlist = d.get("playlist_loop", [])
+    if playlist and isinstance(playlist, list):
+        title = str(playlist[0].get("title", "") or "")
+    title_norm = title.replace(" ", "_") if title else None
+
+    # Time + duration
+    def to_float(val):
+        if val is None or val == "":
+            return None
+        try:
+            return float(val)
+        except Exception:
+            return None
+
+    time_val = to_float(d.get("time"))
+    duration_val = to_float(d.get("duration"))
+
+    return title_norm, time_val, duration_val
+
 
 def _derive_bird_name(hostname: str) -> str:
     name = hostname
@@ -201,27 +242,31 @@ def main():
     import argparse
     import socket
     import os
-    parser = argparse.ArgumentParser(description="Bird LED controller")
-    default_config = os.path.join(os.path.dirname(__file__), "../../config_single_bird.json")
-    songs_path = os.path.join(os.path.dirname(__file__), "../../config_multi_song_with_triggers.json")
-    parser.add_argument("--config", help="Path to bird node config", default=default_config)
-    parser.add_argument("--song", help="Song name (optional)")
-    parser.add_argument(
-        "--time", help="Current playback time in seconds (from LMS status)",  # <-- NEW
-        type=float, default=0.0
-    )
-    parser.add_argument(
-        "--duration", help="Total track duration in seconds (from LMS status)",  # <-- NEW
-        type=float, default=0.0
-    )
-    args = parser.parse_args()
-    
-    pins_config = load_config(args.config)
+    # parser = argparse.ArgumentParser(description="Bird LED controller")
+    default_config = os.path.join(os.path.dirname(__file__), "../config_single_bird.json")
+    songs_path = os.path.join(os.path.dirname(__file__), "../config_multi_song_with_triggers.json")
+    # parser.add_argument("--config", help="Path to bird node config", default=default_config)
+    # parser.add_argument("--song", help="Song name (optional)")
+    # parser.add_argument(
+    #     "--time", help="Current playback time in seconds (from LMS status)",  # <-- NEW
+    #     type=float, default=0.0
+    # )
+    # parser.add_argument(
+    #     "--duration", help="Total track duration in seconds (from LMS status)",  # <-- NEW
+    #     type=float, default=0.0
+    # )
+    # args = parser.parse_args()
+    if len(sys.argv) < 4:
+        print("No LMS JSON provided.")
+        return
+    raw_args = sys.argv[3]
+    title_norm, time_val, duration_val = parse_lms_status(raw_args)
+    pins_config = load_config(default_config)
     songs_config = load_config(songs_path)
     if pins_config is None:
         print("Warning: No config loaded; GPIO pins may be undefined.")
 
-    song_name = args.song
+    song_name = title_norm
     selected_song_dict = None
     if song_name:
         try:
@@ -262,17 +307,17 @@ def main():
         seconds = 0
 
     # Prefer explicit duration from LMS; fall back to interval-derived length
-    audio_duration = args.duration if args.duration > 0 else seconds  # <-- NEW
-    start_offset = args.time if args.time > 0 else 0.0               # <-- NEW
+    audio_duration = duration_val if duration_val > 0 else seconds  # <-- NEW
+    start_offset = time_val if time_val > 0 else 0.0               # <-- NEW
 
-    manage_leds([bird_instance], audio_duration, start_offset=start_offset)
+    # manage_leds([bird_instance], audio_duration, start_offset=start_offset)
 
-    # threading.Thread(
-    #     target=manage_leds,
-    #     args=([bird_instance], audio_duration),
-    #     kwargs={"start_offset": start_offset},
-    #     daemon=False
-    # ).start()
+    threading.Thread(
+        target=manage_leds,
+        args=([bird_instance], audio_duration),
+        kwargs={"start_offset": start_offset},
+        daemon=False
+    ).start()
     # manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
 
 if __name__ == "__main__":
