@@ -84,14 +84,11 @@ class Bird:
     def start_speaking(self):
         # Called when bird should be "speaking" at this time slice
         if self.spotlight_led:
-            # self.spotlight_led.off()
-            print("Spotlight OFF (stub)")
+            self.spotlight_led.off()  # reversed
         if self.body_led:
-            # self.body_led.on()
-            print("Body ON (stub)")
+            self.body_led.on()
         if self.beak_led:
-            # self.beak_led.on()
-            print("Beak ON (stub)")
+            self.beak_led.on()
         else:
             print(f"{self.name} SPEAKING")
 
