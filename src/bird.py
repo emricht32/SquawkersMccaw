@@ -75,22 +75,33 @@ class Bird:
         self.dancing_intervals = dancing_intervals
 
     def is_speaking(self, curr_time):
-        return any(start <= curr_time <= end for start, end in self.speech_intervals)
+        print("is_speaking")
+        tbr = any(start <= curr_time <= end for start, end in self.speech_intervals)
+        print("is_speaking:", tbr)
+        return tbr
     
     def is_dancing(self, curr_time):
-        return any(start <= curr_time <= end for start, end in self.dancing_intervals)
+        print("is_dancing")
+        tbr = any(start <= curr_time <= end for start, end in self.dancing_intervals)
+        print("is_dancin:g", tbr)
+        return tbr
 
     
     def start_speaking(self):
-        # Called when bird should be "speaking" at this time slice
-        if self.spotlight_led:
-            self.spotlight_led.off()  # reversed
-        if self.body_led:
-            self.body_led.on()
-        if self.beak_led:
-            self.beak_led.on()
-        else:
-            print(f"{self.name} SPEAKING")
+        try:
+            # Called when bird should be "speaking" at this time slice
+            if self.spotlight_led:
+                print("self.spotlight_led.off() START")
+                self.spotlight_led.off()  # reversed
+                print("self.spotlight_led.off() END")
+            if self.body_led:
+                self.body_led.on()
+            if self.beak_led:
+                self.beak_led.on()
+            else:
+                print(f"{self.name} SPEAKING")
+        except Exception as e:
+            print(f"Cant start start_speaking: {e}")
 
     def start_dancing(self):
         if self.spotlight_led:
