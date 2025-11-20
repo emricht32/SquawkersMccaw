@@ -80,39 +80,33 @@ class Bird:
     def is_dancing(self, curr_time):
         return any(start <= curr_time <= end for start, end in self.dancing_intervals)
 
-    def start_moving(self, duration):
-        if self.event.is_set():
-            return
-        self.event.set()
-        self.start_dancing()
-
+    
+    def start_speaking(self):
+        # Called when bird should be "speaking" at this time slice
+        if self.spotlight_led:
+            # self.spotlight_led.off()
+            print("Spotlight OFF (stub)")
+        if self.body_led:
+            # self.body_led.on()
+            print("Body ON (stub)")
         if self.beak_led:
-            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
+            # self.beak_led.on()
+            print("Beak ON (stub)")
         else:
-            threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
-        
+            print(f"{self.name} SPEAKING")
+
     def start_dancing(self):
         if self.spotlight_led:
-            self.spotlight_led.off() #spotlight is reversed 
-        # else:
-        #     print(f"{self.name} Spotlight ON")
+            self.spotlight_led.off()  # reversed
         if self.body_led:
-            self.body_led.on() 
-        #     print(f"{self.name} Body ON")
-        # else:
-        #     print(f"{self.name} Body ON")
+            self.body_led.on()
+        # Beak stays whatever it was
 
     def stop_moving(self):
-        self.event.clear()
         if self.spotlight_led:
-            self.spotlight_led.on() #reversed
-        # else:
-            # print(f"{self.name} Spotlight OFF")
+            self.spotlight_led.on()  # reversed
         if self.body_led:
             self.body_led.off()
-            # print(f"{self.name} Body OFF")
-        # else:
-            # print(f"{self.name} Body OFF")
         if self.beak_led:
             self.beak_led.off()
             
@@ -157,11 +151,11 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
         print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
-                bird.start_moving(sleep_time)
+                bird.start_speaking()
+            elif bird.is_dancing(curr_time):
+                bird.start_dancing()
             else:
                 bird.stop_moving()
-                if bird.is_dancing(curr_time):
-                    bird.start_dancing()
         time.sleep(sleep_time)
     keep_playing = True
     for bird in birds:
