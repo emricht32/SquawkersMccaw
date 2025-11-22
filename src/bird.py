@@ -87,21 +87,34 @@ class Bird:
         return tbr
 
     
-    def start_speaking(self):
-        try:
-            # Called when bird should be "speaking" at this time slice
-            if self.spotlight_led:
-                print("self.spotlight_led.off() START")
-                self.spotlight_led.off()  # reversed
-                print("self.spotlight_led.off() END")
-            if self.body_led:
-                self.body_led.on()
-            if self.beak_led:
-                self.beak_led.on()
-            else:
-                print(f"{self.name} SPEAKING")
-        except Exception as e:
-            print(f"Cant start start_speaking: {e}")
+    # def start_speaking(self):
+    #     try:
+    #         # Called when bird should be "speaking" at this time slice
+    #         if self.spotlight_led:
+    #             print("self.spotlight_led.off() START")
+    #             self.spotlight_led.off()  # reversed
+    #             print("self.spotlight_led.off() END")
+    #         if self.body_led:
+    #             self.body_led.on()
+    #             print("self.body_led.on()")
+    #         if self.beak_led:
+    #             self.beak_led.on()
+    #             print("self.beak_led.on()")
+    #         else:
+    #             print(f"{self.name} SPEAKING")
+    #     except Exception as e:
+    #         print(f"Cant start start_speaking: {e}")
+    def start_moving(self, duration):
+        if self.event.is_set():
+            return
+        self.event.set()
+        self.start_dancing()
+
+        if self.beak_led:
+            threading.Thread(target=oscillate_led, args=(self.event, duration, self.beak_led)).start()
+        else:
+            threading.Thread(target=oscillate_logs, args=(self.event, duration, self.name)).start()
+        
 
     def start_dancing(self):
         if self.spotlight_led:
@@ -115,8 +128,10 @@ class Bird:
             self.spotlight_led.on()  # reversed
         if self.body_led:
             self.body_led.off()
+            print("self.beak_led.off()")
         if self.beak_led:
             self.beak_led.off()
+            print("self.beak_led.off()")
             
 def oscillate_led(event, duration, led):
     """Blink an LED with given cycle duration (one on + one off)."""
