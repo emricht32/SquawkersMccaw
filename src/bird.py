@@ -275,11 +275,12 @@ def main():
     #     type=float, default=0.0
     # )
     # args = parser.parse_args()
-    if len(sys.argv) < 3:
+    print("sys.argv=", sys.argv)
+
+    if len(sys.argv) < 4:
         print("No LMS JSON provided.")
-        print("sys.argv=", sys.argv)
         return
-    raw_args = sys.argv[2]
+    raw_args = sys.argv[3]
     title_norm, time_val, duration_val = parse_lms_status(raw_args)
     pins_config = load_config(default_config)
     songs_config = load_config(songs_path)
