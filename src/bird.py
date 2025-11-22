@@ -221,7 +221,7 @@ def parse_lms_status(status_json):
     if not status_json:
         return None, None, None
     try:
-        d = json.loads(status_json)
+        d = json.loads(str(status_json))
     except Exception as e:
         print(f"⚠️ Failed to parse LMS status JSON: {e}")
         return None, None, None
