@@ -174,7 +174,7 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
         print("curr_time=", curr_time)
         for bird in birds:
             if bird.is_speaking(curr_time):
-                bird.start_speaking()
+                bird.start_speaking(sleep_time)
             elif bird.is_dancing(curr_time):
                 bird.start_dancing()
             else:
