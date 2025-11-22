@@ -276,6 +276,7 @@ def main():
     # args = parser.parse_args()
     if len(sys.argv) < 4:
         print("No LMS JSON provided.")
+        print("sys.argv=", sys.argv)
         return
     raw_args = sys.argv[3]
     title_norm, time_val, duration_val = parse_lms_status(raw_args)
