@@ -208,7 +208,7 @@ def load_config(path):
     
 import json  # you already have this imported at the top
 
-def parse_lms_status(status_json: dict):
+def parse_lms_status(status_json: str):
     """
     Parse LMS player status JSON and extract:
     - song title (spaces -> underscores)
@@ -217,15 +217,15 @@ def parse_lms_status(status_json: dict):
 
     Returns (song_name_or_None, time_or_None, duration_or_None).
     """
+    print("status_json=", status_json)
     if not status_json:
         return None, None, None
-    d = status_json
-    if d is None:
-        try:
-            d = json.loads(status_json)
-        except Exception as e:
-            print(f"⚠️ Failed to parse LMS status JSON: {e}")
-            return None, None, None
+
+    try:
+        d = json.loads(status_json)
+    except Exception as e:
+        print(f"⚠️ Failed to parse LMS status JSON: {e}")
+        return None, None, None
 
     # Title from playlist_loop[0].title
     title = ""
