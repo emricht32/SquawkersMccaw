@@ -208,7 +208,7 @@ def load_config(path):
     
 import json  # you already have this imported at the top
 
-def parse_lms_status(status_json: dict)
+def parse_lms_status(status_json: dict):
     """
     Parse LMS player status JSON and extract:
     - song title (spaces -> underscores)
