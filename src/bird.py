@@ -220,13 +220,11 @@ def parse_lms_status(status_json):
     print("status_json=", status_json)
     if not status_json:
         return None, None, None
-    d = status_json
-    if d == None:
-        try:
-            d = json.loads(status_json)
-        except Exception as e:
-            print(f"⚠️ Failed to parse LMS status JSON: {e}")
-            return None, None, None
+    try:
+        d = json.loads(status_json)
+    except Exception as e:
+        print(f"⚠️ Failed to parse LMS status JSON: {e}")
+        return None, None, None
 
     # Title from playlist_loop[0].title
     title = ""
@@ -246,7 +244,7 @@ def parse_lms_status(status_json):
 
     time_val = to_float(d.get("time"))
     duration_val = to_float(d.get("duration"))
-
+    print("title_norm=",title_norm," time_val=",time_val," duration_val=",duration_val)
     return title_norm, time_val, duration_val
 
 
