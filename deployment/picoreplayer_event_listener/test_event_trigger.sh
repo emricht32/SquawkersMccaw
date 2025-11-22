@@ -12,12 +12,14 @@ echo "=== LMS Event Trigger Test Suite ==="
 echo "Mode: $MODE"
 echo ""
 
+touch "/mnt/mmcblk0p2/tc/birdpi-logs/event_listener.log"
+
 # -------------------------------------------------------------------
 # Test 1: Validate JSON syntax
 # -------------------------------------------------------------------
 echo "Test 1: Validating lmseventtrigger.json syntax..."
 if command -v python3 >/dev/null 2>&1; then
-    python3 -c "import json; json.load(open('lmseventtrigger.json'))" && echo "✓ JSON is valid" || echo "✗ JSON syntax error"
+    python3 -c "import json; json.load(open('/etc/lmseventtrigger.json'))" && echo "✓ JSON is valid" || echo "✗ JSON syntax error"
 elif command -v jq >/dev/null 2>&1; then
     jq empty lmseventtrigger.json && echo "✓ JSON is valid" || echo "✗ JSON syntax error"
 else
