@@ -124,6 +124,7 @@ class Bird:
         # Beak stays whatever it was
 
     def stop_moving(self):
+        self.event.clear()
         if self.spotlight_led:
             self.spotlight_led.on()  # reversed
         if self.body_led:
