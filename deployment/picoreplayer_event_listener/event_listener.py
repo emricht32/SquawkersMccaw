@@ -14,7 +14,7 @@ from typing import List
 # -------------------------------------------------------------------
 
 # Location of bird.py
-BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "../../src/common/bird.py")
+BIRD_PY_PATH = os.path.join(os.path.dirname(__file__), "../../src/bird.py")
 
 # Log file location (SD card, NOT RAM)
 LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
@@ -109,10 +109,10 @@ def parseArgs(arr) -> str:
 
 if __name__ == "__main__":
     raw_args = sys.argv[1:]
-    bird_cli_args = build_args_from_event(raw_args)
-    parsedArgs = parseArgs(bird_cli_args)
+    # bird_cli_args = build_args_from_event(raw_args)
+    # parsedArgs = parseArgs(bird_cli_args)
     # Use the same Python interpreter that's running this script
-    cmd = [sys.executable, BIRD_PY_PATH] + parsedArgs
+    cmd = [sys.executable, BIRD_PY_PATH] + raw_args
 
     # Log the incoming event
     log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
