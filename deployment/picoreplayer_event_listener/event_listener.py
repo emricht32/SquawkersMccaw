@@ -115,7 +115,7 @@ if __name__ == "__main__":
     cmd = [sys.executable, BIRD_PY_PATH] + raw_args
 
     # Log the incoming event
-    log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
+    # log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
     log(f"Using interpreter: {sys.executable}")
     log(f"Running command: {' '.join(cmd)}")
 
