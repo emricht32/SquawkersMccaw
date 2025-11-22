@@ -104,7 +104,7 @@ class Bird:
     #             print(f"{self.name} SPEAKING")
     #     except Exception as e:
     #         print(f"Cant start start_speaking: {e}")
-    def start_moving(self, duration):
+    def start_speaking(self, duration):
         if self.event.is_set():
             return
         self.event.set()
