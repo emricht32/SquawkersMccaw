@@ -55,8 +55,6 @@ sys.stderr = Logger()
 
 print("bird.py logger initialized")
 
-
-
 import time
 import threading
 try:
@@ -320,17 +318,39 @@ def main():
     #     type=float, default=0.0
     # )
     # args = parser.parse_args()
-    print("sys.argv=", sys.argv)
+    import time as _time  # local alias to avoid confusion
+
+    # Copy argv so we can safely strip our timing arg without breaking logging
+    argv = list(sys.argv)
+
+    # Try to parse the LAST arg as an event_start timestamp (float)
+    event_start_ts = None
+    if len(argv) > 1:
+        try:
+            event_start_ts = float(argv[-1])
+            argv = argv[:-1]  # strip the timing arg from the list we use for JSON parsing
+        except ValueError:
+            pass  # last arg wasn't a float, ignore
+
+    print("sys.argv=", argv)
+
+    # Log when bird main actually starts, and delta from event_listener start
+    main_start_ts = _time.time()
+    if event_start_ts is not None:
+        print(f"[TIMING] bird_main_start {main_start_ts:.6f} delta_from_event {main_start_ts - event_start_ts:.6f}")
+    else:
+        print(f"[TIMING] bird_main_start {main_start_ts:.6f} (no_event_start_ts)")
 
     # LMS sometimes sends event as "playlist newsong" (single arg)
     # and JSON as the next arg. Support both patterns.
-    if len(sys.argv) >= 3 and sys.argv[2].startswith("{"):
-        raw_args = sys.argv[2]
-    elif len(sys.argv) >= 4 and sys.argv[3].startswith("{"):
-        raw_args = sys.argv[3]
+    if len(argv) >= 3 and argv[2].startswith("{"):
+        raw_args = argv[2]
+    elif len(argv) >= 4 and argv[3].startswith("{"):
+        raw_args = argv[3]
     else:
         print("No LMS JSON provided.")
         return
+
 
     title_norm, time_val, duration_val = parse_lms_status(raw_args)
     pins_config = load_config(default_config)
@@ -379,10 +399,22 @@ def main():
         seconds = 0
 
     # Prefer explicit duration from LMS; fall back to interval-derived length
-    audio_duration = duration_val if duration_val > 0 else seconds  # <-- NEW
-    start_offset = time_val if time_val > 0 else 0.0               # <-- NEW
+    if duration_val is not None and duration_val > 0:
+        audio_duration = duration_val
+    else:
+        audio_duration = seconds
 
-    # manage_leds([bird_instance], audio_duration, start_offset=start_offset)
+    if time_val is not None and time_val > 0:
+        start_offset = time_val
+    else:
+        start_offset = 0.0
+
+    # Timing right before starting LED thread
+    pre_thread_ts = _time.time()
+    if event_start_ts is not None:
+        print(f"[TIMING] bird_before_thread {pre_thread_ts:.6f} delta_from_event {pre_thread_ts - event_start_ts:.6f}")
+    else:
+        print(f"[TIMING] bird_before_thread {pre_thread_ts:.6f} (no_event_start_ts)")
 
     threading.Thread(
         target=manage_leds,
@@ -390,6 +422,7 @@ def main():
         kwargs={"start_offset": start_offset},
         daemon=False
     ).start()
+
     # manage_leds([bird_instance], audio_duration, start_offset=start_offset)  # <-- UPDATED CALL
 
 if __name__ == "__main__":

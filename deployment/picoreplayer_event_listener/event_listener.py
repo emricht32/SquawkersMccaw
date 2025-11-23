@@ -8,6 +8,9 @@ import subprocess
 import json
 from datetime import datetime
 from typing import List
+import time 
+
+event_start_ts = time.time()
 
 # -------------------------------------------------------------------
 # Configuration
@@ -112,7 +115,9 @@ if __name__ == "__main__":
     # bird_cli_args = build_args_from_event(raw_args)
     # parsedArgs = parseArgs(bird_cli_args)
     # Use the same Python interpreter that's running this script
-    cmd = [sys.executable, BIRD_PY_PATH] + raw_args
+    # cmd = [BIRD_PY_PATH, event_type, event_name, status_json, f"{event_start_ts:.6f}"]
+
+    cmd = [sys.executable, BIRD_PY_PATH] + raw_args + [f"{event_start_ts:.6f}"]
 
     # Log the incoming event
     # log(f"Invoked with raw_args={raw_args}, translated_args={bird_cli_args}")
