@@ -11,6 +11,11 @@ PRIMARY_LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
 FALLBACK_LOG_DIR = "/tmp"
 LOG_FILENAME = "logger.log"
 
+# --- Ensure we can see user-installed packages (like gpiozero) ---
+USER_SITE = "/home/tc/.local/lib/python3.11/site-packages"
+if USER_SITE not in sys.path and os.path.isdir(USER_SITE):
+    sys.path.append(USER_SITE)
+
 def _open_log():
     # Try primary location
     for directory in (PRIMARY_LOG_DIR, FALLBACK_LOG_DIR):
