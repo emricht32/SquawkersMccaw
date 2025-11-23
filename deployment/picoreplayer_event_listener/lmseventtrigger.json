@@ -3,7 +3,7 @@
     "numStatusResults": 1,
     "events": [
         {
-            "cmd": "/mnt/mmcblk0p2/tc/SquawkersMccaw/src/bird.py",
+            "cmd": "/mnt/mmcblk0p2/tc/SquawkersMccaw/deployment/picoreplayer_event_listener/event_listener.py",
             "event": [
                 ["playlist"],
                 ["newsong"]
