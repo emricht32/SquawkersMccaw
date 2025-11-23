@@ -320,10 +320,16 @@ def main():
     # args = parser.parse_args()
     print("sys.argv=", sys.argv)
 
-    if len(sys.argv) < 4:
+    # LMS sometimes sends event as "playlist newsong" (single arg)
+    # and JSON as the next arg. Support both patterns.
+    if len(sys.argv) >= 3 and sys.argv[2].startswith("{"):
+        raw_args = sys.argv[2]
+    elif len(sys.argv) >= 4 and sys.argv[3].startswith("{"):
+        raw_args = sys.argv[3]
+    else:
         print("No LMS JSON provided.")
         return
-    raw_args = sys.argv[3]
+
     title_norm, time_val, duration_val = parse_lms_status(raw_args)
     pins_config = load_config(default_config)
     songs_config = load_config(songs_path)
