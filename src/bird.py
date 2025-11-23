@@ -7,30 +7,56 @@ from datetime import datetime
 # -------------------------------
 # LOGGING SETUP
 # -------------------------------
-LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
-LOG_PATH = os.path.join(LOG_DIR, "logger.log")
+PRIMARY_LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
+FALLBACK_LOG_DIR = "/tmp"
+LOG_FILENAME = "logger.log"
 
-os.makedirs(LOG_DIR, exist_ok=True)
+def _open_log():
+    # Try primary location
+    for directory in (PRIMARY_LOG_DIR, FALLBACK_LOG_DIR):
+        try:
+            os.makedirs(directory, exist_ok=True)
+            path = os.path.join(directory, LOG_FILENAME)
+            f = open(path, "a", buffering=1)
+            # Write a marker so we know which location was used
+            f.write(f"[{datetime.now().isoformat()}] Logger started in {directory}\n")
+            return f
+        except Exception as e:
+            # Can't write here, try next directory
+            continue
+    # If *everything* fails, fall back to real stdout so we don't crash
+    return sys.__stdout__
 
 class Logger:
-    def __init__(self, logfile_path):
-        # Direct all print() output to this file
-        self.log = open(logfile_path, "a", buffering=1)
+    def __init__(self):
+        self.log = _open_log()
 
     def write(self, message):
-        if message.strip():
-            timestamp = datetime.now().isoformat()
-            self.log.write(f"[{timestamp}] {message}")
+        try:
+            if message:
+                # timestamp only non-empty/whitespace lines
+                if message.strip():
+                    ts = datetime.now().isoformat()
+                    self.log.write(f"[{ts}] {message}")
+                else:
+                    self.log.write(message)
+        except Exception:
+            # Last-resort: don't let logging kill the process
+            pass
         return len(message)
 
     def flush(self):
-        self.log.flush()
+        try:
+            self.log.flush()
+        except Exception:
+            pass
 
-# Redirect stdout and stderr to logger
-sys.stdout = Logger(LOG_PATH)
-sys.stderr = Logger(LOG_PATH)
+# Redirect stdout and stderr
+sys.stdout = Logger()
+sys.stderr = Logger()
 
-print(f"Logging started → {LOG_PATH}")
+print("bird.py logger initialized")
+
 
 import time
 import threading
