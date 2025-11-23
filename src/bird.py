@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
-"""bird.py
 
-Controls LED behavior for a single Bird instance based on song interval data.
-Can be invoked directly via CLI, intended for integration with piCorePlayer event listener.
+import os
+import sys
+from datetime import datetime
 
-Enhancements added:
- - Fixed incorrect use of .lowercase() -> .lower()
- - Defensive handling of missing config, song name, or intervals
- - Correct hostname parsing without misuse of strip()
- - Safer LED oscillation (no negative sleep times)
- - Standalone fallback if utils module unavailable
- - Support for --time and --duration from player status JSON
-"""
+# -------------------------------
+# LOGGING SETUP
+# -------------------------------
+LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
+LOG_PATH = os.path.join(LOG_DIR, "logger.log")
+
+os.makedirs(LOG_DIR, exist_ok=True)
+
+class Logger:
+    def __init__(self, logfile_path):
+        # Direct all print() output to this file
+        self.log = open(logfile_path, "a", buffering=1)
+
+    def write(self, message):
+        if message.strip():
+            timestamp = datetime.now().isoformat()
+            self.log.write(f"[{timestamp}] {message}")
+        return len(message)
+
+    def flush(self):
+        self.log.flush()
+
+# Redirect stdout and stderr to logger
+sys.stdout = Logger(LOG_PATH)
+sys.stderr = Logger(LOG_PATH)
+
+print(f"Logging started → {LOG_PATH}")
 
 import time
 import threading
