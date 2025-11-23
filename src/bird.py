@@ -84,7 +84,7 @@ class Bird:
         if self.spotlight_led is not None:
             self.spotlight_led.on()
         self.event = threading.Event()
-        print("BirdInternal", self.name, " beak:", self.beak_led, " body:", self.body_led, " light:", self.spotlight_led)
+        print(f"BirdInternal {self.name}, beak: {self.beak_led}, body: {self.body_led} light: {self.spotlight_led}")
 
 
     def prepare_song(self, song_dict):
@@ -109,7 +109,7 @@ class Bird:
         except Exception as e:
             print(f"Error selecting individual data: {e}")
             individual = song_dict
-        print("individual=", individual)
+        print(f"individual={individual}")
         speech_intervals = list(individual.get("singing", []))
         dancing_intervals = list(individual.get("dancing", []))
         # Merge global intervals
@@ -121,13 +121,13 @@ class Bird:
     def is_speaking(self, curr_time):
         print("is_speaking")
         tbr = any(start <= curr_time <= end for start, end in self.speech_intervals)
-        print("is_speaking:", tbr)
+        print(f"is_speaking: {tbr}")
         return tbr
     
     def is_dancing(self, curr_time):
         print("is_dancing")
         tbr = any(start <= curr_time <= end for start, end in self.dancing_intervals)
-        print("is_dancin:g", tbr)
+        print(f"is_dancing {tbr}")
         return tbr
 
     
@@ -206,7 +206,7 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
     """
     global keep_playing
     print("manage_leds")
-    print("audio_duration=", audio_duration, "start_offset=", start_offset)
+    print(f"audio_duration={audio_duration} start_offset= {start_offset}")
     if audio_duration <= 0:
         print("No positive audio duration; skipping LED management.")
         for bird in birds:
@@ -216,7 +216,7 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
     start_time_wall = time.time()
     while keep_playing and (time.time() - start_time_wall + start_offset) < audio_duration:
         curr_time = (time.time() - start_time_wall) + start_offset  # <-- track-time, not wall-time
-        print("curr_time=", curr_time)
+        print(f"curr_time={curr_time}")
         for bird in birds:
             if bird.is_speaking(curr_time):
                 bird.start_speaking(sleep_time)
@@ -227,7 +227,7 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
         time.sleep(sleep_time)
     keep_playing = True
     for bird in birds:
-        print("STOPPING Bird:", bird.name)
+        print(f"STOPPING Bird: {bird.name}")
         bird.stop_moving()
 
 def cancel_current_song():
@@ -261,7 +261,7 @@ def parse_lms_status(status_json):
 
     Returns (song_name_or_None, time_or_None, duration_or_None).
     """
-    print("status_json=", status_json)
+    print(f"status_json={status_json}")
     if not status_json:
         return None, None, None
     try:
@@ -288,7 +288,7 @@ def parse_lms_status(status_json):
 
     time_val = to_float(d.get("time"))
     duration_val = to_float(d.get("duration"))
-    print("title_norm=",title_norm," time_val=",time_val," duration_val=",duration_val)
+    print(f"title_norm={title_norm} time_val={time_val,} duration_val={duration_val}")
     return title_norm, time_val, duration_val
 
 
