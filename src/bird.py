@@ -11,42 +11,36 @@ PRIMARY_LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
 FALLBACK_LOG_DIR = "/tmp"
 LOG_FILENAME = "logger.log"
 
-# --- Ensure we can see user-installed packages (like gpiozero) ---
-USER_SITE = "/home/tc/.local/lib/python3.11/site-packages"
-if USER_SITE not in sys.path and os.path.isdir(USER_SITE):
-    sys.path.append(USER_SITE)
-
 def _open_log():
-    # Try primary location
     for directory in (PRIMARY_LOG_DIR, FALLBACK_LOG_DIR):
         try:
             os.makedirs(directory, exist_ok=True)
             path = os.path.join(directory, LOG_FILENAME)
             f = open(path, "a", buffering=1)
-            # Write a marker so we know which location was used
             f.write(f"[{datetime.now().isoformat()}] Logger started in {directory}\n")
             return f
-        except Exception as e:
-            # Can't write here, try next directory
+        except Exception:
             continue
-    # If *everything* fails, fall back to real stdout so we don't crash
     return sys.__stdout__
+
+_log_file = _open_log()  # <- ONE shared file
 
 class Logger:
     def __init__(self):
-        self.log = _open_log()
+        # share the same file handle
+        self.log = _log_file
 
     def write(self, message):
         try:
-            if message:
-                # timestamp only non-empty/whitespace lines
-                if message.strip():
-                    ts = datetime.now().isoformat()
-                    self.log.write(f"[{ts}] {message}\n")
-                else:
-                    self.log.write(message)
+            if not message:
+                return 0
+            if message.strip():
+                ts = datetime.now().isoformat()
+                # message usually already ends with "\n"
+                self.log.write(f"[{ts}] {message}")
+            else:
+                self.log.write(message)
         except Exception:
-            # Last-resort: don't let logging kill the process
             pass
         return len(message)
 
@@ -56,17 +50,19 @@ class Logger:
         except Exception:
             pass
 
-# Redirect stdout and stderr
 sys.stdout = Logger()
 sys.stderr = Logger()
 
 print("bird.py logger initialized")
 
 
+
 import time
 import threading
-try:  # GPIO optional environment
-    from gpiozero import LED
+try:
+    from gpiozero import LED, Device
+    from gpiozero.pins.native import NativeFactory
+    Device.pin_factory = NativeFactory()
     GPIO_AVAILABLE = True
     print("GPIO_AVAILABLE")
 except ImportError:
@@ -74,6 +70,7 @@ except ImportError:
     print("GPIO_NOT_AVAILABLE")
     print("sys.executable =", sys.executable)
     print("sys.path =", sys.path)
+
 
 keep_playing = True
 
