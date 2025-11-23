@@ -412,7 +412,8 @@ def main():
     # Timing right before starting LED thread
     pre_thread_ts = _time.time()
     if event_start_ts is not None:
-        print(f"[TIMING] bird_before_thread {pre_thread_ts:.6f} delta_from_event {pre_thread_ts - event_start_ts:.6f}")
+        start_offset += pre_thread_ts - event_start_ts
+        print(f"[TIMING] bird_before_thread {pre_thread_ts:.6f} delta_from_event {start_offset:.6f}")
     else:
         print(f"[TIMING] bird_before_thread {pre_thread_ts:.6f} (no_event_start_ts)")
 
