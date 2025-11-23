@@ -37,7 +37,7 @@ class Logger:
                 # timestamp only non-empty/whitespace lines
                 if message.strip():
                     ts = datetime.now().isoformat()
-                    self.log.write(f"[{ts}] {message}")
+                    self.log.write(f"[{ts}] {message}\n")
                 else:
                     self.log.write(message)
         except Exception:
