@@ -66,15 +66,15 @@ try:
 except ImportError:
     GPIO_AVAILABLE = False
     print("GPIO_NOT_AVAILABLE")
-    print("sys.executable =", sys.executable)
-    print("sys.path =", sys.path)
+    print(f"sys.executable={sys.executable}")
+    print(f"sys.path = {sys.path}")
 
 
 keep_playing = True
 
 class Bird:
     def __init__(self, name, beak_led_pin, body_led_pin, spotlight_led_pin):
-        print("Bird", name, " beak:", beak_led_pin, " body:", body_led_pin, " light:", spotlight_led_pin)
+        print(f"Bird {name} beak: {beak_led_pin} body: {body_led_pin} light: {spotlight_led_pin}")
         self.name = name
         self.speech_intervals = []  # list[tuple[float,float]]
         self.dancing_intervals = []  # list[tuple[float,float]]
@@ -294,6 +294,8 @@ def parse_lms_status(status_json):
 
 def _derive_bird_name(hostname: str) -> str:
     name = hostname
+    if "birdpi" not in name:
+        return "Jose"
     if name.startswith("birdpi-"):
         name = name[len("birdpi-") :]
     if name.endswith(".local"):
@@ -332,7 +334,7 @@ def main():
         except ValueError:
             pass  # last arg wasn't a float, ignore
 
-    print("sys.argv=", argv)
+    print(f"sys.argv={argv}")
 
     # Log when bird main actually starts, and delta from event_listener start
     main_start_ts = _time.time()
