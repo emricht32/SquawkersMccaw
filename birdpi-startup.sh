@@ -2,7 +2,7 @@
 # BirdPi startup script
 # Jonathan Emrich, 2025
 
-# Usage: sh /mnt/mmcblk0p2/tc/birdpi-startup.sh &
+# Usage: sh /mnt/mmcblk0p2/tc/SquawkersMccaw/birdpi-startup.sh &
 
 VENV_DIR="/mnt/mmcblk0p2/tc/birdpi-venv"
 APP_DIR="/mnt/mmcblk0p2/tc/SquawkersMccaw/src"
