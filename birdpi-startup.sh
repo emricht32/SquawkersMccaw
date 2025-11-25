@@ -35,7 +35,7 @@ fi
 
 # Start daemon with nohup so it stays alive
 echo "[startup] Launching bird_daemon.py" >> "$LOG_DIR/startup.log"
-nohup python3 "$DAEMON" >> "$LOG_DIR/daemon_stdout.log" 2>&1 &
+nohup "$VENV_DIR/bin/python" "$DAEMON" >> "$LOG_DIR/daemon_stdout.log" 2>&1 &
 
 # Save PID
 echo $! > "$PID_FILE"
