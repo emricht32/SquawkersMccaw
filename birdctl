@@ -1,0 +1,153 @@
+#!/bin/sh
+# BirdPi Control Script
+# Jonathan Emrich - 2025
+#
+# Controls the BirdPi daemon process:
+#   - Starts bird_daemon.py (through the startup script)
+#   - Stops the daemon cleanly
+#   - Reports whether it is running
+#   - Restarts the daemon
+#   - Provides a help section
+#
+# The daemon PID is tracked in: /tmp/bird_daemon.pid
+# Logs are stored in: /mnt/mmcblk0p2/tc/birdpi-logs
+#
+
+VENV_DIR="/mnt/mmcblk0p2/tc/birdpi-venv"
+APP_DIR="/mnt/mmcblk0p2/tc/SquawkersMccaw/src"
+STARTUP_SCRIPT="/mnt/mmcblk0p2/tc/SquawkersMccaw/birdpi-startup.sh"
+PID_FILE="/tmp/bird_daemon.pid"
+LOG_DIR="/mnt/mmcblk0p2/tc/birdpi-logs"
+DAEMON="bird_daemon.py"
+
+
+###############################################################################
+# INTERNAL HELPERS
+###############################################################################
+
+get_pid() {
+    if [ -f "$PID_FILE" ]; then
+        cat "$PID_FILE" 2>/dev/null
+    fi
+}
+
+is_running() {
+    PID=$(get_pid)
+    if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+
+###############################################################################
+# COMMAND IMPLEMENTATIONS
+###############################################################################
+
+do_help() {
+    cat <<EOF
+BirdPi Control Utility
+----------------------
+
+Commands:
+  birdctl status
+      Shows whether the BirdPi daemon is running. If running, prints the PID.
+
+  birdctl start
+      Starts the BirdPi daemon using birdpi-startup.sh.
+      - Activates virtualenv if present
+      - Launches bird_daemon.py
+      - Writes PID to /tmp/bird_daemon.pid
+
+  birdctl stop
+      Stops the BirdPi daemon cleanly using SIGTERM.
+      If it fails to stop, SIGKILL is sent.
+      PID file is removed afterward.
+
+  birdctl restart
+      Stops the daemon (if running) and restarts it cleanly.
+
+Files & Paths:
+  PID file:  $PID_FILE
+  Logs:      $LOG_DIR
+  Startup:   $STARTUP_SCRIPT
+  Daemon:    $APP_DIR/$DAEMON
+  Venv:      $VENV_DIR
+
+Examples:
+  birdctl start
+  birdctl status
+  birdctl stop
+  birdctl restart
+
+EOF
+}
+
+do_status() {
+    if is_running; then
+        PID=$(get_pid)
+        echo "Bird daemon is RUNNING (PID $PID)"
+    else
+        echo "Bird daemon is NOT running"
+    fi
+}
+
+do_start() {
+    if is_running; then
+        PID=$(get_pid)
+        echo "Bird daemon already running (PID $PID)"
+        exit 0
+    fi
+    echo "Starting Bird daemon..."
+    sh "$STARTUP_SCRIPT"
+    sleep 0.5
+    if is_running; then
+        echo "Bird daemon started successfully (PID $(get_pid))"
+    else
+        echo "Bird daemon FAILED to start — check logs:"
+        echo "  $LOG_DIR/startup.log"
+        echo "  $LOG_DIR/daemon_stdout.log"
+    fi
+}
+
+do_stop() {
+    if ! is_running; then
+        echo "Bird daemon is NOT running"
+        exit 0
+    fi
+    PID=$(get_pid)
+    echo "Stopping Bird daemon (PID $PID)..."
+    kill "$PID" 2>/dev/null
+    sleep 0.2
+    if kill -0 "$PID" 2>/dev/null; then
+        echo "Force killing..."
+        kill -9 "$PID" 2>/dev/null
+    fi
+    rm -f "$PID_FILE"
+    echo "Bird daemon stopped."
+}
+
+do_restart() {
+    echo "Restarting Bird daemon..."
+    do_stop
+    sleep 0.5
+    do_start
+}
+
+
+###############################################################################
+# DISPATCH
+###############################################################################
+
+case "$1" in
+    help|-h|--help) do_help ;;
+    status) do_status ;;
+    start) do_start ;;
+    stop) do_stop ;;
+    restart) do_restart ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Run: birdctl help"
+        exit 1
+    ;;
+esac
