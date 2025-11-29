@@ -174,3 +174,4 @@ xcuserdata/
 
 *.wav
 music/**/*.wav
+**/config_lms_host.json

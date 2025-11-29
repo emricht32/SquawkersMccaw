@@ -2,17 +2,19 @@
 """
 bird_daemon.py
 
-Single long-lived daemon that:
+Long-lived daemon that:
 - Connects to LMS CLI
 - Subscribes to playlist events
-- Fetches full player status via JSON-RPC
-- Drives local Bird GPIO/LEDs via your existing bird.py core
+- On new track, queries LMS JSON-RPC for title/time/duration
+- Maps the title to a song in config_multi_song_with_triggers.json
+- Drives LEDs via Bird + manage_leds from bird.py
 
-Runs on:
-- LMS server Pi (birdpi-main): talks to LMS at localhost
-- Any piCorePlayer/BirdPi node: talks to LMS at birdpi-main.local
-
-No per-node config required.
+LMS host is auto-discovered:
+  1. Env var BIRDPI_LMS_HOST
+  2. Cached host (config_lms_host.json)
+  3. Hostnames: birdpi-main, birdpi-main.local
+  4. Neighbor IPs from ip neigh / arp -n
+  5. Local /24 subnet scan
 """
 
 import os
@@ -20,13 +22,15 @@ import sys
 import socket
 import time
 import json
+import subprocess
+import re
 import threading
 import urllib.parse
 import http.client
 from datetime import datetime
 
 # -------------------------------------------------------------------
-# Logging (simple, one file for the daemon)
+# Logging for the daemon
 # -------------------------------------------------------------------
 PRIMARY_LOG_DIR = "/mnt/mmcblk0p2/tc/birdpi-logs"
 LOG_FILENAME = "daemon.log"
@@ -34,21 +38,27 @@ LOG_FILENAME = "daemon.log"
 
 def _open_log():
     try:
-        # Try primary Pi path
         os.makedirs(PRIMARY_LOG_DIR, exist_ok=True)
         path = os.path.join(PRIMARY_LOG_DIR, LOG_FILENAME)
         f = open(path, "a", buffering=1)
         f.write(f"[{datetime.now().isoformat()}] bird_daemon logger started in {PRIMARY_LOG_DIR}\n")
         return f
     except Exception as e:
-        # IMPORTANT: real stdout, so you see this even before logger is set up
-        sys.__stdout__.write(
-            f"[bird_daemon] WARNING: Could not create log directory '{PRIMARY_LOG_DIR}': {e}\n"
-        )
-        sys.__stdout__.write("[bird_daemon] Falling back to console logging only.\n")
-        sys.__stdout__.flush()
-        # From now on, log() will write to stdout
-        return sys.__stdout__
+        sys.stdout.write(f"[{datetime.now().isoformat()}] bird_daemon: failed to open log file: {e}\n")
+        sys.stdout.flush()
+
+        class StdoutLogger:
+            def write(self, msg):
+                sys.stdout.write(msg)
+                sys.stdout.flush()
+
+            def flush(self):
+                sys.stdout.flush()
+
+            def close(self):
+                pass
+
+        return StdoutLogger()
 
 
 _log = _open_log()
@@ -59,180 +69,312 @@ def log(msg: str):
     try:
         _log.write(f"[{ts}] {msg}\n")
     except Exception:
-        # Best-effort only; don't crash on logging
+        try:
+            sys.stdout.write(f"[{ts}] {msg}\n")
+            sys.stdout.flush()
+        except Exception:
+            pass
+
+
+# -------------------------------------------------------------------
+# LMS host discovery helpers
+# -------------------------------------------------------------------
+LMS_HOST_CACHE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "../config_lms_host.json",
+)
+
+
+def is_lms_server(host: str, timeout: float = 0.3) -> bool:
+    """
+    Check whether the given host looks like an LMS server by probing port 9090.
+    If TCP connect succeeds (and optionally returns a response), we accept it.
+    """
+    try:
+        log(f"Probing potential LMS host {host}:9090")
+        s = socket.create_connection((host, 9090), timeout=timeout)
+        try:
+            try:
+                s.sendall(b"version ?\n")
+                s.settimeout(timeout)
+                data = s.recv(1024)
+                if data:
+                    log(f"Host {host} responded to LMS probe")
+                    return True
+            except Exception as inner:
+                # TCP connect success is enough to treat as LMS
+                log(f"LMS probe to {host} had inner error: {inner}")
+                return True
+        finally:
+            try:
+                s.close()
+            except Exception:
+                pass
+    except OSError as e:
+        log(f"LMS probe to {host} failed: {e}")
+        return False
+    return False
+
+
+def load_cached_lms_host() -> str | None:
+    try:
+        with open(LMS_HOST_CACHE_PATH, "r") as f:
+            data = json.load(f)
+        host = data.get("lms_host")
+        if host:
+            log(f"Loaded cached LMS host: {host}")
+            return host
+    except Exception:
         pass
+    return None
+
+
+def save_cached_lms_host(host: str) -> None:
+    try:
+        with open(LMS_HOST_CACHE_PATH, "w") as f:
+            json.dump({"lms_host": host}, f)
+        log(f"Saved LMS host cache: {host}")
+    except Exception as e:
+        log(f"Failed to write LMS host cache: {e}")
+
+
+def get_neighbor_ips() -> list[str]:
+    """
+    Return a list of IPs from ARP / neighbor tables.
+    Prefer these "known" IPs before scanning the whole subnet.
+    """
+    candidates: set[str] = set()
+
+    for cmd in (["ip", "neigh"], ["arp", "-n"]):
+        try:
+            out = subprocess.check_output(cmd, text=True)
+        except Exception as e:
+            log(f"Neighbor discovery via {cmd} failed: {e}")
+            continue
+        for line in out.splitlines():
+            for token in line.split():
+                if re.match(r"\d+\.\d+\.\d+\.\d+", token):
+                    candidates.add(token)
+
+    filtered = [
+        ip for ip in candidates
+        if ip.startswith("10.") or ip.startswith("192.168.") or ip.startswith("172.")
+    ]
+    log(f"Neighbor IPs discovered: {filtered}")
+    return filtered
+
+
+def get_local_subnet_ips() -> list[str]:
+    """
+    Return a list of IPs on the local /24 subnet based on our own IP.
+    Used as a last resort (unknown IP scan).
+    """
+    local_ip = None
+    try:
+        out = subprocess.check_output(["ip", "-4", "addr", "show"], text=True)
+        for line in out.splitlines():
+            line = line.strip()
+            if line.startswith("inet "):
+                cidr = line.split()[1]  # e.g. '10.0.0.121/24'
+                ip, prefix = cidr.split("/")
+                prefix = int(prefix)
+                if ip.startswith(("10.", "192.168.", "172.")):
+                    local_ip = ip
+                    if prefix <= 24:
+                        break
+    except Exception as e:
+        log(f"get_local_subnet_ips: failed to get local IP via ip addr: {e}")
+
+    if not local_ip:
+        log("get_local_subnet_ips: no local private IP found; skipping subnet scan")
+        return []
+
+    octets = local_ip.split(".")
+    if len(octets) != 4:
+        log(f"get_local_subnet_ips: invalid local IP {local_ip}")
+        return []
+
+    base = ".".join(octets[:3])  # treat as /24, e.g. 10.0.0.x
+    ips = [f"{base}.{i}" for i in range(1, 255)]
+    log(f"Local /24 subnet candidates: {base}.1-254")
+    return ips
+
+
+def discover_lms_host(current: str | None = None) -> str:
+    """
+    Determine the LMS host to use, trying in this order:
+      1. Env var BIRDPI_LMS_HOST
+      2. Cached host in config_lms_host.json
+      3. Hostnames: 'birdpi-main', 'birdpi-main.local'
+      4. Neighbor IPs
+      5. Subnet scan on local /24
+
+    On 'birdpi-main' itself, always return 'localhost'.
+    """
+    raw_hostname = socket.gethostname()
+    short_hostname = raw_hostname.split(".")[0].lower()
+    log(f"discover_lms_host: raw_hostname={raw_hostname}, short={short_hostname}")
+
+    # On the actual LMS host, always talk to localhost
+    if short_hostname == "birdpi-main":
+        log("discover_lms_host: this is birdpi-main, using localhost")
+        return "localhost"
+
+    # 1. Env override
+    env_host = os.environ.get("BIRDPI_LMS_HOST")
+    if env_host:
+        if is_lms_server(env_host):
+            save_cached_lms_host(env_host)
+            return env_host
+        else:
+            log(f"Env BIRDPI_LMS_HOST={env_host} did not respond as LMS")
+
+    # 2. Cached host
+    cached = load_cached_lms_host()
+    if cached and cached != current:
+        if is_lms_server(cached):
+            return cached
+        else:
+            log(f"Cached LMS host {cached} is no longer valid")
+
+    # 3. Hostnames
+    for candidate in ("birdpi-main", "birdpi-main.local"):
+        if candidate == current:
+            continue
+        try:
+            if is_lms_server(candidate):
+                save_cached_lms_host(candidate)
+                return candidate
+        except Exception as e:
+            log(f"Hostname candidate {candidate} failed: {e}")
+
+    # 4. Neighbor IPs (ARP)
+    tried: set[str] = set()
+    for ip in get_neighbor_ips():
+        if ip == current:
+            continue
+        if ip in tried:
+            continue
+        tried.add(ip)
+        if is_lms_server(ip):
+            save_cached_lms_host(ip)
+            return ip
+
+    # 5. Subnet scan (unknown IPs)
+    for ip in get_local_subnet_ips():
+        if ip == current:
+            continue
+        if ip in tried:
+            continue
+        tried.add(ip)
+        if is_lms_server(ip):
+            save_cached_lms_host(ip)
+            return ip
+
+    log("discover_lms_host: no LMS host found via discovery; falling back")
+    if current:
+        return current
+    return "birdpi-main"
 
 
 # -------------------------------------------------------------------
-# Make sure user site-packages (gpiozero, etc.) are visible
+# LMS host and ports
 # -------------------------------------------------------------------
-USER_SITE = "/home/tc/.local/lib/python3.11/site-packages"
-if os.path.isdir(USER_SITE) and USER_SITE not in sys.path:
-    sys.path.append(USER_SITE)
-    log(f"Added USER_SITE to sys.path: {USER_SITE}")
-
-# -------------------------------------------------------------------
-# Auto-detect LMS host based on our hostname
-# -------------------------------------------------------------------
-raw_hostname = socket.gethostname()
-short_hostname = raw_hostname.split(".")[0].lower()
-
-if short_hostname == "birdpi-main":
-    LMS_HOST = "localhost"
-else:
-    LMS_HOST = "birdpi-main"
-
+LMS_HOST = discover_lms_host(current=None)
 LMS_CLI_PORT = 9090
 LMS_WEB_PORT = 9000
-
-log(f"Host detected as '{raw_hostname}', short='{short_hostname}', LMS_HOST='{LMS_HOST}'")
-
-# Optional: filter to only handle events for the local player.
-# We'll use the player name from LMS status and compare to our hostname.
-# Set to None for "handle any player".
-PLAYER_NAME_FILTER = None  # or short_hostname for strict per-node filtering
+log(f"Initial LMS_HOST: {LMS_HOST}")
 
 # -------------------------------------------------------------------
-# Import bird core logic
+# Import Bird core from bird.py
 # -------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 try:
-    from bird import (
-        Bird,
-        manage_leds,
-        load_config,
-        _derive_bird_name,
-        cancel_current_song,
-        keep_playing,  # global bool in bird.py
-    )
-    log("Imported bird core successfully")
+    from bird import Bird, manage_leds, load_config, cancel_current_song, _derive_bird_name
 except Exception as e:
-    log(f"FATAL: Failed to import bird core: {e}")
+    log(f"FATAL: Could not import bird core: {e}")
     sys.exit(1)
 
-# -------------------------------------------------------------------
-# One Bird instance per node, initialized once
-# -------------------------------------------------------------------
-default_config = os.path.join(BASE_DIR, "../config_single_bird.json")
-songs_path = os.path.join(BASE_DIR, "../config_multi_song_with_triggers.json")
+DEFAULT_CONFIG = os.path.join(BASE_DIR, "../config_single_bird.json")
+SONGS_CONFIG_PATH = os.path.join(BASE_DIR, "../config_multi_song_with_triggers.json")
 
-pins_config = load_config(default_config)
+pins_config = load_config(DEFAULT_CONFIG)
 if pins_config is None:
-    log(f"WARN: No pin config loaded from {default_config}; GPIO pins may be undefined.")
+    log(f"WARN: No pin config loaded from {DEFAULT_CONFIG}; GPIO pins may be undefined.")
 else:
-    log(f"Loaded pin config from {default_config}")
+    log(f"Loaded pin config from {DEFAULT_CONFIG}")
 
-# songs_config may be None; we handle that later
-try:
-    with open(songs_path, "r", encoding="utf-8") as f:
-        songs_config = json.load(f)
-    log(f"Loaded songs config from {songs_path}")
-except Exception as e:
-    songs_config = None
-    log(f"WARN: Could not load songs config {songs_path}: {e}")
-
-_hostname = socket.gethostname()
-bird_name = _derive_bird_name(_hostname)
-beak_pin = pins_config.get("beak") if pins_config else None
-body_pin = pins_config.get("body") if pins_config else None
-spotlight_pin = pins_config.get("light") if pins_config else None
-
-bird_instance = Bird(
-    name=bird_name,
-    beak_led_pin=beak_pin,
-    body_led_pin=body_pin,
-    spotlight_led_pin=spotlight_pin,
-)
-log(f"Created Bird instance for '{bird_name}' with beak={beak_pin}, body={body_pin}, light={spotlight_pin}")
-
-_current_thread = None
-_thread_lock = threading.Lock()
-
-# Track what song is currently considered "playing" on this node
-current_song_key = None          # e.g. "2c:cf:67:f8:c7:15:happy_birthday"
-current_song_start_ts = 0.0      # wall-clock when this play started (LMS-aligned if possible)
-current_song_end_ts = 0.0        # wall-clock when this play should end
-
+songs_config = load_config(SONGS_CONFIG_PATH)
+if songs_config is None:
+    log(f"WARN: No songs config loaded from {SONGS_CONFIG_PATH}. Songs may not map to titles.")
+else:
+    log(f"Loaded songs config from {SONGS_CONFIG_PATH}")
 
 # -------------------------------------------------------------------
-# JSON-RPC helpers
+# Bird instance and current song state
 # -------------------------------------------------------------------
-def call_lms_status(player_id: str, tags: str = "cgtAsRbehldrtyrSuKN") -> dict:
-    """
-    Call LMS /jsonrpc.js for 'status' on a specific player_id (MAC address).
-    Returns the parsed JSON dict (full JSON-RPC response).
-    """
-    conn = http.client.HTTPConnection(LMS_HOST, LMS_WEB_PORT, timeout=5)
-    payload = {
-        "id": 1,
-        "method": "slim.request",
-        "params": [
-            player_id,
-            ["status", "-", "1", f"tags:{tags}"],
-        ],
-    }
-    body = json.dumps(payload)
-    headers = {"Content-Type": "application/json"}
-    conn.request("POST", "/jsonrpc.js", body, headers)
-    resp = conn.getresponse()
-    data = resp.read().decode("utf-8", errors="ignore")
-    conn.close()
+bird_instance_lock = threading.Lock()
+bird_instance: Bird | None = None
 
-    if resp.status != 200:
-        raise RuntimeError(f"LMS HTTP status {resp.status}: {data[:200]}")
+current_song_lock = threading.Lock()
+current_song_name: str | None = None
+current_player_id: str | None = None
+current_led_thread: threading.Thread | None = None
 
+
+def get_or_create_bird() -> Bird:
+    global bird_instance
+    with bird_instance_lock:
+        if bird_instance is None:
+            hostname = socket.gethostname()
+            bird_name = _derive_bird_name(hostname)
+            beak_pin = pins_config.get("beak") if pins_config else None
+            body_pin = pins_config.get("body") if pins_config else None
+            spotlight_pin = pins_config.get("light") if pins_config else None
+            log(f"Creating Bird instance name={bird_name}, beak={beak_pin}, body={body_pin}, light={spotlight_pin}")
+            bird_instance = Bird(
+                name=bird_name,
+                beak_led_pin=beak_pin,
+                body_led_pin=body_pin,
+                spotlight_led_pin=spotlight_pin,
+            )
+        return bird_instance
+
+
+def select_song_for_title(title_norm: str) -> dict | None:
+    """
+    Given a normalized title (spaces -> underscores), return the matching song dict
+    from songs_config["songs"].
+    """
+    if not songs_config:
+        return None
     try:
-        j = json.loads(data)
+        songs = songs_config.get("songs", [])
+        for s in songs:
+            if str(s.get("name", "")).lower() == title_norm.lower():
+                return s
     except Exception as e:
-        raise RuntimeError(f"Failed to parse LMS JSON-RPC response: {e}, data={data[:200]}")
+        log(f"select_song_for_title: error scanning songs_config: {e}")
+    return None
 
-    return j
 
-
-def extract_song_from_open_cmd(cmd: str) -> str | None:
+def parse_status_json(status_obj: dict) -> tuple[str | None, float | None, float | None]:
     """
-    Given playlist 'open file:///path/to/song.mp3',
-    extract 'song' (basename without extension).
+    Parse LMS JSON-RPC "status" result:
+      - normalized title (spaces -> underscores)
+      - time (float)
+      - duration (float)
+    Returns (title_norm_or_None, time_or_None, duration_or_None)
     """
-    # Example input: "open file:///mnt/.../happy_birthday/happy_birthday.mp3"
-    parts = cmd.split(" ", 1)
-    if len(parts) != 2:
-        return None
+    if not status_obj:
+        return None, None, None
 
-    url = parts[1].strip()
-    if url.startswith("file://"):
-        url = url[len("file://"):]
-    else:
-        return None
-
-    # URL-decode just in case
-    path = urllib.parse.unquote(url)
-
-    # Extract filename
-    filename = os.path.basename(path)
-    if not filename:
-        return None
-
-    # Remove extension
-    song, ext = os.path.splitext(filename)
-    return song or None
-
-
-def extract_status_core(result_obj: dict) -> tuple[str | None, float | None, float | None, str | None]:
-    """
-    Given the 'result' portion of an LMS JSON-RPC status response,
-    extract:
-      - normalized song title (spaces -> underscores)
-      - time (float or None)
-      - duration (float or None)
-      - player_name (string or None)
-    """
-    # playlist_loop[0].title
+    result = status_obj.get("result", {})
+    playlist = result.get("playlist_loop", [])
     title = ""
-    playlist = result_obj.get("playlist_loop", [])
     if playlist and isinstance(playlist, list):
         title = str(playlist[0].get("title", "") or "")
     title_norm = title.replace(" ", "_") if title else None
@@ -245,317 +387,136 @@ def extract_status_core(result_obj: dict) -> tuple[str | None, float | None, flo
         except Exception:
             return None
 
-    time_val = to_float(result_obj.get("time"))
-    duration_val = to_float(result_obj.get("duration"))
-    player_name = result_obj.get("player_name")
+    time_val = to_float(result.get("time"))
+    duration_val = to_float(result.get("duration"))
+    log(f"parse_status_json: title_norm={title_norm}, time={time_val}, duration={duration_val}")
+    return title_norm, time_val, duration_val
 
-    return title_norm, time_val, duration_val, player_name
 
-
-# -------------------------------------------------------------------
-# Song tracking helpers
-# -------------------------------------------------------------------
-def is_same_song_still_playing(track_key: str, now_ts: float) -> bool:
+def fetch_current_track_status(player_id: str) -> tuple[str | None, float | None, float | None]:
     """
-    Returns True if we believe the same song (track_key) is currently
-    playing on this node & hasn't passed its expected end time yet.
+    Call LMS JSON-RPC 'status' for a given player and extract title/time/duration.
     """
-    global current_song_key, current_song_end_ts
-    if current_song_key != track_key:
-        return False
-    if current_song_end_ts <= 0:
-        return False
-    return now_ts <= current_song_end_ts
-
-
-# -------------------------------------------------------------------
-# Bird / LED control
-# -------------------------------------------------------------------
-def stop_current_song():
-    global _current_thread, current_song_key, current_song_start_ts, current_song_end_ts
-    with _thread_lock:
-        if _current_thread and _current_thread.is_alive():
-            log("Stopping current song via cancel_current_song()")
-            try:
-                cancel_current_song()
-                _current_thread.join(timeout=1.0)
-            except Exception as e:
-                log(f"Error while stopping current song: {e}")
-        _current_thread = None
-        current_song_key = None
-        current_song_start_ts = 0.0
-        current_song_end_ts = 0.0
-
-
-def handle_newsong(player_id: str):
-    """
-    Generic backup handler for 'newsong' events when we
-    DIDN'T already get a filename from 'open'.
-    """
-    global _current_thread, keep_playing, songs_config
-    global current_song_key, current_song_start_ts, current_song_end_ts
-
+    conn = http.client.HTTPConnection(LMS_HOST, LMS_WEB_PORT, timeout=3)
     try:
-        j = call_lms_status(player_id)
-        log(f"call_lms_status (newsong).j={j}")
-    except Exception as e:
-        log(f"call_lms_status failed for {player_id}: {e}")
+        payload = {
+            "id": 1,
+            "method": "slim.request",
+            "params": [player_id, ["status", "-", "1", "tags:u"]],
+        }
+        body = json.dumps(payload)
+        conn.request("POST", "/jsonrpc.js", body=body, headers={"Content-Type": "application/json"})
+        resp = conn.getresponse()
+        data = resp.read()
+        if resp.status != 200:
+            raise RuntimeError(f"JSON-RPC status {resp.status}: {data!r}")
+        doc = json.loads(data.decode("utf-8"))
+        return parse_status_json(doc)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def stop_current_song():
+    """
+    Stop the current LED animation/song using bird.py's cancel_current_song().
+    """
+    global current_song_name, current_player_id, current_led_thread
+    with current_song_lock:
+        if current_song_name is None:
+            log("stop_current_song: no active song to stop")
+            return
+        log(f"Stopping current song: {current_song_name} (player={current_player_id})")
+        try:
+            cancel_current_song()
+            b = get_or_create_bird()
+            b.stop_moving()
+        except Exception as e:
+            log(f"Error while stopping current song: {e}")
+        current_song_name = None
+        current_player_id = None
+        current_led_thread = None
+
+
+def start_song_from_status(player_id: str):
+    """
+    Fetch status for the given player, map the title to a song, and start LEDs.
+    """
+    global current_song_name, current_player_id, current_led_thread
+
+    log(f"start_song_from_status: player={player_id}")
+    if songs_config is None:
+        log("No songs_config loaded; cannot map title to a song.")
         return
 
-    result = j.get("result") or {}
-    title_norm, time_val, duration_val, player_name = extract_status_core(result)
-    playlist_ts = result.get("playlist_timestamp")
-
-    log(
-        f"Status (newsong) for player_id={player_id}, player_name={player_name}, "
-        f"title={title_norm}, time={time_val}, duration={duration_val}, playlist_timestamp={playlist_ts}"
-    )
-
-    # Filter by player_name so each node only reacts to its own player
-    if PLAYER_NAME_FILTER and player_name:
-        if player_name.lower() != PLAYER_NAME_FILTER.lower():
-            log(f"Ignoring newsong: player_name '{player_name}' != filter '{PLAYER_NAME_FILTER}'")
-            return
+    try:
+        title_norm, time_val, duration_val = fetch_current_track_status(player_id)
+    except Exception as e:
+        log(f"Error fetching track status via JSON-RPC: {e}")
+        return
 
     if not title_norm:
-        log("No title_norm in status; cannot resolve song config.")
+        log("No title returned for current track; cannot start song.")
         return
 
-    track_key = f"{player_id}:{title_norm}"
-    now_ts = time.time()
-
-    # Ignore if same song is already marked as playing
-    if is_same_song_still_playing(track_key, now_ts):
-        log(
-            f"Ignoring newsong: same song '{track_key}' already marked as playing "
-            f"(now={now_ts:.3f}, end={current_song_end_ts:.3f})"
-        )
+    song_dict = select_song_for_title(title_norm)
+    if not song_dict:
+        log(f"No song config found for title_norm='{title_norm}'")
         return
 
-    # Match song config
-    selected_song_dict = None
-    if songs_config:
-        try:
-            songs = songs_config.get("songs", [])
-            matches = [s for s in songs if s.get("name", "").lower() == title_norm.lower()]
-            if matches:
-                selected_song_dict = matches[0]
-            else:
-                log(f"Song '{title_norm}' not found in config; continuing without intervals.")
-        except Exception as e:
-            log(f"Error searching songs config: {e}")
-
-    bird_instance.prepare_song(selected_song_dict)
-
-    # Determine audio_duration
-    if duration_val and duration_val > 0:
-        audio_duration = duration_val
-    else:
-        intervals = bird_instance.speech_intervals + bird_instance.dancing_intervals
-        audio_duration = max((t for pair in intervals for t in pair), default=0)
-    if audio_duration <= 0:
-        log("No positive audio_duration; not starting LEDs (newsong).")
-        return
-
-    # Offset calculation (same logic as filename path, but using title_norm)
-    start_offset = 0.0
-    offset_source = "default_zero"
-
-    try:
-        if playlist_ts is not None:
-            playlist_ts_f = float(playlist_ts)
-            now_ts_pre_thread = time.time()
-            start_offset = max(now_ts_pre_thread - playlist_ts_f, 0.0)
-            offset_source = "playlist_timestamp"
-            actual_start_ts = playlist_ts_f
-            log(
-                f"[newsong] Offset from playlist_timestamp: now={now_ts_pre_thread:.3f}, "
-                f"playlist_ts={playlist_ts_f:.3f}, start_offset={start_offset:.3f}"
-            )
-        elif time_val is not None and time_val > 0:
-            start_offset = time_val
-            offset_source = "status_time"
-            now_ts_pre_thread = time.time()
-            actual_start_ts = max(now_ts_pre_thread - time_val, 0.0)
-            log(
-                f"[newsong] Offset from status time_val: time_val={time_val:.3f}, "
-                f"now={now_ts_pre_thread:.3f}, start_offset={start_offset:.3f}"
-            )
-        else:
-            now_ts_pre_thread = time.time()
-            actual_start_ts = now_ts_pre_thread
-            log("[newsong] No playlist_timestamp or time_val; starting from offset=0.0")
-    except Exception as e:
-        log(f"Error computing offset/start_ts (newsong): {e}")
-        now_ts_pre_thread = time.time()
-        actual_start_ts = now_ts_pre_thread
-        start_offset = 0.0
-        offset_source = "fallback_zero"
-
-    new_end_ts = actual_start_ts + audio_duration
-
-    log(
-        f"[newsong] Starting LEDs: song={title_norm}, duration={audio_duration:.3f}, "
-        f"start_offset={start_offset:.3f} (source={offset_source}), "
-        f"start_ts={actual_start_ts:.3f}, end_ts={new_end_ts:.3f}"
-    )
-
-    stop_current_song()
-    keep_playing = True
-
-    current_song_key = track_key
-    current_song_start_ts = actual_start_ts
-    current_song_end_ts = new_end_ts
-
-    t = threading.Thread(
-        target=manage_leds,
-        args=([bird_instance], audio_duration),
-        kwargs={"start_offset": start_offset},
-        daemon=True,
-    )
-    with _thread_lock:
-        _current_thread = t
-    t.start()
-
-
-def handle_newsong_from_filename(song_name: str, player_id: str):
-    """
-    Kick off LEDs as soon as we know the song name from 'open'.
-    Uses JSON-RPC to get timing info, computes an offset from playlist_timestamp,
-    and ignores duplicate triggers for the same song while it's still playing.
-    """
-    global _current_thread, keep_playing, songs_config
-    global current_song_key, current_song_start_ts, current_song_end_ts
-
-    log(f"handle_newsong_from_filename: song '{song_name}'")
-
-    # Fetch LMS status to get time, duration, playlist_timestamp, etc.
-    try:
-        j = call_lms_status(player_id)
-        log(f"call_lms_status (newsong).j={j}")
-    except Exception as e:
-        log(f"call_lms_status failed for {player_id}: {e}")
-        return
-
-    result = j.get("result") or {}
-    status_title_norm, time_val, duration_val, player_name = extract_status_core(result)
-    playlist_ts = result.get("playlist_timestamp")
-
-    log(
-        f"Filename-based trigger — LMS status: "
-        f"title={status_title_norm}, time={time_val}, duration={duration_val}, "
-        f"playlist_timestamp={playlist_ts}, player_name={player_name}"
-    )
-
-    # Optionally restrict to a single player_name
-    if PLAYER_NAME_FILTER and player_name:
-        if player_name.lower() != PLAYER_NAME_FILTER.lower():
-            log(
-                f"Ignoring filename-based event: player_name '{player_name}' "
-                f"!= filter '{PLAYER_NAME_FILTER}'"
-            )
+    with current_song_lock:
+        if current_song_name == title_norm and current_player_id == player_id:
+            log(f"Song {title_norm} already active for player {player_id}; ignoring duplicate event.")
             return
 
-    # Use filename-based normalized name as our key
-    title_norm = song_name.replace(" ", "_")
-    track_key = f"{player_id}:{title_norm}"
-    now_ts = time.time()
+        # Stop any previous song
+        stop_current_song()
 
-    # Ignore if same song is already marked as playing
-    if is_same_song_still_playing(track_key, now_ts):
-        log(
-            f"Ignoring trigger: same song '{track_key}' is already marked as playing "
-            f"(now={now_ts:.3f}, end={current_song_end_ts:.3f})"
-        )
-        return
-
-    # Match song config
-    selected_song_dict = None
-    if songs_config:
         try:
-            songs = songs_config.get("songs", [])
-            matches = [s for s in songs if s.get("name", "").lower() == title_norm.lower()]
-            if matches:
-                selected_song_dict = matches[0]
+            b = get_or_create_bird()
+            b.prepare_song(song_dict)
+
+            # Compute fallback duration from intervals
+            max_singing = max((num for pair in b.speech_intervals for num in pair), default=0)
+            max_dancing = max((num for pair in b.dancing_intervals for num in pair), default=0)
+            interval_duration = max(max_singing, max_dancing)
+
+            # Prefer explicit duration from LMS
+            if duration_val is not None and duration_val > 0:
+                audio_duration = duration_val
             else:
-                log(f"Song '{title_norm}' not found in config; continuing without intervals.")
+                audio_duration = interval_duration
+
+            if audio_duration <= 0:
+                log("Computed non-positive audio_duration; skipping LED management.")
+                return
+
+            start_offset = time_val if (time_val is not None and time_val > 0) else 0.0
+
+            log(
+                f"Starting song '{title_norm}' for player {player_id} "
+                f"audio_duration={audio_duration}, start_offset={start_offset}"
+            )
+
+            led_thread = threading.Thread(
+                target=manage_leds,
+                args=([b], audio_duration),
+                kwargs={"start_offset": start_offset},
+                daemon=True,
+            )
+            led_thread.start()
+
+            current_song_name = title_norm
+            current_player_id = player_id
+            current_led_thread = led_thread
+
         except Exception as e:
-            log(f"Error searching songs config: {e}")
-
-    bird_instance.prepare_song(selected_song_dict)
-
-    # Determine audio_duration
-    if duration_val and duration_val > 0:
-        audio_duration = duration_val
-    else:
-        intervals = bird_instance.speech_intervals + bird_instance.dancing_intervals
-        audio_duration = max((t for pair in intervals for t in pair), default=0)
-    if audio_duration <= 0:
-        log("No positive audio_duration; not starting LEDs.")
-        return
-
-    # Offset calculation using playlist_timestamp when possible
-    start_offset = 0.0
-    offset_source = "default_zero"
-
-    try:
-        if playlist_ts is not None:
-            playlist_ts_f = float(playlist_ts)
-            now_ts_pre_thread = time.time()
-            start_offset = max(now_ts_pre_thread - playlist_ts_f, 0.0)
-            offset_source = "playlist_timestamp"
-            actual_start_ts = playlist_ts_f
-            log(
-                f"Offset from playlist_timestamp: now={now_ts_pre_thread:.3f}, "
-                f"playlist_ts={playlist_ts_f:.3f}, start_offset={start_offset:.3f}"
-            )
-        elif time_val is not None and time_val > 0:
-            start_offset = time_val
-            offset_source = "status_time"
-            now_ts_pre_thread = time.time()
-            actual_start_ts = max(now_ts_pre_thread - time_val, 0.0)
-            log(
-                f"Offset from status time_val: time_val={time_val:.3f}, "
-                f"now={now_ts_pre_thread:.3f}, start_offset={start_offset:.3f}"
-            )
-        else:
-            now_ts_pre_thread = time.time()
-            actual_start_ts = now_ts_pre_thread
-            log("No playlist_timestamp or time_val; starting from offset=0.0")
-    except Exception as e:
-        log(f"Error computing offset/start_ts from playlist_timestamp/time: {e}")
-        now_ts_pre_thread = time.time()
-        actual_start_ts = now_ts_pre_thread
-        start_offset = 0.0
-        offset_source = "fallback_zero"
-
-    new_end_ts = actual_start_ts + audio_duration
-
-    log(
-        f"Starting LEDs early: song={song_name}, duration={audio_duration:.3f}, "
-        f"start_offset={start_offset:.3f} (source={offset_source}), "
-        f"start_ts={actual_start_ts:.3f}, end_ts={new_end_ts:.3f}"
-    )
-
-    # Stop any currently-running animation
-    stop_current_song()
-    keep_playing = True
-
-    # Record new 'current song' state
-    current_song_key = track_key
-    current_song_start_ts = actual_start_ts
-    current_song_end_ts = new_end_ts
-
-    # Fire LEDs
-    t = threading.Thread(
-        target=manage_leds,
-        args=([bird_instance], audio_duration),
-        kwargs={"start_offset": start_offset},
-        daemon=True,
-    )
-    with _thread_lock:
-        _current_thread = t
-    t.start()
+            log(f"Error starting song {title_norm} for player {player_id}: {e}")
+            current_song_name = None
+            current_player_id = None
+            current_led_thread = None
 
 
 # -------------------------------------------------------------------
@@ -564,29 +525,31 @@ def handle_newsong_from_filename(song_name: str, player_id: str):
 def subscribe_loop():
     """
     Connects to LMS CLI, subscribes to playlist events, and reacts to:
-      - 'playlist open ...' via handle_newsong_from_filename (early)
-      - 'playlist newsong ...' via handle_newsong (backup)
-      - 'playlist stop' or 'playlist jump' via stop_current_song
+      - playlist newsong  -> start_song_from_status()
+      - playlist open ... -> start_song_from_status() (early)
+      - playlist stop/jump -> stop_current_song()
     """
+    global LMS_HOST
+
     while True:
         try:
             log(f"Connecting to LMS CLI {LMS_HOST}:{LMS_CLI_PORT}")
             sock = socket.create_connection((LMS_HOST, LMS_CLI_PORT), timeout=5)
-            # Once connected, block indefinitely while waiting for events
             sock.settimeout(None)
             f = sock.makefile("rwb", buffering=0)
 
-            # subscribe to playlist events
-            cmd = "subscribe playlist\n".encode("utf-8")
+            # Subscribe to playlist events
+            cmd = b"subscribe playlist\n"
+            log(f"Sending CLI subscribe command: {cmd!r}")
             f.write(cmd)
+            f.flush()
 
-            # read subscribe response
             line = f.readline()
             if not line:
                 raise RuntimeError("No subscribe response from LMS")
             log(f"subscribe response: {line.decode().strip()}")
 
-            # main event loop
+            # Event loop
             while True:
                 line = f.readline()
                 if not line:
@@ -600,7 +563,7 @@ def subscribe_loop():
                 except Exception:
                     decoded = raw
 
-                # Example: "2c:cf:67:f8:c7:15 playlist newsong ..."
+                # Example: "2c:cf:67:f8:c7:15 playlist newsong 5"
                 parts = decoded.split(" ", 2)
                 if len(parts) < 2:
                     continue
@@ -608,39 +571,31 @@ def subscribe_loop():
                 player_id = parts[0]   # MAC address
                 rest = parts[1:]
                 if len(rest) < 2:
-                    log(f"Ignoring CLI line without command: parts={parts}")
+                    log(f"Ignoring CLI line without command: {parts}")
                     continue
 
-                event_group = rest[0]   # e.g. 'playlist'
-                event_cmd = rest[1]     # e.g. 'open file://...', 'newsong ...', 'stop', 'jump', etc.
+                event_group = rest[0]   # e.g. "playlist"
+                event_cmd_full = rest[1]  # e.g. "newsong", "open file://...", "stop", "jump", etc.
 
-                log(f"decoded_line={decoded}")
-                log(f"parts={parts}")
+                if event_group != "playlist":
+                    continue
 
-                if event_group == "playlist":
-                    # STOP / SKIP handling
-                    if event_cmd.startswith("stop") or event_cmd.startswith("jump"):
-                        log(f"Playlist stop/skip detected for player_id={player_id} → stopping LEDs")
-                        stop_current_song()
-                        continue
-
-                    # EARLY TRIGGER ON OPEN
-                    if event_cmd.startswith("open "):
-                        song = extract_song_from_open_cmd(event_cmd)
-                        if song:
-                            log(f"EARLY: playlist open detected for player_id={player_id}, song={song}")
-                            handle_newsong_from_filename(song, player_id)
-                        else:
-                            log(f"Could not extract song from cmd: '{event_cmd}'")
-                        continue
-
-                    # # BACKUP: NEWSPLIT (late / extra event)
-                    # if event_cmd.startswith("newsong"):
-                    #     log(f"Received playlist newsong for player_id={player_id}")
-                    #     handle_newsong(player_id)
+                if event_cmd_full == "newsong":
+                    start_song_from_status(player_id)
+                elif event_cmd_full.startswith("open "):
+                    # We could parse filename from here, but we just call status()
+                    start_song_from_status(player_id)
+                elif event_cmd_full in ("stop", "jump"):
+                    stop_current_song()
 
         except Exception as e:
             log(f"subscribe_loop error: {e}, reconnecting in 5s")
+            msg = str(e)
+            # If this looks like DNS / network error, re-discover LMS host
+            if isinstance(e, socket.gaierror) or "Name or service not known" in msg or "Network is unreachable" in msg:
+                old = LMS_HOST
+                LMS_HOST = discover_lms_host(current=old)
+                log(f"Updated LMS_HOST from {old} to {LMS_HOST} after error")
             time.sleep(5)
 
 
