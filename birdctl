@@ -14,130 +14,163 @@
 #
 
 VENV_DIR="/mnt/mmcblk0p2/tc/birdpi-venv"
-APP_DIR="/mnt/mmcblk0p2/tc/SquawkersMccaw/src"
-STARTUP_SCRIPT="/mnt/mmcblk0p2/tc/SquawkersMccaw/birdpi-startup.sh"
-PID_FILE="/tmp/bird_daemon.pid"
+APP_ROOT="/mnt/mmcblk0p2/tc/SquawkersMccaw"
+STARTUP_SH="${APP_ROOT}/birdpi-startup.sh"
 LOG_DIR="/mnt/mmcblk0p2/tc/birdpi-logs"
-DAEMON="bird_daemon.py"
+PID_FILE="/tmp/bird_daemon.pid"
 
+# -------------------------------------------------------------------
+# Always run as root (needed to signal root-owned daemon)
+# -------------------------------------------------------------------
+if [ "$(id -u)" -ne 0 ] && [ -z "$BIRDCTL_ELEVATED" ]; then
+    # Re-run ourselves via sudo, preserving arguments.
+    BIRDCTL_ELEVATED=1 exec sudo BIRDCTL_ELEVATED=1 "$0" "$@"
+fi
 
-###############################################################################
-# INTERNAL HELPERS
-###############################################################################
+# -------------------------------------------------------------------
+# Helpers
+# -------------------------------------------------------------------
+
+ensure_log_dir() {
+    [ -d "$LOG_DIR" ] || mkdir -p "$LOG_DIR"
+}
+
+log() {
+    ensure_log_dir
+    echo "[birdctl] $(date +'%Y-%m-%dT%H:%M:%S') $*" >> "${LOG_DIR}/birdctl.log"
+}
 
 get_pid() {
     if [ -f "$PID_FILE" ]; then
-        cat "$PID_FILE" 2>/dev/null
-    fi
-}
-
-is_running() {
-    PID=$(get_pid)
-    if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+        PID="$(cat "$PID_FILE" 2>/dev/null)"
+        echo "$PID"
         return 0
     fi
     return 1
 }
 
+is_running() {
+    PID="$(get_pid)" || return 1
 
-###############################################################################
-# COMMAND IMPLEMENTATIONS
-###############################################################################
+    if [ -z "$PID" ]; then
+        return 1
+    fi
 
-do_help() {
-    cat <<EOF
-BirdPi Control Utility
-----------------------
+    # kill -0 checks if the process exists without actually killing it
+    if kill -0 "$PID" 2>/dev/null; then
+        return 0
+    fi
 
-Commands:
-  birdctl status
-      Shows whether the BirdPi daemon is running. If running, prints the PID.
-
-  birdctl start
-      Starts the BirdPi daemon using birdpi-startup.sh.
-      - Activates virtualenv if present
-      - Launches bird_daemon.py
-      - Writes PID to /tmp/bird_daemon.pid
-
-  birdctl stop
-      Stops the BirdPi daemon cleanly using SIGTERM.
-      If it fails to stop, SIGKILL is sent.
-      PID file is removed afterward.
-
-  birdctl restart
-      Stops the daemon (if running) and restarts it cleanly.
-
-Files & Paths:
-  PID file:  $PID_FILE
-  Logs:      $LOG_DIR
-  Startup:   $STARTUP_SCRIPT
-  Daemon:    $APP_DIR/$DAEMON
-  Venv:      $VENV_DIR
-
-Examples:
-  birdctl start
-  birdctl status
-  birdctl stop
-  birdctl restart
-
-EOF
+    # If kill -0 fails, the PID file is stale
+    return 1
 }
 
 do_status() {
     if is_running; then
-        PID=$(get_pid)
+        PID="$(get_pid)"
         echo "Bird daemon is RUNNING (PID $PID)"
+        log "status: running (PID $PID)"
     else
         echo "Bird daemon is NOT running"
+        log "status: not running"
     fi
 }
 
 do_start() {
     if is_running; then
-        PID=$(get_pid)
-        echo "Bird daemon already running (PID $PID)"
-        exit 0
+        PID="$(get_pid)"
+        echo "Bird daemon is already running (PID $PID)"
+        log "start: already running (PID $PID)"
+        return 0
     fi
+
+    if [ ! -x "$STARTUP_SH" ]; then
+        echo "ERROR: Startup script not found or not executable: $STARTUP_SH"
+        log "start: missing startup script $STARTUP_SH"
+        return 1
+    fi
+
     echo "Starting Bird daemon..."
-    sh "$STARTUP_SCRIPT"
-    sleep 0.5
+    log "start: invoking $STARTUP_SH"
+    sh "$STARTUP_SH" >/dev/null 2>&1 &
+
+    # Give it a moment to write the PID file
+    sleep 1
+
     if is_running; then
-        echo "Bird daemon started successfully (PID $(get_pid))"
+        PID="$(get_pid)"
+        echo "Bird daemon started (PID $PID)"
+        log "start: daemon started (PID $PID)"
+        return 0
     else
-        echo "Bird daemon FAILED to start — check logs:"
-        echo "  $LOG_DIR/startup.log"
-        echo "  $LOG_DIR/daemon_stdout.log"
+        echo "ERROR: Bird daemon failed to start. Check logs in $LOG_DIR."
+        log "start: failed to start; not running after startup"
+        return 1
     fi
 }
 
 do_stop() {
     if ! is_running; then
         echo "Bird daemon is NOT running"
-        exit 0
+        log "stop: not running"
+        return 0
     fi
-    PID=$(get_pid)
+
+    PID="$(get_pid)"
     echo "Stopping Bird daemon (PID $PID)..."
-    kill "$PID" 2>/dev/null
-    sleep 0.2
+    log "stop: sending SIGTERM to PID $PID"
+
+    kill "$PID" 2>/dev/null || {
+        echo "WARNING: Failed to send SIGTERM to PID $PID"
+        log "stop: SIGTERM failed for PID $PID"
+    }
+
+    # Wait a bit for clean shutdown
+    for i in 1 2 3 4 5; do
+        if ! kill -0 "$PID" 2>/dev/null; then
+            break
+        fi
+        sleep 1
+    done
+
     if kill -0 "$PID" 2>/dev/null; then
-        echo "Force killing..."
-        kill -9 "$PID" 2>/dev/null
+        echo "Daemon did not exit; sending SIGKILL..."
+        log "stop: SIGTERM failed, sending SIGKILL to PID $PID"
+        kill -9 "$PID" 2>/dev/null || true
     fi
+
     rm -f "$PID_FILE"
     echo "Bird daemon stopped."
+    log "stop: daemon stopped and PID file removed"
 }
 
 do_restart() {
-    echo "Restarting Bird daemon..."
+    log "restart: requested"
     do_stop
-    sleep 0.5
     do_start
 }
 
+do_help() {
+    cat <<EOF
+BirdPi control script
 
-###############################################################################
-# DISPATCH
-###############################################################################
+Usage:
+  birdctl status    - Show whether the Bird daemon is running
+  birdctl start     - Start the Bird daemon
+  birdctl stop      - Stop the Bird daemon
+  birdctl restart   - Restart the Bird daemon
+  birdctl help      - Show this help
+
+Notes:
+  - The daemon PID file is: $PID_FILE
+  - Logs are under:        $LOG_DIR
+  - Startup script:        $STARTUP_SH
+EOF
+}
+
+# -------------------------------------------------------------------
+# Main dispatch
+# -------------------------------------------------------------------
 
 case "$1" in
     help|-h|--help) do_help ;;

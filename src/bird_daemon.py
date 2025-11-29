@@ -80,7 +80,7 @@ short_hostname = raw_hostname.split(".")[0].lower()
 if short_hostname == "birdpi-main":
     LMS_HOST = "localhost"
 else:
-    LMS_HOST = "birdpi-main.local"
+    LMS_HOST = "birdpi-main"
 
 LMS_CLI_PORT = 9090
 LMS_WEB_PORT = 9000
@@ -634,10 +634,10 @@ def subscribe_loop():
                             log(f"Could not extract song from cmd: '{event_cmd}'")
                         continue
 
-                    # BACKUP: NEWSPLIT (late / extra event)
-                    if event_cmd.startswith("newsong"):
-                        log(f"Received playlist newsong for player_id={player_id}")
-                        handle_newsong(player_id)
+                    # # BACKUP: NEWSPLIT (late / extra event)
+                    # if event_cmd.startswith("newsong"):
+                    #     log(f"Received playlist newsong for player_id={player_id}")
+                    #     handle_newsong(player_id)
 
         except Exception as e:
             log(f"subscribe_loop error: {e}, reconnecting in 5s")
