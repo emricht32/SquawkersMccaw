@@ -145,7 +145,7 @@ def get_neighbor_ips() -> list[str]:
     """
     candidates: set[str] = set()
 
-    for cmd in (["ip", "neigh"], ["arp", "-n"]):
+    for cmd in (["arp", "-n"], ["ip", "neigh"]):
         try:
             out = subprocess.check_output(cmd, text=True)
         except Exception as e:
