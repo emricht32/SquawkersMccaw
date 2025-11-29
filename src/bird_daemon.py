@@ -145,16 +145,22 @@ def get_neighbor_ips() -> list[str]:
     """
     candidates: set[str] = set()
 
-    for cmd in (["arp", "-n"], ["ip", "neigh"]):
+    # On piCorePlayer, `ip` doesn't exist, so we just use `arp -n`
+    for cmd in (["arp", "-n"],):
         try:
             out = subprocess.check_output(cmd, text=True)
         except Exception as e:
             log(f"Neighbor discovery via {cmd} failed: {e}")
             continue
+
         for line in out.splitlines():
+            log(f"Checking line {line}")
             for token in line.split():
-                if re.match(r"\d+\.\d+\.\d+\.\d+", token):
-                    candidates.add(token)
+                # e.g. token = "(10.0.0.121)" → strip parens
+                token_clean = token.strip("()")
+                m = re.match(r"\d+\.\d+\.\d+\.\d+", token_clean)
+                if m:
+                    candidates.add(m.group(0))
 
     filtered = [
         ip for ip in candidates
@@ -162,6 +168,7 @@ def get_neighbor_ips() -> list[str]:
     ]
     log(f"Neighbor IPs discovered: {filtered}")
     return filtered
+
 
 
 def get_local_subnet_ips() -> list[str]:
