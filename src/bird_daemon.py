@@ -360,6 +360,7 @@ def select_song_for_title(title_norm: str) -> dict | None:
         return None
     try:
         songs = songs_config.get("songs", [])
+        log(f"select_song_for_title.songs={songs}")
         for s in songs:
             if str(s.get("name", "")).lower() == title_norm.lower():
                 return s
@@ -469,11 +470,13 @@ def start_song_from_status(player_id: str):
         return
 
     song_dict = select_song_for_title(title_norm)
+    log(f"song_dict={song_dict}")
     if not song_dict:
         log(f"No song config found for title_norm='{title_norm}'")
         return
 
     with current_song_lock:
+        log("with current_song_lock")
         if current_song_name == title_norm and current_player_id == player_id:
             log(f"Song {title_norm} already active for player {player_id}; ignoring duplicate event.")
             return
