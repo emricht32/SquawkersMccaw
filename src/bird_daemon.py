@@ -427,26 +427,33 @@ def fetch_current_track_status(player_id: str) -> tuple[str | None, float | None
             pass
 
 
-def stop_current_song():
+def _stop_current_song_locked():
     """
-    Stop the current LED animation/song using bird.py's cancel_current_song().
+    Internal helper. Assumes current_song_lock is already held.
     """
     global current_song_name, current_player_id, current_led_thread
-    with current_song_lock:
-        if current_song_name is None:
-            log("stop_current_song: no active song to stop")
-            return
-        log(f"Stopping current song: {current_song_name} (player={current_player_id})")
-        try:
-            cancel_current_song()
-            b = get_or_create_bird()
-            b.stop_moving()
-        except Exception as e:
-            log(f"Error while stopping current song: {e}")
-        current_song_name = None
-        current_player_id = None
-        current_led_thread = None
+    if current_song_name is None:
+        log("stop_current_song: no active song to stop")
+        return
+    log(f"Stopping current song: {current_song_name} (player={current_player_id})")
+    try:
+        cancel_current_song()
+        b = get_or_create_bird()
+        b.stop_moving()
+    except Exception as e:
+        log(f"Error while stopping current song: {e}")
+    current_song_name = None
+    current_player_id = None
+    current_led_thread = None
 
+
+def stop_current_song():
+    """
+    Public API: takes the lock, then delegates to _stop_current_song_locked().
+    Safe to call from other threads without worrying about the lock.
+    """
+    with current_song_lock:
+        _stop_current_song_locked()
 
 def start_song_from_status(player_id: str):
     """
@@ -481,8 +488,8 @@ def start_song_from_status(player_id: str):
             log(f"Song {title_norm} already active for player {player_id}; ignoring duplicate event.")
             return
 
-        # Stop any previous song
-        stop_current_song()
+        # Stop any previous song (we already hold the lock)
+        _stop_current_song_locked()
 
         try:
             b = get_or_create_bird()
