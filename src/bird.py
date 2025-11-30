@@ -173,7 +173,7 @@ class Bird:
             self.spotlight_led.on()  # reversed
         if self.body_led:
             self.body_led.off()
-            print("self.beak_led.off()")
+            print("self.body_led.off()")
         if self.beak_led:
             self.beak_led.off()
             print("self.beak_led.off()")
