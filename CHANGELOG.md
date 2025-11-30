@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Follow semantic versioning: MAJOR.MINOR.PATCH.
 
+## 0.12.0 - 2025-11-29
+### Changed
+- **Architecture**: Removed dependency on the LMS Event Trigger / `event_listener.py` flow in favor of a persistent `bird_daemon.py` process.
+- **Startup**: All BirdPis now auto-start `bird_daemon.py` on boot (role determined by hostname).
+- **Connectivity**: All node BirdPis automatically discover and connect to the `birdpi-main` instance.
+- **Docs**: Updated `README.md` to describe the new bird_daemon-based architecture and startup behavior.
+
 ## 0.11.0 - 2025-11-16
 ### Added
 - **piCorePlayer Event Listener Integration**: Added LMS Event Trigger plugin support for bird movement triggers via `deployment/picoreplayer_event_listener/`.

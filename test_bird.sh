@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Path to bird.py inside src/
-BIRD="/mnt/mmcblk0p2/tc/SquawkersMccaw/src/bird.py"
+# Path to bird.py inside src/ (repo-local by default)
+BIRD="$(cd "$(dirname "$0")" && pwd)/src/bird.py"
 
 JSON='{
   "mixer volume": 50,

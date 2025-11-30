@@ -310,20 +310,10 @@ def main():
     import sys
     import socket
     import os
-    # parser = argparse.ArgumentParser(description="Bird LED controller")
+
     default_config = os.path.join(os.path.dirname(__file__), "../config_single_bird.json")
     songs_path = os.path.join(os.path.dirname(__file__), "../config_multi_song_with_triggers.json")
-    # parser.add_argument("--config", help="Path to bird node config", default=default_config)
-    # parser.add_argument("--song", help="Song name (optional)")
-    # parser.add_argument(
-    #     "--time", help="Current playback time in seconds (from LMS status)",  # <-- NEW
-    #     type=float, default=0.0
-    # )
-    # parser.add_argument(
-    #     "--duration", help="Total track duration in seconds (from LMS status)",  # <-- NEW
-    #     type=float, default=0.0
-    # )
-    # args = parser.parse_args()
+
     import time as _time  # local alias to avoid confusion
 
     # Copy argv so we can safely strip our timing arg without breaking logging
