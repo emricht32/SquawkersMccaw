@@ -207,6 +207,10 @@ def manage_leds(birds, audio_duration, start_offset=0.0):  # <-- UPDATED SIGNATU
     global keep_playing
     print("manage_leds")
     print(f"audio_duration={audio_duration} start_offset= {start_offset}")
+
+    # ✅ Re-arm the flag at the beginning of each new run
+    keep_playing = True
+
     if audio_duration <= 0:
         print("No positive audio duration; skipping LED management.")
         for bird in birds:
