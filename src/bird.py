@@ -81,8 +81,7 @@ class Bird:
         self.beak_led = LED(beak_led_pin) if (GPIO_AVAILABLE and beak_led_pin is not None) else None
         self.body_led = LED(body_led_pin) if (GPIO_AVAILABLE and body_led_pin is not None) else None
         self.spotlight_led = LED(spotlight_led_pin) if (GPIO_AVAILABLE and spotlight_led_pin is not None) else None
-        if self.spotlight_led is not None:
-            self.spotlight_led.on()
+
         self.event = threading.Event()
         print(f"BirdInternal {self.name}, beak: {self.beak_led}, body: {self.body_led} light: {self.spotlight_led}")
 
@@ -162,7 +161,7 @@ class Bird:
 
     def start_dancing(self):
         if self.spotlight_led:
-            self.spotlight_led.off()  # reversed
+            self.spotlight_led.on() 
         if self.body_led:
             self.body_led.on()
         # Beak stays whatever it was
@@ -170,7 +169,7 @@ class Bird:
     def stop_moving(self):
         self.event.clear()
         if self.spotlight_led:
-            self.spotlight_led.on()  # reversed
+            self.spotlight_led.off() 
         if self.body_led:
             self.body_led.off()
             print("self.body_led.off()")
