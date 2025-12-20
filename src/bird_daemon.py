@@ -340,7 +340,13 @@ def get_or_create_bird() -> Bird:
             bird_name = _derive_bird_name(hostname)
             beak_pin = pins_config.get("beak") if pins_config else None
             body_pin = pins_config.get("body") if pins_config else None
-            spotlight_pin = pins_config.get("light") if pins_config else None
+            # Spotlight can be a single int ("light") or list of ints ("lights")
+            spotlight_pin = None
+            if pins_config:
+                if "lights" in pins_config:
+                    spotlight_pin = pins_config.get("lights")
+                elif "light" in pins_config:
+                    spotlight_pin = pins_config.get("light")
             log(f"Creating Bird instance name={bird_name}, beak={beak_pin}, body={body_pin}, light={spotlight_pin}")
             bird_instance = Bird(
                 name=bird_name,

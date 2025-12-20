@@ -80,10 +80,18 @@ class Bird:
         self.dancing_intervals = []  # list[tuple[float,float]]
         self.beak_led = LED(beak_led_pin) if (GPIO_AVAILABLE and beak_led_pin is not None) else None
         self.body_led = LED(body_led_pin) if (GPIO_AVAILABLE and body_led_pin is not None) else None
-        self.spotlight_led = LED(spotlight_led_pin) if (GPIO_AVAILABLE and spotlight_led_pin is not None) else None
+
+        # Support either a single spotlight LED or a list of LEDs.
+        self.spotlight_leds = []
+        if GPIO_AVAILABLE and spotlight_led_pin is not None:
+            if isinstance(spotlight_led_pin, (list, tuple, set)):
+                for pin in spotlight_led_pin:
+                    self.spotlight_leds.append(LED(pin))
+            else:
+                self.spotlight_leds.append(LED(spotlight_led_pin))
 
         self.event = threading.Event()
-        print(f"BirdInternal {self.name}, beak: {self.beak_led}, body: {self.body_led} light: {self.spotlight_led}")
+        print(f"BirdInternal {self.name}, beak: {self.beak_led}, body: {self.body_led} light: {self.spotlight_leds}")
 
 
     def prepare_song(self, song_dict):
@@ -160,16 +168,18 @@ class Bird:
         
 
     def start_dancing(self):
-        if self.spotlight_led:
-            self.spotlight_led.on() 
+        if self.spotlight_leds:
+            for led in self.spotlight_leds:
+                led.on()
         if self.body_led:
             self.body_led.on()
         # Beak stays whatever it was
 
     def stop_moving(self):
         self.event.clear()
-        if self.spotlight_led:
-            self.spotlight_led.off() 
+        if self.spotlight_leds:
+            for led in self.spotlight_leds:
+                led.off()
         if self.body_led:
             self.body_led.off()
             print("self.body_led.off()")
@@ -374,7 +384,14 @@ def main():
     # GPIO pin mappings
     beak_pin = pins_config.get("beak") if pins_config else None
     body_pin = pins_config.get("body") if pins_config else None
-    spotlight_pin = pins_config.get("light") if pins_config else None
+
+    # Spotlight can be configured as a single int ("light") or a list of ints ("lights")
+    spotlight_pin = None
+    if pins_config:
+        if "lights" in pins_config:
+            spotlight_pin = pins_config.get("lights")
+        elif "light" in pins_config:
+            spotlight_pin = pins_config.get("light")
 
     bird_instance = Bird(
         name=bird_name,

@@ -2,6 +2,6 @@
     "on_light": 5,
     "beak": 17,
     "body": 10,
-    "light": 25,
+    "lights": [24,25],
     "on_time": 0.5
 }

@@ -65,13 +65,15 @@ All persistent data lives on the SD card partition at `/mnt/mmcblk0p2`:
 **Bird Hardware Config**: `config_single_bird.json` (per node)
 ```json
 {
-    "on_light": 5,
-    "beak": 17,
-    "body": 10,
-    "light": 25,
-    "on_time": 0.5
+  "on_light": 5,
+  "beak": 17,
+  "body": 10,
+  "lights": [24,25],
+  "on_time": 0.5
 }
 ```
+
+`lights` may be a single GPIO number (e.g. `25`) or a list of GPIO numbers (e.g. `[24,25]`); all configured spotlight LEDs will turn on/off together when the bird is dancing.
 
 **Song Choreography**: `config_multi_song_with_triggers.json`
 Defines singing and dancing intervals for each bird in each song.
