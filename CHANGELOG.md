@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Follow semantic versioning: MAJOR.MINOR.PATCH.
 
+## 0.12.1 - 2025-12-27
+### Added
+- **Fallback Wi-Fi Access Point (AP) Installer**: Added `birdpi_install_fallback_ap.sh` for piCorePlayer-based BirdPis.
+  - Installs `hostapd.conf` and `dnsmasq.conf` under `/mnt/mmcblk0p2/tc/birdpi-ap/`.
+  - Writes `birdpi-fallback-ap.sh` and appends a small hook to `/opt/bootlocal.sh` so that, if Wi-Fi does not connect within a timeout, the Pi starts an AP with SSID `BirdPi` (passphrase `squawkers`).
+  - Logs activity to `/mnt/mmcblk0p2/tc/birdpi-logs/fallback_ap.log`.
+
 ## 0.12.0 - 2025-11-29
 ### Changed
 - **Architecture**: Removed dependency on the LMS Event Trigger / `event_listener.py` flow in favor of a persistent `bird_daemon.py` process.

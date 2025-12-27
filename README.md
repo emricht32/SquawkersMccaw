@@ -78,6 +78,25 @@ All persistent data lives on the SD card partition at `/mnt/mmcblk0p2`:
 **Song Choreography**: `config_multi_song_with_triggers.json`
 Defines singing and dancing intervals for each bird in each song.
 
+### Optional Fallback Wi-Fi Access Point (AP)
+
+On headless piCorePlayer installs, you can enable a small fallback AP so that if Wi-Fi does not connect on boot, the Pi brings up a `BirdPi` Wi-Fi network and you can still reach the piCorePlayer UI.
+
+On a BirdPi (main or node):
+
+```bash
+cd /mnt/mmcblk0p2/tc/SquawkersMccaw
+sudo sh birdpi_install_fallback_ap.sh
+```
+
+This script:
+- Writes `hostapd.conf` and `dnsmasq.conf` into `/mnt/mmcblk0p2/tc/birdpi-ap/`
+- Installs `birdpi-fallback-ap.sh` into `/mnt/mmcblk0p2/tc/birdpi-ap/`
+- Appends a small check to `/opt/bootlocal.sh` so that on boot it waits for Wi-Fi to connect and, if it does not, starts an AP with SSID **BirdPi** (passphrase **squawkers**)
+- Logs to `/mnt/mmcblk0p2/tc/birdpi-logs/fallback_ap.log`
+
+Once active, connect to the `BirdPi` Wi-Fi network and open `http://192.168.4.1/` to reach the piCorePlayer UI and fix Wi-Fi settings. When normal Wi-Fi connects successfully on boot, the fallback AP will not be started.
+
 ## Testing & Troubleshooting
 
 ### Check Daemon Status
@@ -92,6 +111,20 @@ tail -f /mnt/mmcblk0p2/tc/birdpi-logs/daemon.log
 ```
 
 If nodes do not appear as connected, verify hostname configuration and network connectivity between Pis.
+
+### If You Lose Wi-Fi Access
+
+If a BirdPi boots and fails to join your normal Wi-Fi (so you cannot reach the piCorePlayer UI):
+
+1. On that Pi (via console/serial), install the fallback AP helper:
+  ```bash
+  cd /mnt/mmcblk0p2/tc/SquawkersMccaw
+  sudo sh birdpi_install_fallback_ap.sh
+  ```
+2. Reboot. If Wi-Fi still does not connect within the timeout, the Pi will start an AP:
+  - SSID: `BirdPi`
+  - Passphrase: `squawkers`
+3. Connect to that network from a laptop/phone and open `http://192.168.4.1/` to reach the piCorePlayer UI and fix Wi-Fi settings.
 
 ## Bird Setup
 
@@ -165,7 +198,7 @@ These are replaced by piCorePlayer's native UI and the `bird_daemon.py`-based ar
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 
-Current version: **0.12.0** (bird_daemon-based multi-Pi architecture)
+Current version: **0.12.1** (bird_daemon-based multi-Pi architecture)
 
 ## License
 
