@@ -368,7 +368,7 @@ def select_song_for_title(title_norm: str) -> dict | None:
         songs = songs_config.get("songs", [])
         log(f"select_song_for_title.songs={songs}")
         for s in songs:
-            if str(s.get("name", "")).lower() == title_norm.lower():
+            if str(s.get("name", "")).lower() in title_norm.lower():
                 return s
     except Exception as e:
         log(f"select_song_for_title: error scanning songs_config: {e}")
