@@ -1,4 +1,3 @@
-````markdown
 # Squawkers McCaw Tiki Room / BirdPi (Refactor in progress)
 
 Animatronic multi-Pi "Tiki Room" system powered by piCorePlayer, featuring:
@@ -204,4 +203,3 @@ Current version: **0.12.1** (bird_daemon-based multi-Pi architecture)
 
 See [LICENSE](LICENSE) file for details.
 
-````
