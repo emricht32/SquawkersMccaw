@@ -357,6 +357,34 @@ def get_or_create_bird() -> Bird:
         return bird_instance
 
 
+def _normalize_song_key(value: str | None) -> str:
+    """Normalize song names/titles for robust matching across LMS and config."""
+    if not value:
+        return ""
+    text = str(value).lower()
+    text = re.sub(r"\([^)]*\)", " ", text)  # strip parenthetical metadata like (feat. ...)
+    text = re.sub(r"\b(feat\.?|featuring)\b", " ", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text).strip()
+    return "_".join(text.split())
+
+
+def _song_match_candidates(song: dict) -> list[str]:
+    candidates: list[str] = []
+    for key in ("name", "display_name"):
+        val = song.get(key)
+        if isinstance(val, str) and val.strip():
+            candidates.append(val)
+
+    audio_dir = song.get("audio_dir")
+    if isinstance(audio_dir, str) and audio_dir.strip():
+        candidates.append(os.path.basename(audio_dir))
+
+    triggers = song.get("triggers", [])
+    if isinstance(triggers, list):
+        candidates.extend(str(t) for t in triggers if isinstance(t, str) and t.strip())
+    return candidates
+
+
 def select_song_for_title(title_norm: str) -> dict | None:
     """
     Given a normalized title (spaces -> underscores), return the matching song dict
@@ -367,9 +395,37 @@ def select_song_for_title(title_norm: str) -> dict | None:
     try:
         songs = songs_config.get("songs", [])
         log(f"select_song_for_title.songs={songs}")
+        normalized_title = _normalize_song_key(title_norm)
+
+        best_song = None
+        best_score = -1
+        best_key = ""
+
         for s in songs:
-            if str(s.get("name", "")).lower() in title_norm.lower():
-                return s
+            for candidate in _song_match_candidates(s):
+                normalized_candidate = _normalize_song_key(candidate)
+                if not normalized_candidate:
+                    continue
+
+                score = -1
+                if normalized_candidate == normalized_title:
+                    score = 3
+                elif normalized_candidate in normalized_title:
+                    score = 2
+                elif normalized_title in normalized_candidate:
+                    score = 1
+
+                if score > best_score or (score == best_score and len(normalized_candidate) > len(best_key)):
+                    best_score = score
+                    best_song = s
+                    best_key = normalized_candidate
+
+        if best_song and best_score > 0:
+            log(
+                f"select_song_for_title: matched '{title_norm}' as key '{best_key}' "
+                f"for song '{best_song.get('name', '')}' (score={best_score})"
+            )
+            return best_song
     except Exception as e:
         log(f"select_song_for_title: error scanning songs_config: {e}")
     return None

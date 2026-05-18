@@ -57,6 +57,7 @@ print("bird.py logger initialized")
 
 import time
 import threading
+import re
 try:
     from gpiozero import LED, Device
     from gpiozero.pins.native import NativeFactory
@@ -315,6 +316,68 @@ def _derive_bird_name(hostname: str) -> str:
         name = name[: -len(".local")]
     return name.capitalize() if name != "main" else "Jose"
 
+
+def _normalize_song_key(value):
+    """Normalize song names/titles for robust matching across LMS and config."""
+    if not value:
+        return ""
+    text = str(value).lower()
+    text = re.sub(r"\([^)]*\)", " ", text)  # strip parenthetical metadata like (feat. ...)
+    text = re.sub(r"\b(feat\.?|featuring)\b", " ", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text).strip()
+    return "_".join(text.split())
+
+
+def _song_match_candidates(song_dict):
+    candidates = []
+    for key in ("name", "display_name"):
+        val = song_dict.get(key)
+        if isinstance(val, str) and val.strip():
+            candidates.append(val)
+
+    audio_dir = song_dict.get("audio_dir")
+    if isinstance(audio_dir, str) and audio_dir.strip():
+        candidates.append(os.path.basename(audio_dir))
+
+    triggers = song_dict.get("triggers", [])
+    if isinstance(triggers, list):
+        candidates.extend(t for t in triggers if isinstance(t, str) and t.strip())
+
+    return candidates
+
+
+def select_song_for_title(title_norm, songs):
+    normalized_title = _normalize_song_key(title_norm)
+    best_song = None
+    best_score = -1
+    best_key = ""
+
+    for song in songs:
+        for candidate in _song_match_candidates(song):
+            normalized_candidate = _normalize_song_key(candidate)
+            if not normalized_candidate:
+                continue
+
+            score = -1
+            if normalized_candidate == normalized_title:
+                score = 3
+            elif normalized_candidate in normalized_title:
+                score = 2
+            elif normalized_title in normalized_candidate:
+                score = 1
+
+            if score > best_score or (score == best_score and len(normalized_candidate) > len(best_key)):
+                best_score = score
+                best_song = song
+                best_key = normalized_candidate
+
+    if best_song and best_score > 0:
+        print(
+            f"select_song_for_title: matched '{title_norm}' as key '{best_key}' "
+            f"for song '{best_song.get('name', '')}' (score={best_score})"
+        )
+    return best_song
+
 def main():
     import sys
     import socket
@@ -368,10 +431,8 @@ def main():
     if song_name:
         try:
             songs = songs_config.get("songs", [])
-            matches = [s for s in songs if s.get("name", "").lower() == song_name.lower()]
-            if matches:
-                selected_song_dict = matches[0]
-            else:
+            selected_song_dict = select_song_for_title(song_name, songs)
+            if not selected_song_dict:
                 print(f"Song '{song_name}' not found; continuing without intervals.")
         except Exception as e:
             print(f"Error loading songs: {e}")
