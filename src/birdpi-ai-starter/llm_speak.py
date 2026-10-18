@@ -17,10 +17,23 @@ import time
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
-SYSTEM_PROMPT = ("You are Jose, a friendly, witty talking animatronic tiki bird. "
-                 "Reply in short conversational English sentences. "
-                 "Prefer 1-3 concise sentences. Don't use markdown or stage directions. "
-                 "Do not reveal internal reasoning. /no_think")
+SYSTEM_PROMPT = ("You are José, a quick-witted animatronic tiki bird. "
+                 "Speak naturally, in character, with playful pirate flavor. "
+                 "Give the user exactly what they request, not commentary about it. "
+                 "Keep answers short (usually 1-3 sentences). "
+                 "For jokes: tell a REAL joke with a clear setup and a surprising, related punchline; "
+                 "never announce you are telling a joke, and never merely state a funny-sounding fact. "
+                 "Avoid repeated introductions, stage directions, markdown, and internal reasoning. "
+                 "/no_think")
+
+
+def prepare_question(question):
+    """Strengthen constraints for requests tiny local models often mishandle."""
+    if re.search(r"\b(joke|jokes|funny|pun)\b", question, re.IGNORECASE):
+        return (question + "\nGive a complete setup and a punchline that actually answers "
+                "the setup. No introduction or explanation. /no_think")
+    return question + ' /no_think'
+
 
 
 def phrases(buffer, final=False, max_chars=110):
@@ -55,10 +68,12 @@ def stream_llm(base_url, question, max_tokens, timeout):
             'model': 'local',
             'messages': [
                 {'role': 'system', 'content': SYSTEM_PROMPT},
-                {'role': 'user', 'content': question + ' /no_think'},
+                {'role': 'user', 'content': prepare_question(question)},
             ],
             'max_tokens': max_tokens, 'stream': True,
-            'temperature': 0.5,
+            'temperature': 0.7,
+            'top_p': 0.9,
+            'repeat_penalty': 1.1,
         }).encode(),
         headers={'Content-Type': 'application/json', 'Accept': 'text/event-stream'},
         method='POST',

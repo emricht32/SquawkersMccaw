@@ -1,7 +1,13 @@
 import unittest
-from llm_speak import phrases, ThinkFilter
+from llm_speak import phrases, ThinkFilter, prepare_question
 
 class PhraseTests(unittest.TestCase):
+    def test_joke_has_punchline_instruction(self):
+        self.assertIn('punchline', prepare_question('Tell me a pirate joke'))
+
+    def test_general_question_no_joke_instruction(self):
+        self.assertNotIn('punchline', prepare_question('What is a pirate ship?'))
+
     def test_sentence(self):
         self.assertEqual(phrases('Ahoy! Welcome ab'), (['Ahoy!'], 'Welcome ab'))
     def test_completion(self):
