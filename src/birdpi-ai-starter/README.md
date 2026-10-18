@@ -38,3 +38,26 @@ Use Piper experimental phoneme alignment when supported; otherwise derive pulses
 4. Integrate llama.cpp and phrase streaming; then add streaming STT/VAD.
 
 Piper's alignment API and the voice patching instructions: https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/ALIGNMENTS.md
+
+## Persistent speech server (Milestone 2)
+
+Unlike `speak.py`, `server.py` loads Piper **once** and keeps it in memory.
+
+In terminal 1, from the project directory:
+
+```bash
+.venv/bin/python server.py
+```
+
+Keep it running. In terminal 2, from the same directory:
+
+```bash
+curl http://127.0.0.1:8081/health
+curl -sS -X POST http://127.0.0.1:8081/api/speech \
+  -H 'Content-Type: application/json' \
+  -d '{"bird":"jose","text":"Ahoy! Welcome aboard!","play":true}'
+```
+
+`play:true` launches `aplay` on ALSA's working default device. Omit `play` to synthesize without local playback. The JSON contains `singing_ranges` and an `audio` URL like `/api/audio/<id>`. Download that audio via `curl -o sample.wav http://127.0.0.1:8081/api/audio/<id>`.
+
+This version deliberately binds to **127.0.0.1 only**. If you later allow remote devices to access it, avoid exposing the endpoint to the internet; there's no authentication. It stores generated WAV/JSON files under `output/server/`, so periodically clean up old files if disk use matters. `play:true` is a local convenience; it does not yet synchronize beak motor cues with playback.
