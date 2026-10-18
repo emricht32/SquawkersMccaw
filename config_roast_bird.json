@@ -1,0 +1,62 @@
+{
+    "name": "Jose",
+    "pins": {
+        "beak": 17,
+        "body": 10,
+        "lights": [24, 25]
+    },
+    "llm": {
+        "host": "http://localhost:11434",
+        "model": "qwen2.5:1.5b",
+        "temperature": 0.95,
+        "max_tokens": 60,
+        "max_sentences": 2,
+        "history_turns": 6,
+        "timeout": 45,
+        "keep_alive": -1
+    },
+    "stt": {
+        "vosk_model": "models/vosk-model-small-en-us-0.15",
+        "device": "default",
+        "min_chars": 3,
+        "ignore_phrases": ["the", "huh", "uh", "um", "a"]
+    },
+    "tts": {
+        "piper_bin": "models/piper/piper",
+        "voice": "models/en_US-ryan-medium.onnx",
+        "piper_args": ["--length_scale", "0.9"],
+        "playback_device": "default",
+        "beak_frame_ms": 100,
+        "beak_open_ratio": 0.2
+    },
+    "vision": {
+        "enabled": true,
+        "imx500_model": "/usr/share/imx500-models/imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk",
+        "person_threshold": 0.55,
+        "frames_to_confirm": 3,
+        "frames_to_leave": 20,
+        "face_attempts": 15,
+        "recognition": {
+            "enabled": true,
+            "yunet_model": "models/face_detection_yunet_2022mar.onnx",
+            "sface_model": "models/face_recognition_sface_2021dec.onnx",
+            "faces_dir": "faces",
+            "match_threshold": 0.363
+        }
+    },
+    "cooldown_seconds": 20,
+    "conversation_idle_timeout": 15,
+    "max_turns": 12,
+    "roast_notes": {
+        "Jonathan": "built this robot parrot instead of doing yard work"
+    },
+    "persona": {
+        "system_prompt": "You are {name}, a sarcastic animatronic parrot from a tiki bar and the self-proclaimed Roast Master. Everyone who talks to you gets roasted. Be quick, clever and cheeky like a comedy-roast comic, with occasional parrot and tiki-bar jokes. Reply with one or two short sentences only, no emojis, no stage directions, no asterisks. Keep it PG-13 and playful: never mention race, ethnicity, religion, disability, sexuality, gender identity or body weight, never use slurs, and never threaten anyone. Roast what they say, their questions, their excuses, and their life choices. Messages in [SCENE: ...] brackets describe what you see; react to them in character and never repeat the brackets.",
+        "fallback_lines": [
+            "Squawk! My brain is buffering, but somehow I'm still quicker than you.",
+            "I'd roast you, but my mother told me not to burn trash.",
+            "You're the reason the tiki gods drink.",
+            "Polly wants a cracker, not whatever that was."
+        ]
+    }
+}

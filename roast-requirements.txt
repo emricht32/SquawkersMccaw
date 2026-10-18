@@ -1,0 +1,4 @@
+# Roast Master mode (Raspberry Pi OS Bookworm 64-bit).
+# picamera2, gpiozero, numpy and opencv come from apt (python3-picamera2, python3-opencv);
+# create the venv with --system-site-packages so they are visible.
+vosk>=0.3.45

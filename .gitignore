@@ -175,3 +175,8 @@ xcuserdata/
 *.wav
 music/**/*.wav
 **/config_lms_host.json
+
+# Roast Master mode: downloaded models, venv, and enrolled face embeddings (biometric data)
+/models/
+/.roast-venv/
+/faces/

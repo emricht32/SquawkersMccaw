@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Follow semantic versioning: MAJOR.MINOR.PATCH.
 
+## 0.13.0 - 2026-10-13
+### Added
+- **Roast Master mode** (`src/roast_daemon.py`, `src/roast/`): standalone single-bird mode that roasts whoever walks up.
+  - Person detection offloaded to the Raspberry Pi AI Camera (IMX500); optional face ID with OpenCV YuNet + SFace.
+  - Vosk speech-to-text, Ollama LLM (local or remote host), Piper text-to-speech with beak synced to audio loudness.
+  - `--console` text mode for persona tuning and `--enroll NAME` for face enrollment.
+  - `config_roast_bird.json`, `roast-requirements.txt`, and `roast_install.sh` (Raspberry Pi OS Bookworm + systemd).
+
 ## 0.12.1 - 2025-12-27
 ### Added
 - **Fallback Wi-Fi Access Point (AP) Installer**: Added `birdpi_install_fallback_ap.sh` for piCorePlayer-based BirdPis.

@@ -193,6 +193,54 @@ The following components have been moved to `deprecated/` and are no longer acti
 
 These are replaced by piCorePlayer's native UI and the `bird_daemon.py`-based architecture.
 
+## Roast Master Mode (single bird, AI)
+
+An alternate, standalone mode where one bird becomes a trash-talking "Roast Master" parrot. It does not use LMS or the song choreography.
+
+```
+AI Camera (IMX500, on-sensor person detection)
+   └─ person arrives ─> face ID on CPU (OpenCV YuNet + SFace, optional)
+        └─> LLM roast (Ollama) ─> Piper TTS ─> speaker + beak synced to audio loudness
+              └─> Vosk STT listens for comebacks ─> LLM ─> ... until they leave or go quiet
+```
+
+| Piece | Default | Where it runs |
+|---|---|---|
+| Presence | `imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk` ("person" class) | On the AI Camera |
+| Face ID | YuNet 2022mar + SFace 2021dec (OpenCV) | Pi CPU, once per arrival |
+| Speech-to-text | Vosk `small-en-us` | Pi CPU |
+| LLM | Ollama `qwen2.5:1.5b` | Pi, or any machine on the LAN via `llm.host` |
+| Text-to-speech | Piper `en_US-ryan-medium` | Pi CPU |
+
+**Hardware:** Raspberry Pi 5 (8 GB) or Pi 4 recommended, running **Raspberry Pi OS Bookworm 64-bit** (not piCorePlayer: the AI Camera needs `picamera2` + `imx500-all`). Add a USB mic and a speaker/amp. A Pi Zero 2 W can handle camera + STT + TTS, but only tiny LLMs (e.g. `smollm2:135m`) and the roasts get dumb; offload the LLM instead by running `INSTALL_OLLAMA=0` and pointing `llm.host` at a bigger machine running Ollama (`OLLAMA_HOST=0.0.0.0 ollama serve`).
+
+### Setup
+```bash
+git clone https://github.com/emricht32/SquawkersMccaw.git && cd SquawkersMccaw
+sh roast_install.sh                 # apt deps, models into ./models, venv, Ollama, systemd unit
+sudo reboot
+.roast-venv/bin/python src/roast_daemon.py --enroll "Jonathan"   # repeat per person
+sudo systemctl start roast-bird && journalctl -u roast-bird -f
+```
+
+### Configuration: `config_roast_bird.json`
+- `pins`: same GPIO keys as `config_single_bird.json` (`beak`, `body`, `lights`).
+- `llm`: Ollama `host`, `model`, `temperature`, `max_tokens`, `max_sentences`.
+- `persona.system_prompt`: the bird's personality (`{name}` is replaced with `name`). `fallback_lines` are used if the LLM is unreachable.
+- `roast_notes`: per-person ammunition keyed by enrolled name, e.g. `"Jonathan": "built a robot parrot instead of doing yard work"`.
+- `vision.recognition.enabled`: set `false` to just roast "strangers" without face ID.
+- `conversation_idle_timeout`, `cooldown_seconds`, `max_turns`: conversation pacing.
+- `tts.beak_frame_ms` / `beak_open_ratio`: tune beak flapping to the voice.
+
+### Tuning the persona without hardware
+Run Ollama on your laptop and chat with the bird in a terminal (no mic, camera, or speaker needed):
+```bash
+python3 src/roast_daemon.py --console
+# type to talk, "/arrive Jonathan" to simulate a visitor, "/leave" to walk away
+```
+
+Enrolled face embeddings are stored in `faces/` (git-ignored). The daemon holds the camera, so stop it (`sudo systemctl stop roast-bird`) before enrolling.
+
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
