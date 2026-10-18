@@ -61,3 +61,22 @@ curl -sS -X POST http://127.0.0.1:8081/api/speech \
 `play:true` launches `aplay` on ALSA's working default device. Omit `play` to synthesize without local playback. The JSON contains `singing_ranges` and an `audio` URL like `/api/audio/<id>`. Download that audio via `curl -o sample.wav http://127.0.0.1:8081/api/audio/<id>`.
 
 This version deliberately binds to **127.0.0.1 only**. If you later allow remote devices to access it, avoid exposing the endpoint to the internet; there's no authentication. It stores generated WAV/JSON files under `output/server/`, so periodically clean up old files if disk use matters. `play:true` is a local convenience; it does not yet synchronize beak motor cues with playback.
+
+## Milestone 3 — Local LLM to spoken speech
+
+Keep the existing `server.py` running on port 8081. In a separate shell:
+
+```bash
+./setup_llm.sh
+./llama.cpp/build/bin/llama-server -hf Qwen/Qwen3-0.6B-GGUF:Q4_K_M --host 127.0.0.1 --port 8082 -c 2048 -t 4
+```
+
+The first run downloads the GGUF model. When the LLM is listening, in a third shell:
+
+```bash
+.venv/bin/python llm_speak.py 'Tell me a short pirate joke' --bird jose
+```
+
+The script reads streaming response tokens, extracts complete phrases, sends them to the existing Piper API, downloads the WAV, and plays them **in order** using the tested ALSA default. LLM generation overlaps with speech synthesis/playback via a queue. Test without playback using `--no-play`. It prints time-to-first-token and first synthesized phrase timing. The main Pi and physical motors are NOT connected yet.
+
+These local test services bind to 127.0.0.1. Do not expose without authentication and request limits. As with milestone 2, generated WAV/JSON files accumulate in `output/server/` until deleted.
