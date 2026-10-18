@@ -5,6 +5,7 @@ The first complete phrase can play while the LLM produces later text.
 Requires Python standard library only. Use localhost-only endpoints.
 """
 import argparse
+import random
 import json
 import re
 import queue
@@ -25,6 +26,32 @@ SYSTEM_PROMPT = ("You are José, a quick-witted animatronic tiki bird. "
                  "never announce you are telling a joke, and never merely state a funny-sounding fact. "
                  "Avoid repeated introductions, stage directions, markdown, and internal reasoning. "
                  "/no_think")
+
+
+# Curated, public-domain-style original one-liners and setup/punchline jokes.
+# Immediate offline fallback for requests where a 0.6B LLM is unreliable.
+JOKES = [
+    "Why couldn't the pirate learn the alphabet? Because he kept getting lost at C!",
+    "What did the pirate say on his eightieth birthday? Aye matey!",
+    "Why did the pirate buy an eye patch? Because he couldn't see himself paying for glasses!",
+    "What is a pirate's favorite exercise? The plank!",
+    "Why was the pirate terrible at cards? He always stood on the deck!",
+    "Why don't pirates shower before walking the plank? They just wash up on shore!",
+    "How much did the pirate pay for his earrings? A buck an ear!",
+    "Why did the pirate become a baker? He was great at making arrr-tisan bread!",
+]
+
+def is_joke_request(text):
+    return bool(re.search(r"\b(joke|jokes|funny|pun)\b", text, re.IGNORECASE))
+
+def clean_for_speech(text):
+    """Remove common model formatting before passing text to a TTS engine."""
+    text = re.sub(r'<[^>]*>', ' ', text)
+    text = re.sub(r'\*\*|__|`+', '', text)
+    text = re.sub(r'(?im)^\s*(?:#{1,6}\s*|[-*]\s+|\d+[.)]\s+)', '', text)
+    text = re.sub(r'(?i)\b(?:setup|punchline|answer)\s*:\s*', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 
 def prepare_question(question):
@@ -141,6 +168,8 @@ def main():
     parser.add_argument('--max-tokens', type=int, default=100)
     parser.add_argument('--timeout', type=int, default=120)
     parser.add_argument('--no-play', action='store_true')
+    parser.add_argument('--joke-source', choices=['library', 'llm'], default='library',
+                        help='Use curated offline jokes by default; llm forces live generation')
     args = parser.parse_args()
     started = time.monotonic()
     first_token_s = None
@@ -157,6 +186,9 @@ def main():
             try:
                 if phrase is None:
                     return
+                phrase = clean_for_speech(phrase)
+                if not phrase:
+                    continue
                 response = speak(args.tts_url, args.bird, phrase, args.timeout, False)
                 phrase_count += 1
                 if first_phrase_s is None:
@@ -181,7 +213,9 @@ def main():
     worker = threading.Thread(target=player, daemon=True)
     worker.start()
     try:
-        for token in stream_llm(args.llm_url, args.question, args.max_tokens, args.timeout):
+        tokens = ([random.choice(JOKES)] if is_joke_request(args.question) and args.joke_source == 'library'
+                  else stream_llm(args.llm_url, args.question, args.max_tokens, args.timeout))
+        for token in tokens:
             if first_token_s is None:
                 first_token_s = time.monotonic() - started
             buffer += filter_.feed(token)

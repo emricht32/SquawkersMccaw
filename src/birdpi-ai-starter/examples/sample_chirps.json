@@ -1,0 +1,7 @@
+{
+  "chirps": [
+    {"id":"DEMO_jose_hat_01","family_id":"demo_hat_weather","type":"roast","speaker":"jose","text":"That's quite a hat! Does it come with its own weather forecast?","tags":["hat","accessory"],"required_tags":["hat"],"optional_tags":["bright_clothing"],"excluded_tags":[],"trigger":"person_detected","tone":"playful","intensity":2,"audience":"all_ages","min_age":0,"weight":1.0,"estimated_quality":8,"requires_response":false,"enabled":true},
+    {"id":"DEMO_polly_01","family_id":"demo_polly_barber","type":"comeback","speaker":"polly","text":"Fuck you! Your barber didn't give you a haircut, he gave you a fucking warning.","tags":["fuck_you_polly"],"required_tags":["adult_mode","direct_insult"],"optional_tags":["hat"],"excluded_tags":[],"trigger":"voice_command","tone":"aggressive_comedy","intensity":4,"audience":"adults","min_age":18,"weight":1.0,"estimated_quality":8,"requires_response":false,"enabled":true},
+    {"id":"DEMO_jose_generic_01","family_id":"demo_treasure","type":"joke","speaker":"jose","text":"I buried my treasure under a palm tree. Unfortunately, the palm tree has moved to Florida.","tags":["pirate","tiki"],"required_tags":[],"optional_tags":[],"excluded_tags":[],"trigger":"manual","tone":"absurd","intensity":1,"audience":"all_ages","min_age":0,"weight":1.0,"estimated_quality":7,"requires_response":false,"enabled":true}
+  ]
+}
