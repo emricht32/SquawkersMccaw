@@ -1,0 +1,37 @@
+{
+  "jose": {
+    "model": "en_US-lessac-medium",
+    "speaker_id": null,
+    "length_scale": 1.0,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  },
+  "michael": {
+    "model": "en_US-lessac-medium",
+    "speaker_id": null,
+    "length_scale": 1.0,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  },
+  "fritz": {
+    "model": "en_US-lessac-medium",
+    "speaker_id": null,
+    "length_scale": 1.0,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  },
+  "pierre": {
+    "model": "en_US-lessac-medium",
+    "speaker_id": null,
+    "length_scale": 1.0,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  },
+  "polly": {
+    "model": "en_GB-semaine-medium",
+    "speaker_id": 3,
+    "length_scale": 0.9,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  }
+}

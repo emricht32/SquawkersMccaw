@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "notes": "Spoken, cartoon-like squawks intended for Piper auditions. Not realistic bird recordings. Render as separate WAV clips; voice acting/custom voices may improve results. This library is NOT part of the joke text.",
+  "pre": [
+    {
+      "id": "pre_braawk",
+      "text": "BRAAWK!",
+      "weight": 3
+    },
+    {
+      "id": "pre_awkawk",
+      "text": "AWK-AWK!",
+      "weight": 3
+    },
+    {
+      "id": "pre_skeeee",
+      "text": "SKEE-EE!",
+      "weight": 2
+    },
+    {
+      "id": "pre_rawk",
+      "text": "RAAWK!",
+      "weight": 2
+    },
+    {
+      "id": "pre_squawk",
+      "text": "SQUAAAWK!",
+      "weight": 2
+    },
+    {
+      "id": "pre_awk",
+      "text": "AWK!",
+      "weight": 2
+    },
+    {
+      "id": "pre_brrrawk",
+      "text": "BRRRAAWK!",
+      "weight": 1
+    }
+  ],
+  "post": [
+    {
+      "id": "post_awk",
+      "text": "AWK!",
+      "weight": 3
+    },
+    {
+      "id": "post_awkawk",
+      "text": "AWK-AWK!",
+      "weight": 2
+    },
+    {
+      "id": "post_braawk",
+      "text": "BRAAWK!",
+      "weight": 2
+    },
+    {
+      "id": "post_skeeee",
+      "text": "SKEE-EE!",
+      "weight": 1
+    },
+    {
+      "id": "post_rawk",
+      "text": "RAAWK!",
+      "weight": 2
+    },
+    {
+      "id": "post_haawk",
+      "text": "HAA-AWK!",
+      "weight": 1
+    },
+    {
+      "id": "post_squawk",
+      "text": "SQUAAAWK!",
+      "weight": 1
+    }
+  ]
+}

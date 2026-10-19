@@ -103,7 +103,10 @@ def synth(db,ch,url,play=False):
     texts=[(line['speaker'],line['text']) for line in ch.get('dialogue',[])] or [(ch['speaker'],ch['text'])]
     output=[]
     for speaker,text in texts:
-        key=hashlib.sha256((speaker+'\0'+text+'\0'+url).encode()).hexdigest()
+        profile_file=Path('voices/profiles.json')
+        profile_data=json.loads(profile_file.read_text()) if profile_file.exists() else {}
+        voice_profile=json.dumps(profile_data.get(speaker,{}),sort_keys=True)
+        key=hashlib.sha256(('v8-multivoice'+speaker+'\0'+text+'\0'+url+'\0'+voice_profile).encode()).hexdigest()
         cached=db.execute('SELECT audio,cues FROM audio_cache WHERE cache_key=?',(key,)).fetchone()
         if cached:
             wav=bytes(cached['audio']); meta=json.loads(cached['cues'])
@@ -119,12 +122,29 @@ def synth(db,ch,url,play=False):
         output.append({'speaker':speaker,'text':text,'duration':meta.get('duration'),'singing_ranges':meta.get('singing_ranges',[]),'cache_key':key})
     return output
 
+def pick_vocalizations(path, speaker, mode='both', seed=None):
+    """Choose optional standalone pre/post utterances; never modify the joke text."""
+    if speaker not in BIRDS: raise ValueError('invalid bird')
+    library=json.loads(Path(path).read_text(encoding='utf-8'))
+    rng=random.Random(seed)
+    result=[]
+    for role in ('pre','post'):
+        if mode not in ('both',role):continue
+        pool=[x for x in library.get(role,[]) if x.get('enabled',True) and
+              (not x.get('birds') or speaker in x['birds'])]
+        if not pool:continue
+        if any(not isinstance(x.get('text'),str) or not x['text'].strip() for x in pool):
+            raise ValueError('invalid vocalization text')
+        chosen=rng.choices(pool,weights=[max(0,float(x.get('weight',1))) for x in pool],k=1)[0]
+        result.append({'role':role,'id':chosen['id'],'speaker':speaker,'text':chosen['text']})
+    return result
+
 def main():
     p=argparse.ArgumentParser(description='BirdPi chirp library CLI')
     p.add_argument('--db',default='data/chirps.sqlite')
     sub=p.add_subparsers(dest='action',required=True)
     a=sub.add_parser('import');a.add_argument('file')
-    a=sub.add_parser('select');a.add_argument('--bird',required=True,choices=sorted(BIRDS));a.add_argument('--tags',default='');a.add_argument('--listeners',default='');a.add_argument('--session',default='demo');a.add_argument('--seed',type=int);a.add_argument('--cooldown-hours',type=float,default=1);a.add_argument('--play',action='store_true');a.add_argument('--tts-url',default='http://127.0.0.1:8081')
+    a=sub.add_parser('select');a.add_argument('--bird',required=True,choices=sorted(BIRDS));a.add_argument('--tags',default='');a.add_argument('--listeners',default='');a.add_argument('--session',default='demo');a.add_argument('--seed',type=int);a.add_argument('--cooldown-hours',type=float,default=1);a.add_argument('--play',action='store_true');a.add_argument('--tts-url',default='http://127.0.0.1:8081');a.add_argument('--vocalize',choices=['pre','post','both'],help='Play standalone cartoon vocalizations before/after the selected chirp');a.add_argument('--vocalization-file',default='libraries/parrot_vocalizations.json')
     a=sub.add_parser('stats')
     args=p.parse_args();Path(args.db).parent.mkdir(parents=True,exist_ok=True)
     db=connect(args.db)
@@ -133,11 +153,21 @@ def main():
     tags=[x.strip() for x in args.tags.split(',') if x.strip()];listeners=[x.strip() for x in args.listeners.split(',') if x.strip()]
     ch=select(db,args.bird,tags,listeners,args.session,args.cooldown_hours,args.seed)
     if not ch:print(json.dumps({'selected':None,'reason':'No eligible chirp; no repeats or applicable tags'}));return
+    chosen_vocals=pick_vocalizations(args.vocalization_file,args.bird,args.vocalize,args.seed) if args.vocalize else []
+    pre=[v for v in chosen_vocals if v['role']=='pre']
+    post=[v for v in chosen_vocals if v['role']=='post']
     if args.play:
-        cues=synth(db,ch,args.tts_url,play=True)
+        cues=[]
+        for v in pre:
+            c=synth(db,{'id':v['id'],'speaker':v['speaker'],'text':v['text']},args.tts_url,play=True)
+            cues.append({'role':'pre','cue':c})
+        cues.append({'role':'chirp','cue':synth(db,ch,args.tts_url,play=True)})
+        for v in post:
+            c=synth(db,{'id':v['id'],'speaker':v['speaker'],'text':v['text']},args.tts_url,play=True)
+            cues.append({'role':'post','cue':c})
     else:cues=None
     # Only record after all audio playback succeeds; simulation is non-mutating by default.
     if args.play:record(db,ch,args.session,listeners)
-    print(json.dumps({'selected':ch,'audio_cues':cues,'recorded':bool(args.play)},ensure_ascii=False,indent=2))
+    print(json.dumps({'selected':ch,'audio_cues':cues,'vocalizations':chosen_vocals,'recorded':bool(args.play)},ensure_ascii=False,indent=2))
 
 if __name__=='__main__':main()

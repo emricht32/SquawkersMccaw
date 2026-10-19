@@ -1,3 +1,7 @@
+# BirdPi AI starter v8
+
+See [README_V8.md](README_V8.md) for upgrade and test instructions.
+
 # BirdPi AI — Milestone 1: local speech + beak cues
 
 Designed for **Raspberry Pi 5**, 64-bit Raspberry Pi OS Lite. No LLM/STT required for this first test.
@@ -123,3 +127,23 @@ Adult mode is an *operator-controlled flag*: only enable for confirmed adults-on
 The second playback attempt with the same listener/session won't repeat that `family_id`. The engine also enforces a global one-hour family cooldown by default. `--cooldown-hours` changes it; player session IDs are caller-provided temporary IDs. Store no biometric information in this prototype. `audio_cache` stores WAV and timing JSON obtained from Piper for later replay without synthesis. `--play` uses local ALSA and currently does not move physical motors. The cached cues are returned in `audio_cues` for integration with the existing synchronized bird node scheduler later.
 
 **Important limitations:** Scene tags and adult authorization must be supplied by trusted upstream processes; camera integration and automatic voice trigger recognition are not implemented. A sample batch is bundled only to demonstrate the schema, not as a production comedy library. This is a CLI prototype, not an always-on camera-driven runtime. Because `--play` records only after successful complete playback, interruption handling and exact heard-range tracking need further development. There is no built-in personal-data deletion CLI yet: use ephemeral session IDs; manage retention before long-term deployment. If the exact text and voice model changes while retaining a cache key, explicitly invalidate old cache entries (the current key is based on speaker/text/server URL, not voice model revision). Cross-batch near-duplicate detection remains an editorial/importer enhancement.
+
+
+## v7 — Spoken pre/post parrot squawks
+
+Bundled full curated library: `libraries/birdpi_comedy_library.json` (991 entries).
+Import once: `.venv/bin/python chirp_engine.py import libraries/birdpi_comedy_library.json`.
+
+Standalone cartoon-style spoken vocalizations in `libraries/parrot_vocalizations.json` include `BRAAWK!`, `AWK-AWK!`, `SKEE-EE!`, and editable variants. Inspired by voice-actor-style cartoon parrot calls, not attempts to create realistic recordings. Entries have IDs and weights and are cached by the existing synth path. They are optional, and **not embedded into the joke's text or counted as jokes**. Polly remains isolated; its squawks are standalone Polly-only utterances.
+
+Preview without audio (does not record or synthesize):
+```
+.venv/bin/python chirp_engine.py select --bird jose --tags hat --session demo --vocalize both
+```
+
+Play pre-squawk, joke, then post-squawk using the existing Piper server and your ALSA default:
+```
+.venv/bin/python chirp_engine.py select --bird jose --tags hat --listeners guest7 --session test1 --play --vocalize both
+```
+
+Use `--vocalize pre` or `--vocalize post` for only one side. Without `--vocalize`, prior behavior is unchanged. If Piper sounds artificial for these nonlexical utterances, record/cartoon-act the expressions or switch to a more suitable voice model in a later release. WAV plus lip-sync cue cache remains separate for every utterance. Currently it plays sequentially without a timing gap; no physical motor outputs yet.
