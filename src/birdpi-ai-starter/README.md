@@ -147,3 +147,6 @@ Play pre-squawk, joke, then post-squawk using the existing Piper server and your
 ```
 
 Use `--vocalize pre` or `--vocalize post` for only one side. Without `--vocalize`, prior behavior is unchanged. If Piper sounds artificial for these nonlexical utterances, record/cartoon-act the expressions or switch to a more suitable voice model in a later release. WAV plus lip-sync cue cache remains separate for every utterance. Currently it plays sequentially without a timing gap; no physical motor outputs yet.
+
+## v9 vision preview
+See [README_V9.md](README_V9.md) for friends-folder enrollment, camera capture, OpenCV model setup, and the local preview dashboard.
