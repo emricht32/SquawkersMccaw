@@ -1,0 +1,35 @@
+{
+  "bird_count": 1,
+  "notes": "Set explicitly to 1, 4, or 5. Count installed physical birds, not transient online nodes.",
+  "polly_pins_file": "../../config_single_bird.json",
+  "beak": {
+    "audio_latency_s": 0.0,
+    "max_open_s": 0.4,
+    "min_closed_s": 0.06
+  },
+  "queue": {
+    "polly_max_wait_s": 300
+  },
+  "audio": {
+    "output": "lms",
+    "serve_port": 0,
+    "lms_start_timeout_s": 8.0
+  },
+  "voice": {
+    "adult_mode": false,
+    "vosk_model": "models/vosk-model-small-en-us-0.15",
+    "mic_device": "default",
+    "cooldown_s": 3.0,
+    "polly_aliases": ["polly", "poly", "pauly", "paulie", "pollie", "polley"],
+    "jose_aliases": ["jose", "hosay", "ho say", "hose a"]
+  },
+  "lms": {
+    "host": "birdpi-main.local",
+    "cli_port": 9090,
+    "web_port": 9000,
+    "timeout_s": 3.0,
+    "polly_player": "birdpi-polly",
+    "song_player": "birdpi-main",
+    "player_ids": []
+  }
+}

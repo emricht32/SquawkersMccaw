@@ -489,6 +489,64 @@ def fetch_current_track_status(player_id: str) -> tuple[str | None, float | None
             pass
 
 
+# Polly's comedy player (birdpi-polly) is never part of the song system.
+IGNORED_PLAYER_NAME_PART = os.environ.get("BIRDPI_IGNORE_PLAYER", "polly").lower()
+_player_name_cache: dict[str, str] = {}
+
+
+def get_player_name(player_id: str) -> str | None:
+    if player_id in _player_name_cache:
+        return _player_name_cache[player_id]
+    conn = http.client.HTTPConnection(LMS_HOST, LMS_WEB_PORT, timeout=3)
+    try:
+        body = json.dumps({"id": 1, "method": "slim.request", "params": [player_id, ["status", "-", "1"]]})
+        conn.request("POST", "/jsonrpc.js", body=body, headers={"Content-Type": "application/json"})
+        resp = conn.getresponse()
+        data = resp.read()
+        if resp.status != 200:
+            raise RuntimeError(f"JSON-RPC status {resp.status}")
+        name = json.loads(data.decode("utf-8")).get("result", {}).get("player_name")
+    except Exception as e:
+        log(f"get_player_name({player_id}) failed: {e}")
+        return None
+    finally:
+        conn.close()
+    if name:
+        _player_name_cache[player_id] = name
+        log(f"Player {player_id} is named '{name}'")
+    return name
+
+
+def is_ignored_player(player_id: str) -> bool:
+    if not IGNORED_PLAYER_NAME_PART:
+        return False
+    name = get_player_name(player_id)
+    return bool(name) and IGNORED_PLAYER_NAME_PART in name.lower()
+
+
+def polly_is_playing() -> bool:
+    if not IGNORED_PLAYER_NAME_PART:
+        return False
+    conn = http.client.HTTPConnection(LMS_HOST, LMS_WEB_PORT, timeout=3)
+    try:
+        body = json.dumps({"id": 1, "method": "slim.request", "params": ["", ["serverstatus", "0", "99"]]})
+        conn.request("POST", "/jsonrpc.js", body=body, headers={"Content-Type": "application/json"})
+        resp = conn.getresponse()
+        data = resp.read()
+        if resp.status != 200:
+            raise RuntimeError(f"JSON-RPC status {resp.status}")
+        players = json.loads(data.decode("utf-8")).get("result", {}).get("players_loop", [])
+    except Exception as e:
+        log(f"polly_is_playing check failed: {e}")
+        return False
+    finally:
+        conn.close()
+    return any(
+        IGNORED_PLAYER_NAME_PART in str(p.get("name", "")).lower() and str(p.get("isplaying", 0)) == "1"
+        for p in players
+    )
+
+
 def _stop_current_song_locked():
     """
     Internal helper. Assumes current_song_lock is already held.
@@ -542,6 +600,11 @@ def start_song_from_status(player_id: str):
     log(f"song_dict={song_dict}")
     if not song_dict:
         log(f"No song config found for title_norm='{title_norm}'")
+        return
+
+    # Polly's gate stops this song and restarts it from the top once she is done.
+    if polly_is_playing():
+        log(f"Polly is talking; not animating '{title_norm}' until it restarts")
         return
 
     with current_song_lock:
@@ -657,6 +720,9 @@ def subscribe_loop():
                 event_cmd_full = rest[1]  # e.g. "newsong", "open file://...", "stop", "jump", etc.
 
                 if event_group != "playlist":
+                    continue
+
+                if is_ignored_player(player_id):
                     continue
 
                 if event_cmd_full == "newsong":

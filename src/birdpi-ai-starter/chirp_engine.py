@@ -98,24 +98,28 @@ def record(db,ch,session,listeners):
         cur=db.execute('INSERT INTO plays(chirp_id,family_id,played_at,session_id) VALUES(?,?,?,?)',(ch['id'],ch['family_id'],time.time(),session))
         db.executemany('INSERT INTO listeners(play_id,listener_id) VALUES(?,?)',[(cur.lastrowid,p) for p in set(listeners)])
 
+def render(db,speaker,text,url,chirp_id=''):
+    """Return (wav_bytes, piper_meta, cache_key) for one utterance, using the audio cache."""
+    profile_file=Path('voices/profiles.json')
+    profile_data=json.loads(profile_file.read_text()) if profile_file.exists() else {}
+    voice_profile=json.dumps(profile_data.get(speaker,{}),sort_keys=True)
+    key=hashlib.sha256(('v8-multivoice'+speaker+'\0'+text+'\0'+url+'\0'+voice_profile).encode()).hexdigest()
+    cached=db.execute('SELECT audio,cues FROM audio_cache WHERE cache_key=?',(key,)).fetchone()
+    if cached:
+        return bytes(cached['audio']),json.loads(cached['cues']),key
+    body=json.dumps({'bird':speaker,'text':text,'play':False}).encode()
+    req=Request(url+'/api/speech',body,{'Content-Type':'application/json'})
+    with urlopen(req,timeout=120) as resp:meta=json.load(resp)
+    with urlopen(url+meta['audio'],timeout=30) as resp:wav=resp.read()
+    with db:db.execute('INSERT OR REPLACE INTO audio_cache VALUES(?,?,?,?,?)',(key,chirp_id,wav,json.dumps(meta),time.time()))
+    return wav,meta,key
+
 def synth(db,ch,url,play=False):
     # Baked cache survives service restarts and keeps audio aligned with cue JSON.
     texts=[(line['speaker'],line['text']) for line in ch.get('dialogue',[])] or [(ch['speaker'],ch['text'])]
     output=[]
     for speaker,text in texts:
-        profile_file=Path('voices/profiles.json')
-        profile_data=json.loads(profile_file.read_text()) if profile_file.exists() else {}
-        voice_profile=json.dumps(profile_data.get(speaker,{}),sort_keys=True)
-        key=hashlib.sha256(('v8-multivoice'+speaker+'\0'+text+'\0'+url+'\0'+voice_profile).encode()).hexdigest()
-        cached=db.execute('SELECT audio,cues FROM audio_cache WHERE cache_key=?',(key,)).fetchone()
-        if cached:
-            wav=bytes(cached['audio']); meta=json.loads(cached['cues'])
-        else:
-            body=json.dumps({'bird':speaker,'text':text,'play':False}).encode()
-            req=Request(url+'/api/speech',body,{'Content-Type':'application/json'})
-            with urlopen(req,timeout=120) as resp:meta=json.load(resp)
-            with urlopen(url+meta['audio'],timeout=30) as resp:wav=resp.read()
-            with db:db.execute('INSERT OR REPLACE INTO audio_cache VALUES(?,?,?,?,?)',(key,ch['id'],wav,json.dumps(meta),time.time()))
+        wav,meta,key=render(db,speaker,text,url,ch['id'])
         if play:
             # Use working system ALSA default; no shell, no nondefault device override.
             subprocess.run(['aplay','-q'],input=wav,check=True)
