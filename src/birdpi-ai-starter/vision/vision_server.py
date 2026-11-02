@@ -34,7 +34,7 @@ def serve(engine, gallery_path, host='127.0.0.1', port=8090, fps=3):
     stop = threading.Event()
 
     def loop():
-        nonlocal jpeg, gallery, gallery_mtime, next_id
+        nonlocal jpeg, gallery, gallery_mtime, next_id, tracker
         while not stop.is_set():
             started = time.monotonic()
             try:
