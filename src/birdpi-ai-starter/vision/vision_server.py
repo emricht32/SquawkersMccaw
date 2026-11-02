@@ -6,6 +6,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from recognition import load_gallery
 from urllib.parse import urlparse
 
 HTML = '''<!doctype html><html lang="en"><meta charset="utf-8"><title>BirdPi Vision Preview</title>
