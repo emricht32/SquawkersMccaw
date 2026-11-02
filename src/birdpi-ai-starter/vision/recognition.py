@@ -22,20 +22,48 @@ def models_ready():
 
 
 class FaceEngine:
-    def __init__(self, score_threshold=0.9, match_threshold=0.42):
+    def __init__(self, score_threshold=0.6, match_threshold=0.42, max_detection_dimension=640):
         if not models_ready():
             raise RuntimeError('Face models missing. Run: ./vision/install_vision.sh')
         import cv2
         self.cv2 = cv2
         self.detector = cv2.FaceDetectorYN.create(str(DETECTOR), '', (320, 320), score_threshold)
         self.recognizer = cv2.FaceRecognizerSF.create(str(RECOGNIZER), '')
-        self.match_threshold = match_threshold  # conservative starting point; calibrate on own data
+        self.match_threshold = match_threshold  # starting point; calibrate with known and unknown faces
+        self.max_detection_dimension = max_detection_dimension
 
     def faces(self, bgr):
+        """Detect on a downscaled frame, returning faces in ORIGINAL image coordinates.
+
+        YuNet returns [x, y, w, h, 5 landmark pairs, confidence].
+        SFace.alignCrop needs all coordinates in the original image's pixel space.
+        """
         h, w = bgr.shape[:2]
-        self.detector.setInputSize((w, h))
-        _, detections = self.detector.detect(bgr)
-        return [] if detections is None else list(detections)
+        if h < 1 or w < 1:
+            return []
+        scale = min(1.0, self.max_detection_dimension / max(w, h))
+        if scale < 1.0:
+            target_w = max(1, round(w * scale))
+            target_h = max(1, round(h * scale))
+            frame = self.cv2.resize(
+                bgr, (target_w, target_h), interpolation=self.cv2.INTER_AREA
+            )
+        else:
+            frame = bgr
+            target_h, target_w = h, w
+
+        self.detector.setInputSize((target_w, target_h))
+        _, detections = self.detector.detect(frame)
+        if detections is None:
+            return []
+        if scale == 1.0:
+            return list(detections)
+
+        # Account for rounding dimensions separately; do not alter confidence.
+        detections = detections.copy()
+        detections[:, [0, 2, 4, 6, 8, 10, 12]] *= w / target_w
+        detections[:, [1, 3, 5, 7, 9, 11, 13]] *= h / target_h
+        return list(detections)
 
     def embedding(self, image, face):
         aligned = self.recognizer.alignCrop(image, face)
